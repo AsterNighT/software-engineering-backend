@@ -1,0 +1,85 @@
+# Backend for ZJU 2021 SE Project
+
+> Should be renamed after
+
+
+
+## Technology stack
+
+Developing
+
+- Language: https://golang.org/
+- Orm: https://gorm.io/index.html
+- Validator: https://github.com/go-playground/validator
+- Unit test: https://github.com/stretchr/testify
+- Config: https://github.com/spf13/viper
+- Framework: https://github.com/labstack/echo
+- API Definition: https://github.com/swaggo/swag and https://github.com/swaggo/echo-swagger
+- Auth: https://github.com/dgrijalva/jwt-go
+- Logging: https://github.com/sirupsen/logrus
+
+CI
+
+- Github actions
+
+- Linting: https://github.com/golangci/golangci-lint
+
+CD
+
+- Github actions
+- Direct deployment
+
+## How to contribute?
+
+If you are a group member:
+
+1. `Fork` this repo to your account.
+2. `git clone` the repo you cloned to your computer.
+3. `git remote add` The original repo (https://github.com/2021-ZJU-Software-engineering/software-engineering-backend) as `upstream`.
+4. Always `git pull upstream master` on `master` branch before you start developing.
+5. `git checkout -b` to a new branch.
+6. Write your code and tests.
+7. Test it.
+8. Commit your code with `-s` for signed-off
+9. Submit a pull request to the [original repo](https://github.com/2021-ZJU-Software-engineering/software-engineering-backend) on your group branch.
+10. Get review from your group leader and partners.
+11. If you are not getting a LGTM, goto 6 and rewrite your code.
+12. Get a LGTM and merge your code. 
+
+If you are a group leader, in addition to the above, you need to:
+
+1. Submit a pull request from your group branch to master. 
+2. Get review from [@AsterNighT](https://github.com/AsterNighT) .
+3. If you are not getting a LGTM, go to the code writer and ask him/her to fix it, goto 2.
+4. Get a LGTM and merge your code.
+
+## How to do code review?
+
+Go through the code line by line carefully, start a review and ask yourself questions:
+
+1. Is the code clear enough? If not, does it get enough comments?
+2. Is the code badly composed? It there an obvious way to make it better?
+3. Is the code necessary? 
+4. It the code error-prone? Is it fully tested?
+5. Is there and unit test if necessary?
+
+Don't hesitate to raised questions. It is the author's duty to answer them. Even the mildest suggestion matters. If you don't raise your question now, you may be questioned by [@AsterNighT](https://github.com/AsterNighT) when you try to merge your code into master.
+
+If you feel good enough about the code, apply an approve and comment "LGTM" (Look good to me). This is common practice. If not, feel free to comment and request change from the author.
+
+If the author has fixed the code, he/she can @the reviewer with the word "PTAL" (Please take another look, common practice, too) and ask for a new review.
+
+
+
+## Precautions
+
+- **Stick to a good naming style**, refer to https://github.com/kettanaito/naming-cheatsheet
+- **Stick to good code style**. I'll enforce some of them here:
+  - Use spaces not tabs
+  - 4 space indent
+  - Use `\n` as line separator
+  - Use camelCase for names
+- **Do not just throw your code somewhere**, do good module partition and refer to https://github.com/golang-standards/project-layout for layout.
+- If you have trouble cloning from git, refer to https://doc.fastgit.org/zh-cn/#%E5%85%B3%E4%BA%8E-fastgit
+- If you have trouble downloading go modules, refer to https://goproxy.io/zh/
+
