@@ -29,6 +29,18 @@ CD
 - Github actions
 - Direct deployment
 
+## Where can I learn relevant things?
+
+- Golang: https://tour.golang.org/welcome/1
+- Git: https://learngitbranching.js.org/?locale=zh_CN
+- Basic http: https://developer.mozilla.org/zh-CN/docs/Web/HTTP
+- Packages: Read their github repo and go document. Search it on google for detailed examples.
+
+## Recommended development environment
+
+- vscode (or goland)
+- golang 1.16.1
+
 ## How to contribute?
 
 If you are a group member:
@@ -60,8 +72,8 @@ Go through the code line by line carefully, start a review and ask yourself ques
 1. Is the code clear enough? If not, does it get enough comments?
 2. Is the code badly composed? It there an obvious way to make it better?
 3. Is the code necessary? 
-4. It the code error-prone? Is it fully tested?
-5. Is there and unit test if necessary?
+4. It the code error-prone? Is it fully tested, manually or automatically?
+5. Is there any unit test if necessary?
 
 Don't hesitate to raised questions. It is the author's duty to answer them. Even the mildest suggestion matters. If you don't raise your question now, you may be questioned by [@AsterNighT](https://github.com/AsterNighT) when you try to merge your code into master.
 
@@ -71,7 +83,7 @@ If the author has fixed the code, he/she can @the reviewer with the word "PTAL" 
 
 
 
-## Precautions
+## Precautions and questions you may ask
 
 - **Stick to a good naming style**, refer to https://github.com/kettanaito/naming-cheatsheet
 - **Stick to good code style**. I'll enforce some of them here:
@@ -80,6 +92,8 @@ If the author has fixed the code, he/she can @the reviewer with the word "PTAL" 
   - Use `\n` as line separator
   - Use camelCase for names
 - **Do not just throw your code somewhere**, do good module partition and refer to https://github.com/golang-standards/project-layout for layout.
+- Always use English. And use good English for everyone's sake.
+- Write markdown for documents in this repo. Microsoft Doc is not acceptable.
 - If you have trouble cloning from git, refer to https://doc.fastgit.org/zh-cn/#%E5%85%B3%E4%BA%8E-fastgit
 - If you have trouble downloading go modules, refer to https://goproxy.io/zh/
 
