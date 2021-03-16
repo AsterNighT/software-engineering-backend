@@ -93,6 +93,7 @@ If the author has fixed the code, he/she can @the reviewer with the word "PTAL" 
   - Use camelCase for names
 - **Do not just throw your code somewhere**, do good module partition and refer to https://github.com/golang-standards/project-layout for layout.
 - Always use English. And use good English for everyone's sake.
+- The project is meant to be developed and built on linux tool chains. Its Makefile and similar scripts serve this purpose. It may or may not run properly on windows. Handle it yourself if you work on windows.
 - Write markdown for documents in this repo. Microsoft Doc is not acceptable.
 - If you have trouble cloning from git, refer to https://doc.fastgit.org/zh-cn/#%E5%85%B3%E4%BA%8E-fastgit
 - If you have trouble downloading go modules, refer to https://goproxy.io/zh/
