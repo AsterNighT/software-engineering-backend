@@ -16,7 +16,6 @@ Developing
 - Framework: https://github.com/labstack/echo
 - API Definition: https://github.com/swaggo/swag and https://github.com/swaggo/echo-swagger
 - Auth: https://github.com/dgrijalva/jwt-go
-- Logging: https://github.com/sirupsen/logrus
 
 CI
 

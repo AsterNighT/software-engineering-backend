@@ -1,7 +1,11 @@
 
+.PHONY: all build run check fmt lint test clean setup-tools
 
 build:
-	go build 
+	go build -o build/main ./cmd/_rename_this_/main.go
+
+run:
+	build/main
 
 check: fmt lint test
 
