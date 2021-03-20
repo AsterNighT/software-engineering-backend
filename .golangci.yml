@@ -1,24 +1,24 @@
 linters:
   enable:
-    deadcode
-    errcheck
-    gosimple
-    govet
-    ineffassign
-    staticcheck
-    structcheck
-    typecheck
-    unused
-    varcheck
-    asciicheck
-    bodyclode
-    dupl
-    durationcheck
-    errorlint
-    exhaustive
-    exhaustivestruct
-    goconst
-    goimports
-    gosec
-    ifshort
-    revive
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+    - asciicheck
+    - bodyclose
+    - dupl
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - exhaustivestruct
+    - goconst
+    - goimports
+    - gosec
+    - ifshort
+    - revive
