@@ -1,4 +1,27 @@
+basePath: /api
+host: localhost:12448
 info:
-  contact: {}
-paths: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /ping:
+    get:
+      description: respond to a ping request from client
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Good, server is up
+          schema:
+            type: pong
+      summary: Test server up statue
 swagger: "2.0"

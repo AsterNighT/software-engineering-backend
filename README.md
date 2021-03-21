@@ -86,8 +86,6 @@ If the author has fixed the code, he/she can @the reviewer with the word "PTAL" 
 
 - **Stick to a good naming style**, refer to https://github.com/kettanaito/naming-cheatsheet
 - **Stick to good code style**. I'll enforce some of them here:
-  - Use spaces not tabs
-  - 4 space indent
   - Use `\n` as line separator
   - Use camelCase for names
 - **Do not just throw your code somewhere**, do good module partition and refer to https://github.com/golang-standards/project-layout for layout.

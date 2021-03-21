@@ -1,7 +1,39 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This is a sample server Petstore server.",
+        "title": "Swagger Example API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
-    "paths": {}
+    "host": "localhost:12448",
+    "basePath": "/api",
+    "paths": {
+        "/ping": {
+            "get": {
+                "description": "respond to a ping request from client",
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Test server up statue",
+                "responses": {
+                    "200": {
+                        "description": "Good, server is up",
+                        "schema": {
+                            "type": "pong"
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
