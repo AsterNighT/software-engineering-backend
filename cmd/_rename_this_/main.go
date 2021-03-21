@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/YOUR-USER-OR-ORG-NAME/YOUR-REPO-NAME/pkg/router"
-	"github.com/labstack/echo/v4"
-)
+	"github.com/AsterNighT/software-engineering-backend/pkg/router"
 
-var Log echo.Logger
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
 
 func main() {
 	app := echo.New()
-	Log = app.Logger
-	Log.SetLevel(1)
-	router.RegisterRoutersRegisterRouters(app)
-	Log.Fatal(app.Start(":12448"))
+	// How to use middleware
+	app.Use(middleware.Logger())
+
+	router.RegisterRouters(app)
+	app.Logger.Fatal(app.Start(":12448"))
 }
