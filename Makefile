@@ -18,6 +18,9 @@ lint:
 test:
 	go test ./...
 
+swag:
+	swag init -g ./pkg/router/router.go
+
 setup-tools:
 	go get github.com/swaggo/swag/cmd/swag
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.37.0
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.38.0
