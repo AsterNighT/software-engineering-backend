@@ -30,7 +30,7 @@ func RegisterRouters(app *echo.Echo) error {
 		router.GET("/ping", pingHandler)
 		{
 			// Use nested scopes and shadowing for subgroups
-			router = router.Group("/case")
+			// router = router.Group("/case")
 		}
 
 	}
