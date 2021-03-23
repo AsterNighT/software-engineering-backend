@@ -56,7 +56,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Anything you want to pass to the frontend, but make it simple and necessary",
+                    "description": "Anything you want to pass to the frontend, but make it simple and necessary\nIf there's nothing to return, this field will be omitted",
                     "type": "object"
                 },
                 "status": {
