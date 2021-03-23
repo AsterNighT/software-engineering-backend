@@ -22,16 +22,31 @@
             "get": {
                 "description": "respond to a ping request from client",
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "summary": "Test server up statue",
                 "responses": {
                     "200": {
                         "description": "Good, server is up",
                         "schema": {
-                            "type": "pong"
+                            "$ref": "#/definitions/api.ReturnedData"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.ReturnedData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Anything you want to pass to the frontend, but make it simple and necessary",
+                    "type": "object"
+                },
+                "status": {
+                    "description": "A simple string indicating the status.\nIs it ok, or some error occurs? If so, what is the error?\nIt should be \"ok\" is everything goes fine",
+                    "type": "string"
                 }
             }
         }

@@ -1,8 +1,7 @@
 package router
 
 import (
-	"net/http"
-
+	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -39,10 +38,10 @@ func RegisterRouters(app *echo.Echo) error {
 
 // @Summary Test server up statue
 // @Description respond to a ping request from client
-// @Produce plain
-// @Success 200 {string} string	"Good, server is up"
+// @Produce json
+// @Success 200 {object} api.ReturnedData	"Good, server is up"
 // @Router /ping [GET]
 func pingHandler(c echo.Context) error {
 	c.Logger().Debug("hello world")
-	return c.String(http.StatusOK, "pong")
+	return c.JSON(200, api.Return("pong", nil))
 }

@@ -1,4 +1,18 @@
 basePath: /api
+definitions:
+  api.ReturnedData:
+    properties:
+      data:
+        description: Anything you want to pass to the frontend, but make it simple
+          and necessary
+        type: object
+      status:
+        description: |-
+          A simple string indicating the status.
+          Is it ok, or some error occurs? If so, what is the error?
+          It should be "ok" is everything goes fine
+        type: string
+    type: object
 host: localhost:12448
 info:
   contact:
@@ -17,11 +31,11 @@ paths:
     get:
       description: respond to a ping request from client
       produces:
-      - text/plain
+      - application/json
       responses:
         "200":
           description: Good, server is up
           schema:
-            type: pong
+            $ref: '#/definitions/api.ReturnedData'
       summary: Test server up statue
 swagger: "2.0"
