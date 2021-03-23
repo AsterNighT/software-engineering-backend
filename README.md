@@ -1,7 +1,7 @@
 # Backend for ZJU 2021 SE Project
 
 > Should be renamed after
-
+[![codecov](https://codecov.io/gh/AsterNighT/software-engineering-backend/branch/master/graph/badge.svg?token=KVTMLK759A)](https://codecov.io/gh/AsterNighT/software-engineering-backend)
 
 
 ## Technology stack
