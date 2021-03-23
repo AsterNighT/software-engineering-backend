@@ -1,6 +1,9 @@
 # Backend for ZJU 2021 SE Project
 
 > Should be renamed after
+
+[![CI](https://github.com/AsterNighT/software-engineering-backend/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/AsterNighT/software-engineering-backend/actions/workflows/ci.yml)
+
 [![codecov](https://codecov.io/gh/AsterNighT/software-engineering-backend/branch/master/graph/badge.svg?token=KVTMLK759A)](https://codecov.io/gh/AsterNighT/software-engineering-backend)
 
 
