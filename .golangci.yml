@@ -16,7 +16,6 @@ linters:
     - durationcheck
     - errorlint
     - exhaustive
-    - exhaustivestruct
     - goconst
     - goimports
     - gosec

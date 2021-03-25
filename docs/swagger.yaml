@@ -14,6 +14,58 @@ definitions:
           It should be "ok" is everything goes fine
         type: string
     type: object
+  github.com_AsterNighT_software-engineering-backend_pkg_cases.Case:
+    properties:
+      complaint:
+        type: string
+      diagnosis:
+        type: string
+      id:
+        description: Every object should have ID
+        type: integer
+      patientID:
+        description: A has many relationship should be on this
+        type: integer
+      prescriptions:
+        items:
+          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
+        type: array
+    type: object
+  github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription:
+    properties:
+      caseID:
+        type: integer
+      details:
+        type: string
+      id:
+        type: integer
+    type: object
+  pkg_cases.Case:
+    properties:
+      complaint:
+        type: string
+      diagnosis:
+        type: string
+      id:
+        description: Every object should have ID
+        type: integer
+      patientID:
+        description: A has many relationship should be on this
+        type: integer
+      prescriptions:
+        items:
+          $ref: '#/definitions/pkg_cases.Prescription'
+        type: array
+    type: object
+  pkg_cases.Prescription:
+    properties:
+      caseID:
+        type: integer
+      details:
+        type: string
+      id:
+        type: integer
+    type: object
 host: localhost:12448
 info:
   contact:
@@ -28,6 +80,27 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /case/{id}:
+    get:
+      parameters:
+      - description: case ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/pkg_cases.Case'
+              type: object
+      summary: Get case by case id
   /ping:
     get:
       description: respond to a ping request from client

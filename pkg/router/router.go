@@ -1,16 +1,17 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
+	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
-type basicHandler struct {
+type BasicHandler struct {
 }
-
-var h basicHandler
 
 // @title Swagger Example API
 // @version 1.0
@@ -28,13 +29,17 @@ var h basicHandler
 // @BasePath /api
 func RegisterRouters(app *echo.Echo) error {
 
+	var h BasicHandler
 	app.GET("/swagger/*", echoSwagger.WrapHandler)
+	app.GET("/swagger", h.RedirectToSwagger)
 	{
 		router := app.Group("/api")
-		router.GET("/ping", h.ping)
+		router.GET("/ping", h.Ping)
 		{
 			// Use nested scopes and shadowing for subgroups
-			// router = router.Group("/case")
+			var h cases.CaseHandler
+			router = router.Group("/case")
+			router.GET("/:id", h.GetCaseByCaseID)
 		}
 
 	}
@@ -46,7 +51,12 @@ func RegisterRouters(app *echo.Echo) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData	"Good, server is up"
 // @Router /ping [GET]
-func (h *basicHandler) ping(c echo.Context) error {
+func (h *BasicHandler) Ping(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("pong", nil))
+}
+
+func (h *BasicHandler) RedirectToSwagger(c echo.Context) error {
+	c.Response().Header().Set("Location", "swagger/index.html")
+	return c.NoContent(http.StatusMovedPermanently)
 }

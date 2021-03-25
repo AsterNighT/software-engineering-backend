@@ -14,11 +14,10 @@ func TestPing(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	h := &basicHandler{}
+	h := &BasicHandler{}
 
 	// Assertions
-	if assert.NoError(t, h.ping(c)) {
+	if c := e.NewContext(req, rec); assert.NoError(t, h.Ping(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "{\"status\":\"pong\"}\n", rec.Body.String())
 	}

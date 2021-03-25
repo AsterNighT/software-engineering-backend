@@ -33,6 +33,43 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/case/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get case by case id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/ping": {
             "get": {
                 "description": "respond to a ping request from client",
@@ -62,6 +99,84 @@ var doc = `{
                 "status": {
                     "description": "A simple string indicating the status.\nIs it ok, or some error occurs? If so, what is the error?\nIt should be \"ok\" is everything goes fine",
                     "type": "string"
+                }
+            }
+        },
+        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Case": {
+            "type": "object",
+            "properties": {
+                "complaint": {
+                    "type": "string"
+                },
+                "diagnosis": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Every object should have ID",
+                    "type": "integer"
+                },
+                "patientID": {
+                    "description": "A has many relationship should be on this",
+                    "type": "integer"
+                },
+                "prescriptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
+                    }
+                }
+            }
+        },
+        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription": {
+            "type": "object",
+            "properties": {
+                "caseID": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pkg_cases.Case": {
+            "type": "object",
+            "properties": {
+                "complaint": {
+                    "type": "string"
+                },
+                "diagnosis": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Every object should have ID",
+                    "type": "integer"
+                },
+                "patientID": {
+                    "description": "A has many relationship should be on this",
+                    "type": "integer"
+                },
+                "prescriptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pkg_cases.Prescription"
+                    }
+                }
+            }
+        },
+        "pkg_cases.Prescription": {
+            "type": "object",
+            "properties": {
+                "caseID": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         }

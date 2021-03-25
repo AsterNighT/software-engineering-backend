@@ -9,9 +9,9 @@ import (
 
 func main() {
 	app := echo.New()
-	// How to use middleware
 	app.Use(middleware.Logger())
 
 	router.RegisterRouters(app)
+	// database.InitDb()
 	app.Logger.Fatal(app.Start(":12448"))
 }

@@ -20,7 +20,7 @@ test:
 	go test ./...
 
 swag:
-	swag init -g pkg/router/router.go
+	swag init --parseDependency -g pkg/router/router.go 
 
 setup-tools:
 	go get github.com/swaggo/swag/cmd/swag
