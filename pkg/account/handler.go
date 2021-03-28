@@ -94,7 +94,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	host_vcode := fmt.Sprintf("%06v", rnd.Int31n(1e6))
 
-	SendVeriMsg(Email, host_vcode) // Func wait for implementation
+	// SendVeriMsg(Email, host_vcode) // Func wait for implementation
 
 	// Wait for response from client...
 
