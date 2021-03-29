@@ -2,17 +2,16 @@ package account
 
 import (
 	"container/list"
-	"fmt"
-	"math/rand"
+	"crypto/rand"
 	"net/http"
 	"regexp"
-	"strconv"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
 var account_list = list.New()
+
+// type AcountType string
 
 type AccountHandler struct {
 }
@@ -23,7 +22,7 @@ type AccountHandler struct {
  */
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
-	Type, err_atoi := strconv.Atoi(c.QueryParam("Type"))
+	Type := AcountType(c.QueryParam("Type"))
 	Name := c.QueryParam("Name")
 	Passwd := c.QueryParam("Passwd")
 
@@ -32,7 +31,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 			"error": "Invali E-mail Address"})
 	}
 
-	if err_atoi != nil || Type > int(ACCOUNT_TYPE_ADMIN) {
+	if Type != ACCOUNT_TYPE_PATIENT && Type != ACCOUNT_TYPE_DOCTOR && Type != ACCOUNT_TYPE_ADMIN {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invali Account Type"})
 	}
@@ -91,8 +90,15 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	}
 
 	// Gen verification code
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	host_vcode := fmt.Sprintf("%06v", rnd.Int31n(1e6))
+	buffer := make([]byte, 6)
+	_, err := rand.Read(buffer)
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < 6; i++ {
+		buffer[i] = "1234567890"[int(buffer[i])%6]
+	}
+	host_vcode := string(buffer)
 
 	// SendVeriMsg(Email, host_vcode) // Func wait for implementation
 

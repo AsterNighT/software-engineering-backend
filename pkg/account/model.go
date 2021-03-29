@@ -3,18 +3,18 @@ package account
 const ACCOUNT_PASSWD_LEN = 8
 
 type Account struct {
-	Email string `gorm:"primarykey"`
+	ID    uint `gorm:"primarykey"`
+	Email string
 
-	// Type   AcountType
-	Type   int
+	Type   AcountType
 	Name   string
 	Passwd string // Wait for encryption
 }
 
-type AcountType int
+type AcountType string
 
 const (
-	ACCOUNT_TYPE_PATIENT AcountType = iota
-	ACCOUNT_TYPE_DOCTOR  AcountType = iota
-	ACCOUNT_TYPE_ADMIN   AcountType = iota
+	ACCOUNT_TYPE_PATIENT AcountType = "patient"
+	ACCOUNT_TYPE_DOCTOR  AcountType = "doctor"
+	ACCOUNT_TYPE_ADMIN   AcountType = "admin"
 )

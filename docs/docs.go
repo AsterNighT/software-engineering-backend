@@ -60,7 +60,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pkg_cases.Case"
+                                            "$ref": "#/definitions/cases.Case"
                                         }
                                     }
                                 }
@@ -102,7 +102,7 @@ var doc = `{
                 }
             }
         },
-        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Case": {
+        "cases.Case": {
             "type": "object",
             "properties": {
                 "complaint": {
@@ -122,51 +122,12 @@ var doc = `{
                 "prescriptions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
+                        "$ref": "#/definitions/cases.Prescription"
                     }
                 }
             }
         },
-        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription": {
-            "type": "object",
-            "properties": {
-                "caseID": {
-                    "type": "integer"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "pkg_cases.Case": {
-            "type": "object",
-            "properties": {
-                "complaint": {
-                    "type": "string"
-                },
-                "diagnosis": {
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Every object should have ID",
-                    "type": "integer"
-                },
-                "patientID": {
-                    "description": "A has many relationship should be on this",
-                    "type": "integer"
-                },
-                "prescriptions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/pkg_cases.Prescription"
-                    }
-                }
-            }
-        },
-        "pkg_cases.Prescription": {
+        "cases.Prescription": {
             "type": "object",
             "properties": {
                 "caseID": {

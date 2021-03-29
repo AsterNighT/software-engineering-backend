@@ -14,7 +14,7 @@ definitions:
           It should be "ok" is everything goes fine
         type: string
     type: object
-  github.com_AsterNighT_software-engineering-backend_pkg_cases.Case:
+  cases.Case:
     properties:
       complaint:
         type: string
@@ -28,36 +28,10 @@ definitions:
         type: integer
       prescriptions:
         items:
-          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
+          $ref: '#/definitions/cases.Prescription'
         type: array
     type: object
-  github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription:
-    properties:
-      caseID:
-        type: integer
-      details:
-        type: string
-      id:
-        type: integer
-    type: object
-  pkg_cases.Case:
-    properties:
-      complaint:
-        type: string
-      diagnosis:
-        type: string
-      id:
-        description: Every object should have ID
-        type: integer
-      patientID:
-        description: A has many relationship should be on this
-        type: integer
-      prescriptions:
-        items:
-          $ref: '#/definitions/pkg_cases.Prescription'
-        type: array
-    type: object
-  pkg_cases.Prescription:
+  cases.Prescription:
     properties:
       caseID:
         type: integer
@@ -98,7 +72,7 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/pkg_cases.Case'
+                  $ref: '#/definitions/cases.Case'
               type: object
       summary: Get case by case id
   /ping:
