@@ -17,12 +17,19 @@ definitions:
   github.com_AsterNighT_software-engineering-backend_pkg_cases.Case:
     properties:
       complaint:
+        description: Use urls to locate pictures
+        type: string
+      department:
         type: string
       diagnosis:
         type: string
+      doctorID:
+        type: integer
       id:
         description: Every object should have ID
         type: integer
+      pastHistory:
+        type: string
       patientID:
         description: A has many relationship should be on this
         type: integer
@@ -30,6 +37,12 @@ definitions:
         items:
           $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
         type: array
+      previousCase:
+        $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+        description: Previous case (the lastest one). If there is none prevous case,
+          set nil
+      previousCaseID:
+        type: integer
     type: object
   github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription:
     properties:
@@ -43,12 +56,19 @@ definitions:
   pkg_cases.Case:
     properties:
       complaint:
+        description: Use urls to locate pictures
+        type: string
+      department:
         type: string
       diagnosis:
         type: string
+      doctorID:
+        type: integer
       id:
         description: Every object should have ID
         type: integer
+      pastHistory:
+        type: string
       patientID:
         description: A has many relationship should be on this
         type: integer
@@ -56,6 +76,12 @@ definitions:
         items:
           $ref: '#/definitions/pkg_cases.Prescription'
         type: array
+      previousCase:
+        $ref: '#/definitions/pkg_cases.Case'
+        description: Previous case (the lastest one). If there is none prevous case,
+          set nil
+      previousCaseID:
+        type: integer
     type: object
   pkg_cases.Prescription:
     properties:
@@ -80,6 +106,57 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /case:
+    post:
+      parameters:
+      - description: patient ID
+        in: formData
+        name: pid
+        required: true
+        type: integer
+      - description: doctor ID
+        in: formData
+        name: did
+        required: true
+        type: integer
+      - description: department name
+        in: formData
+        name: department
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"establishment success"}'
+          schema:
+            type: string
+      summary: New a case
+      tags:
+      - Case
+  /case/{cid}:
+    get:
+      parameters:
+      - description: current case ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/pkg_cases.Case'
+              type: object
+      summary: Get prevoius case by current case ID
+      tags:
+      - Case
   /case/{id}:
     get:
       parameters:
@@ -101,6 +178,100 @@ paths:
                   $ref: '#/definitions/pkg_cases.Case'
               type: object
       summary: Get case by case id
+      tags:
+      - Case
+  /case/PastHistory/{id}:
+    patch:
+      parameters:
+      - description: case ID
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: Past History details
+        in: formData
+        name: details
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"modification success"}'
+          schema:
+            type: string
+      summary: Update Past History
+      tags:
+      - Case
+  /case/complaint/{id}:
+    patch:
+      parameters:
+      - description: case ID
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: complaint details
+        in: formData
+        name: details
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"modification success"}'
+          schema:
+            type: string
+      summary: Update complaint
+      tags:
+      - Case
+  /case/department:
+    get:
+      parameters:
+      - description: department name
+        in: path
+        name: department
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/pkg_cases.Case'
+              type: object
+      summary: Get lastest case by department name
+      tags:
+      - Case
+  /case/diagnosis/{id}:
+    patch:
+      parameters:
+      - description: case ID
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: diagnosis details
+        in: formData
+        name: details
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"modification success"}'
+          schema:
+            type: string
+      summary: Update diagnosis
+      tags:
+      - Case
   /ping:
     get:
       description: respond to a ping request from client
@@ -112,4 +283,50 @@ paths:
           schema:
             $ref: '#/definitions/api.ReturnedData'
       summary: Test server up statue
+  /prescription:
+    post:
+      parameters:
+      - description: case ID
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: prescription details
+        in: formData
+        name: details
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"establishment success"}'
+          schema:
+            type: string
+      summary: New a prescrition
+      tags:
+      - Prescription
+  /prescription/{id}:
+    get:
+      parameters:
+      - description: prescription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
+              type: object
+      summary: Get prescription by prescription id
+      tags:
+      - Prescription
 swagger: "2.0"

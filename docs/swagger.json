@@ -18,10 +18,240 @@
     "host": "localhost:12448",
     "basePath": "/api",
     "paths": {
+        "/case": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "New a case",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "patient ID",
+                        "name": "pid",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "doctor ID",
+                        "name": "did",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "department name",
+                        "name": "department",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"establishment success\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/case/PastHistory/{id}": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Update Past History",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Past History details",
+                        "name": "details",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"modification success\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/case/complaint/{id}": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Update complaint",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "complaint details",
+                        "name": "details",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"modification success\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/case/department": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get lastest case by department name",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "department name",
+                        "name": "department",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/case/diagnosis/{id}": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Update diagnosis",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "diagnosis details",
+                        "name": "details",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"modification success\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/case/{cid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get prevoius case by current case ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "current case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/case/{id}": {
             "get": {
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Case"
                 ],
                 "summary": "Get case by case id",
                 "parameters": [
@@ -71,6 +301,81 @@
                     }
                 }
             }
+        },
+        "/prescription": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prescription"
+                ],
+                "summary": "New a prescrition",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "prescription details",
+                        "name": "details",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"establishment success\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/prescription/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prescription"
+                ],
+                "summary": "Get prescription by prescription id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "prescription ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -91,14 +396,24 @@
             "type": "object",
             "properties": {
                 "complaint": {
+                    "description": "Use urls to locate pictures",
+                    "type": "string"
+                },
+                "department": {
                     "type": "string"
                 },
                 "diagnosis": {
                     "type": "string"
                 },
+                "doctorID": {
+                    "type": "integer"
+                },
                 "id": {
                     "description": "Every object should have ID",
                     "type": "integer"
+                },
+                "pastHistory": {
+                    "type": "string"
                 },
                 "patientID": {
                     "description": "A has many relationship should be on this",
@@ -109,6 +424,13 @@
                     "items": {
                         "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
                     }
+                },
+                "previousCase": {
+                    "description": "Previous case (the lastest one). If there is none prevous case, set nil",
+                    "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                },
+                "previousCaseID": {
+                    "type": "integer"
                 }
             }
         },
@@ -130,14 +452,24 @@
             "type": "object",
             "properties": {
                 "complaint": {
+                    "description": "Use urls to locate pictures",
+                    "type": "string"
+                },
+                "department": {
                     "type": "string"
                 },
                 "diagnosis": {
                     "type": "string"
                 },
+                "doctorID": {
+                    "type": "integer"
+                },
                 "id": {
                     "description": "Every object should have ID",
                     "type": "integer"
+                },
+                "pastHistory": {
+                    "type": "string"
                 },
                 "patientID": {
                     "description": "A has many relationship should be on this",
@@ -148,6 +480,13 @@
                     "items": {
                         "$ref": "#/definitions/pkg_cases.Prescription"
                     }
+                },
+                "previousCase": {
+                    "description": "Previous case (the lastest one). If there is none prevous case, set nil",
+                    "$ref": "#/definitions/pkg_cases.Case"
+                },
+                "previousCaseID": {
+                    "type": "integer"
                 }
             }
         },
