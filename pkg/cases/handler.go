@@ -12,37 +12,35 @@ type CaseHandler struct {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param pid formData uint true "patient ID"
-// @Param did formData uint true "doctor ID"
-// @Param department formData string true "department name"
-// @Success 200 {string} string "{"msg":"establishment success"}"
+// @Param caseDetail body string true "patient ID, doctor ID and department name"
+// @Success 200 {object} api.ReturnedData{data=Case}
 // @Router /case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
-	return c.JSON(200, "establishment success")
+	return c.JSON(200, api.Return("NewCase", nil))
 }
 
-// @Summary Get case by case id
+// @Summary Get case by a case-id list
 // @Description
 // @Tags Case
 // @Produce json
-// @Param  id path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
-// @Router /case/{id} [GET]
-func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
+// @Param  id query []uint true "case IDs"
+// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Router /case/{caseid} [GET]
+func (h *CaseHandler) GetCaseInOneList(c echo.Context) error {
 	// what is in here does not matter for now, just filling the swaggo comments and name the function
 	c.Logger().Debug("hello world")
-	return c.JSON(200, api.Return("GetCaseByCaseID", nil))
+	return c.JSON(200, api.Return("GetCaseInOneList", nil))
 }
 
-// @Summary Get prevoius case by current case ID
+// @Summary Get prevoius cases by current case ID
 // @Description
 // @Tags Case
 // @Produce json
 // @Param  id path uint true "current case ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
-// @Router /case/{cid} [GET]
+// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Router /case/{currentcaseid} [GET]
 func (h *CaseHandler) GetPreviousCaseByID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
@@ -53,7 +51,7 @@ func (h *CaseHandler) GetPreviousCaseByID(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param  department path uint true "department name"
+// @Param  department path string true "department name"
 // @Success 200 {object} api.ReturnedData{data=Case}
 // @Router /case/department [GET]
 func (h *CaseHandler) GetPreviousCaseByDepartment(c echo.Context) error {
@@ -62,71 +60,54 @@ func (h *CaseHandler) GetPreviousCaseByDepartment(c echo.Context) error {
 	return c.JSON(200, api.Return("GetPreviousCaseByDepartment", nil))
 }
 
-// @Summary Update complaint
+// @Summary Update case
 // @Description
 // @Tags Case
 // @Produce json
-// @Param id formData uint true "case ID"
-// @Param details formData string true "complaint details"
-// @Success 200 {string} string "{"msg":"modification success"}"
-// @Router /case/complaint/{id} [PATCH]
-func (h *CaseHandler) UpdateComplaint(c echo.Context) error {
+// @Param caseDetail body string true "case ID and updated details"
+// @Success 200 {object} api.ReturnedData{data=Case}
+// @Router /case/{caseid} [PUT]
+func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
-	return c.JSON(200, "modification success")
-}
-
-// @Summary Update diagnosis
-// @Description
-// @Tags Case
-// @Produce json
-// @Param id formData uint true "case ID"
-// @Param details formData string true "diagnosis details"
-// @Success 200 {string} string "{"msg":"modification success"}"
-// @Router /case/diagnosis/{id} [PATCH]
-func (h *CaseHandler) UpdateDiagnosis(c echo.Context) error {
-	// ...
-	c.Logger().Debug("hello world")
-	return c.JSON(200, "modification success")
-}
-
-// @Summary Update Past History
-// @Description
-// @Tags Case
-// @Produce json
-// @Param id formData uint true "case ID"
-// @Param details formData string true "Past History details"
-// @Success 200 {string} string "{"msg":"modification success"}"
-// @Router /case/PastHistory/{id} [PATCH]
-func (h *CaseHandler) UpdatePastHistory(c echo.Context) error {
-	// ...
-	c.Logger().Debug("hello world")
-	return c.JSON(200, "modification success")
+	return c.JSON(200, api.Return("UpdateCase", nil))
 }
 
 // @Summary New a prescrition
 // @Description
-// @Tags Prescription
+// @Tags Case
 // @Produce json
-// @Param id formData uint true "case ID"
-// @Param details formData string true "prescription details"
-// @Success 200 {string} string "{"msg":"establishment success"}"
-// @Router /prescription [POST]
+// @Param prescriptionDetail body string true "case ID and prescription details"
+// @Success 200 {object} api.ReturnedData{data=Prescription}
+// @Router /case/{caseid}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
-	return c.JSON(200, "establishment success")
+	return c.JSON(200, api.Return("NewPrescription", nil))
 }
 
 // @Summary Get prescription by prescription id
 // @Description
-// @Tags Prescription
+// @Tags Case
 // @Produce json
 // @Param id path uint true "prescription ID"
 // @Success 200 {object} api.ReturnedData{data=Prescription}
-// @Router /prescription/{id}  [GET]
+// @Router /case/prescription/{prescriptionid}  [GET]
 func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("GetPrescriptionByPrescriptionID", nil))
+}
+
+// @Summary Get prescriptions by case id
+// @Description
+// @Tags Case
+// @Produce json
+// @Param id path uint true "case ID"
+// @Success 200 {object} api.ReturnedData{data=[]Prescription}
+// @Router /case/{caseid}/prescription  [GET]
+func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
+	// ...
+	c.Logger().Debug("hello world")
+	return c.JSON(200, api.Return("GetPrescriptionByCaseID", nil))
 }

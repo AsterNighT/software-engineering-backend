@@ -29,102 +29,32 @@
                 "summary": "New a case",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "patient ID",
-                        "name": "pid",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "doctor ID",
-                        "name": "did",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "department name",
-                        "name": "department",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"establishment success\"}",
+                        "description": "patient ID, doctor ID and department name",
+                        "name": "caseDetail",
+                        "in": "body",
+                        "required": true,
                         "schema": {
                             "type": "string"
                         }
                     }
-                }
-            }
-        },
-        "/case/PastHistory/{id}": {
-            "patch": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Update Past History",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "case ID",
-                        "name": "id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Past History details",
-                        "name": "details",
-                        "in": "formData",
-                        "required": true
-                    }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"msg\":\"modification success\"}",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/case/complaint/{id}": {
-            "patch": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Update complaint",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "case ID",
-                        "name": "id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "complaint details",
-                        "name": "details",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"modification success\"}",
-                        "schema": {
-                            "type": "string"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -141,7 +71,7 @@
                 "summary": "Get lastest case by department name",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "department name",
                         "name": "department",
                         "in": "path",
@@ -160,7 +90,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pkg_cases.Case"
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                                         }
                                     }
                                 }
@@ -170,180 +100,13 @@
                 }
             }
         },
-        "/case/diagnosis/{id}": {
-            "patch": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Update diagnosis",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "case ID",
-                        "name": "id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "diagnosis details",
-                        "name": "details",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"modification success\"}",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/case/{cid}": {
+        "/case/prescription/{prescriptionid}": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Case"
-                ],
-                "summary": "Get prevoius case by current case ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "current case ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ReturnedData"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/pkg_cases.Case"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/case/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Get case by case id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "case ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ReturnedData"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/pkg_cases.Case"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/ping": {
-            "get": {
-                "description": "respond to a ping request from client",
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Test server up statue",
-                "responses": {
-                    "200": {
-                        "description": "Good, server is up",
-                        "schema": {
-                            "$ref": "#/definitions/api.ReturnedData"
-                        }
-                    }
-                }
-            }
-        },
-        "/prescription": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Prescription"
-                ],
-                "summary": "New a prescrition",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "case ID",
-                        "name": "id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "prescription details",
-                        "name": "details",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"establishment success\"}",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/prescription/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Prescription"
                 ],
                 "summary": "Get prescription by prescription id",
                 "parameters": [
@@ -367,11 +130,240 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
+                                            "$ref": "#/definitions/pkg_cases.Prescription"
                                         }
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/case/{caseid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get case by a case-id list",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "case IDs",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Update case",
+                "parameters": [
+                    {
+                        "description": "case ID and updated details",
+                        "name": "caseDetail",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/case/{caseid}/prescription": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get prescriptions by case id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/pkg_cases.Prescription"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "New a prescrition",
+                "parameters": [
+                    {
+                        "description": "case ID and prescription details",
+                        "name": "prescriptionDetail",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/pkg_cases.Prescription"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/case/{currentcaseid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get prevoius cases by current case ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "current case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "respond to a ping request from client",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Test server up statue",
+                "responses": {
+                    "200": {
+                        "description": "Good, server is up",
+                        "schema": {
+                            "$ref": "#/definitions/api.ReturnedData"
                         }
                     }
                 }

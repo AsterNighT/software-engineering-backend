@@ -109,32 +109,126 @@ paths:
   /case:
     post:
       parameters:
-      - description: patient ID
-        in: formData
-        name: pid
+      - description: patient ID, doctor ID and department name
+        in: body
+        name: caseDetail
         required: true
-        type: integer
-      - description: doctor ID
-        in: formData
-        name: did
-        required: true
-        type: integer
-      - description: department name
-        in: formData
-        name: department
-        required: true
-        type: string
+        schema:
+          type: string
       produces:
       - application/json
       responses:
         "200":
-          description: '{"msg":"establishment success"}'
+          description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+              type: object
       summary: New a case
       tags:
       - Case
-  /case/{cid}:
+  /case/{caseid}:
+    get:
+      parameters:
+      - description: case IDs
+        in: query
+        items:
+          type: integer
+        name: id
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+                  type: array
+              type: object
+      summary: Get case by a case-id list
+      tags:
+      - Case
+    put:
+      parameters:
+      - description: case ID and updated details
+        in: body
+        name: caseDetail
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+              type: object
+      summary: Update case
+      tags:
+      - Case
+  /case/{caseid}/prescription:
+    get:
+      parameters:
+      - description: case ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/pkg_cases.Prescription'
+                  type: array
+              type: object
+      summary: Get prescriptions by case id
+      tags:
+      - Case
+    post:
+      parameters:
+      - description: case ID and prescription details
+        in: body
+        name: prescriptionDetail
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/pkg_cases.Prescription'
+              type: object
+      summary: New a prescrition
+      tags:
+      - Case
+  /case/{currentcaseid}:
     get:
       parameters:
       - description: current case ID
@@ -152,78 +246,11 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/pkg_cases.Case'
+                  items:
+                    $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+                  type: array
               type: object
-      summary: Get prevoius case by current case ID
-      tags:
-      - Case
-  /case/{id}:
-    get:
-      parameters:
-      - description: case ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.ReturnedData'
-            - properties:
-                data:
-                  $ref: '#/definitions/pkg_cases.Case'
-              type: object
-      summary: Get case by case id
-      tags:
-      - Case
-  /case/PastHistory/{id}:
-    patch:
-      parameters:
-      - description: case ID
-        in: formData
-        name: id
-        required: true
-        type: integer
-      - description: Past History details
-        in: formData
-        name: details
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"modification success"}'
-          schema:
-            type: string
-      summary: Update Past History
-      tags:
-      - Case
-  /case/complaint/{id}:
-    patch:
-      parameters:
-      - description: case ID
-        in: formData
-        name: id
-        required: true
-        type: integer
-      - description: complaint details
-        in: formData
-        name: details
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"modification success"}'
-          schema:
-            type: string
-      summary: Update complaint
+      summary: Get prevoius cases by current case ID
       tags:
       - Case
   /case/department:
@@ -233,7 +260,7 @@ paths:
         in: path
         name: department
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -244,69 +271,12 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/pkg_cases.Case'
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
               type: object
       summary: Get lastest case by department name
       tags:
       - Case
-  /case/diagnosis/{id}:
-    patch:
-      parameters:
-      - description: case ID
-        in: formData
-        name: id
-        required: true
-        type: integer
-      - description: diagnosis details
-        in: formData
-        name: details
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"modification success"}'
-          schema:
-            type: string
-      summary: Update diagnosis
-      tags:
-      - Case
-  /ping:
-    get:
-      description: respond to a ping request from client
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Good, server is up
-          schema:
-            $ref: '#/definitions/api.ReturnedData'
-      summary: Test server up statue
-  /prescription:
-    post:
-      parameters:
-      - description: case ID
-        in: formData
-        name: id
-        required: true
-        type: integer
-      - description: prescription details
-        in: formData
-        name: details
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"establishment success"}'
-          schema:
-            type: string
-      summary: New a prescrition
-      tags:
-      - Prescription
-  /prescription/{id}:
+  /case/prescription/{prescriptionid}:
     get:
       parameters:
       - description: prescription ID
@@ -324,9 +294,20 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
+                  $ref: '#/definitions/pkg_cases.Prescription'
               type: object
       summary: Get prescription by prescription id
       tags:
-      - Prescription
+      - Case
+  /ping:
+    get:
+      description: respond to a ping request from client
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Good, server is up
+          schema:
+            $ref: '#/definitions/api.ReturnedData'
+      summary: Test server up statue
 swagger: "2.0"
