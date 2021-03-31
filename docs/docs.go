@@ -33,8 +33,105 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/case/PastHistory/{id}": {
-            "patch": {
+        "/account": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "login using email and passwd",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user e-mail",
+                        "name": "Email",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user password",
+                        "name": "Passwd",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/account_table": {
+            "post": {
+                "description": "will check primarykey other, then add to account_list if possible",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "create and account based on email(as id), type, name and password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user e-mail",
+                        "name": "Email",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user type",
+                        "name": "Type",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user name",
+                        "name": "Name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user password",
+                        "name": "Passwd",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/{id}": {
+            "post": {
                 "description": "can only be called during logged-in status since there is no password check",
                 "produces": [
                     "application/json"
@@ -47,27 +144,27 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "user e-mail",
-                        "name": "email",
-                        "in": "formData",
+                        "name": "Email",
+                        "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "user password (the new one)",
-                        "name": "paswd",
-                        "in": "formData",
+                        "name": "Passwd",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"msg\": \"Successfully modified\"}",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "{\"error\": \"Invali E-mail Address\"}",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "string"
                         }

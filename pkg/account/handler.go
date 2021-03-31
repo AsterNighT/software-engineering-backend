@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/labstack/echo/v4"
 )
 
 var account_list = list.New()
-
-// type AcountType string
 
 type AccountHandler struct {
 }
@@ -20,13 +19,13 @@ type AccountHandler struct {
 // @Description will check primarykey other, then add to account_list if possible
 // @Tags Account
 // @Produce json
-// @Param email formData string true "user e-mail"
-// @Param type formData string true "user type"
-// @Param name formData string true "user name"
-// @Param paswd formData string true "user password"
-// @Success 200 {string} string "{"msg": "Successfully created"}"
-// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
-// @Router /case/PastHistory/{id} [PATCH]
+// @Param Email path string true "user e-mail"
+// @Param Type path string true "user type"
+// @Param Name path string true "user name"
+// @Param Passwd path string true "user password"
+// @Success 200 {string} api.ReturnedData{data=string}
+// @Failure 400 {string} api.ReturnedData{data=string}
+// @Router /account/account_table [POST]
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Type := AcountType(c.QueryParam("Type"))
@@ -34,60 +33,53 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	Passwd := c.QueryParam("Passwd")
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali E-mail Address"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
 	if Type != ACCOUNT_TYPE_PATIENT && Type != ACCOUNT_TYPE_DOCTOR && Type != ACCOUNT_TYPE_ADMIN {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali Account Type"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali Account Type", nil))
 	}
 
 	if len(Passwd) < ACCOUNT_PASSWD_LEN {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali Password Length"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
 	// Check uniqueness
 	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
-			return c.JSON(http.StatusBadRequest, map[string]string{
-				"error": "E-Mail occupied"})
+			return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
 		}
 	}
 
 	account_list.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"msg": "Successfully created"})
+	return c.JSON(http.StatusOK, api.Return("Successfully created", nil))
 
 }
 
 /**
- * @todo cookie not implemented
+ * @todo cookie not implemented, jwt
  */
 
 // @Summary login using email and passwd
 // @Description
 // @Tags Account
 // @Produce json
-// @Param email formData string true "user e-mail"
-// @Param paswd formData string true "user password"
-// @Success 200 {string} string "{"msg": "Successfully logged in"}"
-// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
-// @Router /case/PastHistory/{id} [PATCH]
+// @Param Email path string true "user e-mail"
+// @Param Passwd path string true "user password"
+// @Success 200 {string} api.ReturnedData{data=string}
+// @Failure 400 {string} api.ReturnedData{data=string}
+// @Router /account [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Passwd := c.QueryParam("Passwd")
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali E-mail Address"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
 	if len(Passwd) < ACCOUNT_PASSWD_LEN {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali Password Length"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
 	return checkPasswd(c, Email, Passwd)
@@ -97,24 +89,22 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Description host will send a verification code to email, need response with verification code
 // @Tags Account
 // @Produce json
-// @Param email formData string true "user e-mail"
-// @param vericode formData string true "verification code sent by user"
-// @Param paswd formData string true "user password"
-// @Success 200 {string} string "{"msg": "Successfully modified"}"
-// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
-// @Router /case/PastHistory/{id} [PATCH]
+// @Param Email path string true "user e-mail"
+// @param VeriCode path string true "verification code sent by user"
+// @Param Passwd path string true "user password"
+// @Success 200 {string} api.ReturnedData{data=string}
+// @Failure 400 {string} api.ReturnedData{data=string}
+// @Router /account/{id} [POST]
 func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali E-mail Address"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
 	// Gen verification code
 	buffer := make([]byte, 6)
-	_, err := rand.Read(buffer)
-	if err != nil {
+	if _, err := rand.Read(buffer); err != nil {
 		panic(err)
 	}
 	for i := 0; i < 6; i++ {
@@ -132,8 +122,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	if client_vcode == host_vcode {
 		return modifyPasswd(c, Email, new_passwd)
 	} else {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Wrong Verification Code"})
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
 	}
 }
 
@@ -141,23 +130,21 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 // @Description can only be called during logged-in status since there is no password check
 // @Tags Account
 // @Produce json
-// @Param email formData string true "user e-mail"
-// @Param paswd formData string true "user password (the new one)"
-// @Success 200 {string} string "{"msg": "Successfully modified"}"
-// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
-// @Router /case/PastHistory/{id} [PATCH]
+// @Param Email path string true "user e-mail"
+// @Param Passwd path string true "user password (the new one)"
+// @Success 200 {string} api.ReturnedData{data=string}
+// @Failure 400 {string} api.ReturnedData{data=string}
+// @Router /account/{id} [POST]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Passwd := c.QueryParam("Passwd")
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali E-mail Address"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
 	if len(Passwd) < ACCOUNT_PASSWD_LEN {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invali Password Length"})
+		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 	return modifyPasswd(c, Email, Passwd)
 }
@@ -170,17 +157,14 @@ func checkPasswd(c echo.Context, Email string, Passwd string) error {
 	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
 			if itor.Value.(Account).Passwd == Passwd {
-				return c.JSON(http.StatusOK, map[string]string{
-					"msg": "Successfully logged in"})
+				return c.JSON(http.StatusOK, api.Return("Successfully logged in", nil))
 			} else {
-				return c.JSON(http.StatusBadRequest, map[string]string{
-					"error": "Wrong Password"})
+				return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 			}
 		}
 	}
 
-	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error": "E-Mail not found"})
+	return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
 }
 
 /**
@@ -193,10 +177,8 @@ func modifyPasswd(c echo.Context, Email string, Passwd string) error {
 			account_list.PushBack(Account{Email: Email, Type: itor.Value.(Account).Type, Name: itor.Value.(Account).Name, Passwd: Passwd})
 			account_list.Remove(itor)
 
-			return c.JSON(http.StatusOK, map[string]string{
-				"msg": "Successfully modified"})
+			return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 		}
 	}
-	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error": "E-Mail not found"})
+	return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
 }
