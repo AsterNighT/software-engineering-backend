@@ -44,12 +44,12 @@ var doc = `{
                 "summary": "New a case",
                 "parameters": [
                     {
-                        "description": "patient ID, doctor ID and department name",
+                        "description": "patient ID, doctor ID, department name and other case details",
                         "name": "caseDetail",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                         }
                     }
                 ],
@@ -57,19 +57,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ReturnedData"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/api.ReturnedData"
                         }
                     }
                 }
@@ -85,6 +73,13 @@ var doc = `{
                 ],
                 "summary": "Get lastest case by department name",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "patient ID",
+                        "name": "patientID",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "department name",
@@ -115,46 +110,6 @@ var doc = `{
                 }
             }
         },
-        "/case/prescription/{prescriptionid}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Get prescription by prescription id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "prescription ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ReturnedData"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/pkg_cases.Prescription"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/case/{caseid}": {
             "get": {
                 "produces": [
@@ -171,7 +126,7 @@ var doc = `{
                             "type": "integer"
                         },
                         "description": "case IDs",
-                        "name": "id",
+                        "name": "caseIDList",
                         "in": "query",
                         "required": true
                     }
@@ -254,7 +209,7 @@ var doc = `{
                     {
                         "type": "integer",
                         "description": "case ID",
-                        "name": "id",
+                        "name": "caseID",
                         "in": "path",
                         "required": true
                     }
@@ -324,6 +279,46 @@ var doc = `{
                 }
             }
         },
+        "/case/{caseid}/prescription/{prescriptionid}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get prescription by prescription id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "prescription ID",
+                        "name": "prescriptionID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/pkg_cases.Prescription"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/case/{currentcaseid}": {
             "get": {
                 "produces": [
@@ -337,7 +332,7 @@ var doc = `{
                     {
                         "type": "integer",
                         "description": "current case ID",
-                        "name": "id",
+                        "name": "caseID",
                         "in": "path",
                         "required": true
                     }
@@ -379,6 +374,86 @@ var doc = `{
                         "description": "Good, server is up",
                         "schema": {
                             "$ref": "#/definitions/api.ReturnedData"
+                        }
+                    }
+                }
+            }
+        },
+        "/{patientid}/case": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get the lastest case ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "patient ID",
+                        "name": "patientID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/{patientid}/case/department": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get a case ID list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "patient ID",
+                        "name": "patientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "department name",
+                        "name": "department",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/api.ReturnedData"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "data": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     }
                 }

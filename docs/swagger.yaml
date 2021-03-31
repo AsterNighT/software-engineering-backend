@@ -106,27 +106,71 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /case:
-    post:
+  /{patientid}/case:
+    get:
       parameters:
-      - description: patient ID, doctor ID and department name
-        in: body
-        name: caseDetail
+      - description: patient ID
+        in: path
+        name: patientID
         required: true
-        schema:
-          type: string
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/api.ReturnedData'
-            - properties:
-                data:
-                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
-              type: object
+            type: integer
+      summary: Get the lastest case ID
+      tags:
+      - Case
+  /{patientid}/case/department:
+    get:
+      parameters:
+      - description: patient ID
+        in: path
+        name: patientID
+        required: true
+        type: integer
+      - description: department name
+        in: path
+        name: department
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/api.ReturnedData'
+              - properties:
+                  data:
+                    items:
+                      type: integer
+                    type: array
+                type: object
+            type: array
+      summary: Get a case ID list
+      tags:
+      - Case
+  /case:
+    post:
+      parameters:
+      - description: patient ID, doctor ID, department name and other case details
+        in: body
+        name: caseDetail
+        required: true
+        schema:
+          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ReturnedData'
       summary: New a case
       tags:
       - Case
@@ -137,7 +181,7 @@ paths:
         in: query
         items:
           type: integer
-        name: id
+        name: caseIDList
         required: true
         type: array
       produces:
@@ -185,7 +229,7 @@ paths:
       parameters:
       - description: case ID
         in: path
-        name: id
+        name: caseID
         required: true
         type: integer
       produces:
@@ -228,12 +272,35 @@ paths:
       summary: New a prescrition
       tags:
       - Case
+  /case/{caseid}/prescription/{prescriptionid}:
+    get:
+      parameters:
+      - description: prescription ID
+        in: path
+        name: prescriptionID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/pkg_cases.Prescription'
+              type: object
+      summary: Get prescription by prescription id
+      tags:
+      - Case
   /case/{currentcaseid}:
     get:
       parameters:
       - description: current case ID
         in: path
-        name: id
+        name: caseID
         required: true
         type: integer
       produces:
@@ -256,6 +323,11 @@ paths:
   /case/department:
     get:
       parameters:
+      - description: patient ID
+        in: path
+        name: patientID
+        required: true
+        type: integer
       - description: department name
         in: path
         name: department
@@ -274,29 +346,6 @@ paths:
                   $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
               type: object
       summary: Get lastest case by department name
-      tags:
-      - Case
-  /case/prescription/{prescriptionid}:
-    get:
-      parameters:
-      - description: prescription ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.ReturnedData'
-            - properties:
-                data:
-                  $ref: '#/definitions/pkg_cases.Prescription'
-              type: object
-      summary: Get prescription by prescription id
       tags:
       - Case
   /ping:
