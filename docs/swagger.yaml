@@ -80,100 +80,6 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /account:
-    post:
-      parameters:
-      - description: user e-mail
-        in: path
-        name: Email
-        required: true
-        type: string
-      - description: user password
-        in: path
-        name: Passwd
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: login using email and passwd
-      tags:
-      - Account
-  /account/{id}:
-    post:
-      description: can only be called during logged-in status since there is no password
-        check
-      parameters:
-      - description: user e-mail
-        in: path
-        name: Email
-        required: true
-        type: string
-      - description: user password (the new one)
-        in: path
-        name: Passwd
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: the interface of modifying password
-      tags:
-      - Account
-  /account/account_table:
-    post:
-      description: will check primarykey other, then add to account_list if possible
-      parameters:
-      - description: user e-mail
-        in: path
-        name: Email
-        required: true
-        type: string
-      - description: user type
-        in: path
-        name: Type
-        required: true
-        type: string
-      - description: user name
-        in: path
-        name: Name
-        required: true
-        type: string
-      - description: user password
-        in: path
-        name: Passwd
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: create and account based on email(as id), type, name and password
-      tags:
-      - Account
   /case/{id}:
     get:
       parameters:
@@ -195,6 +101,35 @@ paths:
                   $ref: '#/definitions/pkg_cases.Case'
               type: object
       summary: Get case by case id
+  /case/PastHistory/{id}:
+    patch:
+      description: can only be called during logged-in status since there is no password
+        check
+      parameters:
+      - description: user e-mail
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: user password (the new one)
+        in: formData
+        name: paswd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "Successfully modified"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "Invali E-mail Address"}'
+          schema:
+            type: string
+      summary: the interface of modifying password
+      tags:
+      - Account
   /ping:
     get:
       description: respond to a ping request from client
