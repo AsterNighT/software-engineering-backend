@@ -33,48 +33,6 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/case/PastHistory/{id}": {
-            "patch": {
-                "description": "can only be called during logged-in status since there is no password check",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Account"
-                ],
-                "summary": "the interface of modifying password",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user e-mail",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "user password (the new one)",
-                        "name": "paswd",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\": \"Successfully modified\"}",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "{\"error\": \"Invali E-mail Address\"}",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/case/{id}": {
             "get": {
                 "produces": [

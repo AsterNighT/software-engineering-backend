@@ -101,35 +101,6 @@ paths:
                   $ref: '#/definitions/pkg_cases.Case'
               type: object
       summary: Get case by case id
-  /case/PastHistory/{id}:
-    patch:
-      description: can only be called during logged-in status since there is no password
-        check
-      parameters:
-      - description: user e-mail
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: user password (the new one)
-        in: formData
-        name: paswd
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg": "Successfully modified"}'
-          schema:
-            type: string
-        "400":
-          description: '{"error": "Invali E-mail Address"}'
-          schema:
-            type: string
-      summary: the interface of modifying password
-      tags:
-      - Account
   /ping:
     get:
       description: respond to a ping request from client
