@@ -6,14 +6,13 @@ import (
 	"net/http"
 )
 
-
 type RegistrationHandler struct {
 }
 
 // @Summary get all departments
-// @Description
+// @Description display all departments of a hospital
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]Department}
+// @Success 200 {array} Department
 // @Router /departments [GET]
 func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
