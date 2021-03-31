@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\docs",
+    "\\pkg",
+    "\\pkg\\chat",
+    "\\pkg\\database",
+    "\\pkg\\router"
+  ],
+  "SelectedNode": "\\pkg\\chat\\model.go",
+  "PreviewInSolutionExplorer": false
+}
