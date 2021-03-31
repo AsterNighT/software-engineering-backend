@@ -26,9 +26,9 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Summary get all departments
 // @Tags departments
 // @Description display all departments of a hospital
-// @Param department_id path int true "Department ID"
+// @Param department_id path uint true "Department ID"
 // @Produce json
-// @Success 200 {array} api.ReturnedData{data=[]Department}
+// @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /departments [GET]
 func (h *RegistrationHandler) GetDepartment(c echo.Context) error {
 

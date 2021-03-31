@@ -1,25 +1,22 @@
 package process
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // these tables should be included in account model (maybe)
 type Doctor struct {
-	gorm.Model
 	/* ... */
 	Department Department
 }
 
 type Patient struct {
-	gorm.Model
 	/* ... */
 }
 
 type DoctorSchedule struct {
-	gorm.Model
+	ID       uint `gorm:"primaryKey"`
 	Doctor   Doctor
 	Date     time.Time
 	HalfDay  HalfDayEnum `gorm:"default:0"`
@@ -30,7 +27,7 @@ type DoctorSchedule struct {
 
 // department table (e.g. orthopedics department, x-ray department)
 type Department struct {
-	gorm.Model
+	ID        uint                 `gorm:"primaryKey"`
 	Name      string               // name of this department
 	Detail    string               // detailed introduction of this department
 	Doctors   []Doctor             // foreign key of all the doctors who belongs to this department
@@ -39,7 +36,7 @@ type Department struct {
 
 // registration table
 type Registration struct {
-	gorm.Model
+	ID         uint `gorm:"primaryKey"`
 	Doctor     Doctor
 	Patient    Patient
 	Department Department
@@ -52,7 +49,7 @@ type Registration struct {
 
 // milestone that represent a small step during the process
 type MileStone struct {
-	gorm.Model
+	ID           uint `gorm:"primaryKey"`
 	Time         time.Time
 	Registration Registration
 
@@ -64,7 +61,7 @@ type MileStone struct {
 
 // schedule table for a whole department
 type DepartmentSchedule struct {
-	gorm.Model
+	ID         uint `gorm:"primaryKey"`
 	Department Department
 	Date       time.Time
 	HalfDay    HalfDayEnum `gorm:"default:0"`
