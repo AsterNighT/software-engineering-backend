@@ -1,37 +1,30 @@
 package chat
 
-import "time"
-
 type Chat struct {
-	ID			uint				
-	URL	string						//The url of the chatting window
-	DoctorID	uint
-	PatientID	uint
-
-	//primary key: ID
+	ID        uint   `gorm:"primaryKey"`
+	URL       string //The url of the chatting window
+	DoctorID  uint
+	PatientID uint
 }
 
-
-type Message struct{
-	ID			uint
-	ChatID		uint
-	Timestamp	Time
-	Type		uint				//Texts, pictures....
-	Content		string
-	PictureURL  string 
-
-	//primary key: ID&chatID
+type Message struct {
+	ID        uint `gorm:"primaryKey"`
+	Chat      Chat //Default foreign key:ID in Chat
+	CreatedAt int
+	Type      uint   //Texts, pictures....
+	Content   string //Use escaped string for PictureURL
 }
 
-
-//Question catagories
-//For standard query,each catagory correspond with a set of fixed questions
-type Catagory struct{
-	ID			uint
-	Name		string
-	Keywords	[]string
-	Questions	[]string	
-
-	//primary key: ID
+/*
+Question catagories
+-------------------------------------------------------------------
+If the patient's message contains some keyword specified in DB,
+then we can find the matching catagory of questions.
+Doctor's work can be reduced by automatically showing right questions.
+*/
+type Catagory struct {
+	ID        uint `gorm:"primaryKey"`
+	Name      string
+	Keywords  *string
+	Questions *string //Each catagory correspond with a set of fixed questions
 }
-
