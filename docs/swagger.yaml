@@ -14,7 +14,7 @@ definitions:
           It should be "ok" is everything goes fine
         type: string
     type: object
-  cases.Case:
+  github.com_AsterNighT_software-engineering-backend_pkg_cases.Case:
     properties:
       complaint:
         type: string
@@ -28,10 +28,36 @@ definitions:
         type: integer
       prescriptions:
         items:
-          $ref: '#/definitions/cases.Prescription'
+          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
         type: array
     type: object
-  cases.Prescription:
+  github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription:
+    properties:
+      caseID:
+        type: integer
+      details:
+        type: string
+      id:
+        type: integer
+    type: object
+  pkg_cases.Case:
+    properties:
+      complaint:
+        type: string
+      diagnosis:
+        type: string
+      id:
+        description: Every object should have ID
+        type: integer
+      patientID:
+        description: A has many relationship should be on this
+        type: integer
+      prescriptions:
+        items:
+          $ref: '#/definitions/pkg_cases.Prescription'
+        type: array
+    type: object
+  pkg_cases.Prescription:
     properties:
       caseID:
         type: integer
@@ -72,9 +98,38 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/cases.Case'
+                  $ref: '#/definitions/pkg_cases.Case'
               type: object
       summary: Get case by case id
+  /case/PastHistory/{id}:
+    patch:
+      description: can only be called during logged-in status since there is no password
+        check
+      parameters:
+      - description: user e-mail
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: user password (the new one)
+        in: formData
+        name: paswd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "Successfully modified"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "Invali E-mail Address"}'
+          schema:
+            type: string
+      summary: the interface of modifying password
+      tags:
+      - Account
   /ping:
     get:
       description: respond to a ping request from client

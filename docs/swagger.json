@@ -18,6 +18,48 @@
     "host": "localhost:12448",
     "basePath": "/api",
     "paths": {
+        "/case/PastHistory/{id}": {
+            "patch": {
+                "description": "can only be called during logged-in status since there is no password check",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "the interface of modifying password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user e-mail",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user password (the new one)",
+                        "name": "paswd",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\": \"Successfully modified\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error\": \"Invali E-mail Address\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/case/{id}": {
             "get": {
                 "produces": [
@@ -45,7 +87,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cases.Case"
+                                            "$ref": "#/definitions/pkg_cases.Case"
                                         }
                                     }
                                 }
@@ -87,7 +129,7 @@
                 }
             }
         },
-        "cases.Case": {
+        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Case": {
             "type": "object",
             "properties": {
                 "complaint": {
@@ -107,12 +149,51 @@
                 "prescriptions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cases.Prescription"
+                        "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
                     }
                 }
             }
         },
-        "cases.Prescription": {
+        "github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription": {
+            "type": "object",
+            "properties": {
+                "caseID": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pkg_cases.Case": {
+            "type": "object",
+            "properties": {
+                "complaint": {
+                    "type": "string"
+                },
+                "diagnosis": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Every object should have ID",
+                    "type": "integer"
+                },
+                "patientID": {
+                    "description": "A has many relationship should be on this",
+                    "type": "integer"
+                },
+                "prescriptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pkg_cases.Prescription"
+                    }
+                }
+            }
+        },
+        "pkg_cases.Prescription": {
             "type": "object",
             "properties": {
                 "caseID": {

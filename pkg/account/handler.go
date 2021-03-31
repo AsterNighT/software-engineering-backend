@@ -16,10 +16,17 @@ var account_list = list.New()
 type AccountHandler struct {
 }
 
-/**
- * @brief create and account based on email(as id), type, name and password
- * @desc will check primarykey other, then add to account_list if possible
- */
+// @Summary create and account based on email(as id), type, name and password
+// @Description will check primarykey other, then add to account_list if possible
+// @Tags Account
+// @Produce json
+// @Param email formData string true "user e-mail"
+// @Param type formData string true "user type"
+// @Param name formData string true "user name"
+// @Param paswd formData string true "user password"
+// @Success 200 {string} string "{"msg": "Successfully created"}"
+// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
+// @Router /case/PastHistory/{id} [PATCH]
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Type := AcountType(c.QueryParam("Type"))
@@ -51,15 +58,24 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 
 	account_list.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
 
-	return c.String(http.StatusOK, "Successfully created")
+	return c.JSON(http.StatusOK, map[string]string{
+		"msg": "Successfully created"})
 
 }
 
 /**
- * @brief login using email and passwd
- * @desc
  * @todo cookie not implemented
  */
+
+// @Summary login using email and passwd
+// @Description
+// @Tags Account
+// @Produce json
+// @Param email formData string true "user e-mail"
+// @Param paswd formData string true "user password"
+// @Success 200 {string} string "{"msg": "Successfully logged in"}"
+// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
+// @Router /case/PastHistory/{id} [PATCH]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Passwd := c.QueryParam("Passwd")
@@ -77,10 +93,16 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	return checkPasswd(c, Email, Passwd)
 }
 
-/**
- * @brief reset password
- * @desc host will send a verification code to email, need response with verification code
- */
+// @Summary reset password
+// @Description host will send a verification code to email, need response with verification code
+// @Tags Account
+// @Produce json
+// @Param email formData string true "user e-mail"
+// @param vericode formData string true "verification code sent by user"
+// @Param paswd formData string true "user password"
+// @Success 200 {string} string "{"msg": "Successfully modified"}"
+// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
+// @Router /case/PastHistory/{id} [PATCH]
 func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 
@@ -115,10 +137,15 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	}
 }
 
-/**
- * @brief the interface of modifying password
- * @note can only be called during logged-in status since there is no password check
- */
+// @Summary the interface of modifying password
+// @Description can only be called during logged-in status since there is no password check
+// @Tags Account
+// @Produce json
+// @Param email formData string true "user e-mail"
+// @Param paswd formData string true "user password (the new one)"
+// @Success 200 {string} string "{"msg": "Successfully modified"}"
+// @Failure 400 {string} string "{"error": "Invali E-mail Address"}"
+// @Router /case/PastHistory/{id} [PATCH]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Passwd := c.QueryParam("Passwd")
@@ -143,7 +170,8 @@ func checkPasswd(c echo.Context, Email string, Passwd string) error {
 	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
 			if itor.Value.(Account).Passwd == Passwd {
-				return c.String(http.StatusOK, "Successfully Logged in")
+				return c.JSON(http.StatusOK, map[string]string{
+					"msg": "Successfully logged in"})
 			} else {
 				return c.JSON(http.StatusBadRequest, map[string]string{
 					"error": "Wrong Password"})
@@ -165,7 +193,8 @@ func modifyPasswd(c echo.Context, Email string, Passwd string) error {
 			account_list.PushBack(Account{Email: Email, Type: itor.Value.(Account).Type, Name: itor.Value.(Account).Name, Passwd: Passwd})
 			account_list.Remove(itor)
 
-			return c.String(http.StatusOK, "Successfully modified")
+			return c.JSON(http.StatusOK, map[string]string{
+				"msg": "Successfully modified"})
 		}
 	}
 	return c.JSON(http.StatusBadRequest, map[string]string{
