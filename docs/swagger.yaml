@@ -106,25 +106,7 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /{patientid}/case:
-    get:
-      parameters:
-      - description: patient ID
-        in: path
-        name: patientID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-      summary: Get the lastest case ID
-      tags:
-      - Case
-  /{patientid}/case/department:
+  /patient/{patientID}:
     get:
       parameters:
       - description: patient ID
@@ -133,7 +115,7 @@ paths:
         required: true
         type: integer
       - description: department name
-        in: path
+        in: query
         name: department
         type: string
       produces:
@@ -152,10 +134,33 @@ paths:
                     type: array
                 type: object
             type: array
-      summary: Get a case ID list
+      summary: Get a case ID list by patient ID
       tags:
       - Case
-  /case:
+  /patient/{patientID}/case:
+    get:
+      parameters:
+      - description: patient ID
+        in: body
+        name: patientID
+        required: true
+        schema:
+          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+              type: object
+      summary: Get the lastest case
+      tags:
+      - Case
     post:
       parameters:
       - description: patient ID, doctor ID, department name and other case details
@@ -170,20 +175,40 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.ReturnedData'
+            allOf:
+            - $ref: '#/definitions/api.ReturnedData'
+            - properties:
+                data:
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+              type: object
       summary: New a case
       tags:
       - Case
-  /case/{caseid}:
+  /patient/{patientID}/case/{caseID}:
+    delete:
+      parameters:
+      - description: case ID
+        in: path
+        name: caseID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ReturnedData'
+      summary: Delete a case
+      tags:
+      - Case
     get:
       parameters:
-      - description: case IDs
-        in: query
-        items:
-          type: integer
-        name: caseIDList
+      - description: current case ID
+        in: path
+        name: caseID
         required: true
-        type: array
+        type: integer
       produces:
       - application/json
       responses:
@@ -198,7 +223,7 @@ paths:
                     $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
                   type: array
               type: object
-      summary: Get case by a case-id list
+      summary: Get prevoius cases
       tags:
       - Case
     put:
@@ -224,7 +249,7 @@ paths:
       summary: Update case
       tags:
       - Case
-  /case/{caseid}/prescription:
+  /patient/{patientID}/case/{caseID}/prescription:
     get:
       parameters:
       - description: case ID
@@ -272,7 +297,24 @@ paths:
       summary: New a prescrition
       tags:
       - Case
-  /case/{caseid}/prescription/{prescriptionid}:
+  /patient/{patientID}/case/{caseID}/prescription/{prescriptionID}:
+    delete:
+      parameters:
+      - description: prescription ID
+        in: path
+        name: prescriptionID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.ReturnedData'
+      summary: Delete a prescrition
+      tags:
+      - Case
     get:
       parameters:
       - description: prescription ID
@@ -295,57 +337,22 @@ paths:
       summary: Get prescription by prescription id
       tags:
       - Case
-  /case/{currentcaseid}:
-    get:
+    put:
       parameters:
-      - description: current case ID
-        in: path
-        name: caseID
+      - description: prescription ID and updated details
+        in: body
+        name: prescriptionDetails
         required: true
-        type: integer
+        schema:
+          type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/api.ReturnedData'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
-                  type: array
-              type: object
-      summary: Get prevoius cases by current case ID
-      tags:
-      - Case
-  /case/department:
-    get:
-      parameters:
-      - description: patient ID
-        in: path
-        name: patientID
-        required: true
-        type: integer
-      - description: department name
-        in: path
-        name: department
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api.ReturnedData'
-            - properties:
-                data:
-                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
-              type: object
-      summary: Get lastest case by department name
+            $ref: '#/definitions/api.ReturnedData'
+      summary: Update a prescrition
       tags:
       - Case
   /ping:

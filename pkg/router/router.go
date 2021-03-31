@@ -39,7 +39,7 @@ func RegisterRouters(app *echo.Echo) error {
 			// Use nested scopes and shadowing for subgroups
 			var h cases.CaseHandler
 			router = router.Group("/case")
-			router.GET("/:id", h.GetCaseInOneList)
+			router.GET("/:id", h.GetCasesByPatientID)
 		}
 
 	}

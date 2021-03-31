@@ -33,7 +33,99 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/case": {
+        "/patient/{patientID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get a case ID list by patient ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "patient ID",
+                        "name": "patientID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "department name",
+                        "name": "department",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/api.ReturnedData"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "data": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patient/{patientID}/case": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Get the lastest case",
+                "parameters": [
+                    {
+                        "description": "patient ID",
+                        "name": "patientID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
             "post": {
                 "produces": [
                     "application/json"
@@ -51,41 +143,6 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.ReturnedData"
-                        }
-                    }
-                }
-            }
-        },
-        "/case/department": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Get lastest case by department name",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "patient ID",
-                        "name": "patientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "department name",
-                        "name": "department",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -110,7 +167,7 @@ var doc = `{
                 }
             }
         },
-        "/case/{caseid}": {
+        "/patient/{patientID}/case/{caseID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -118,16 +175,13 @@ var doc = `{
                 "tags": [
                     "Case"
                 ],
-                "summary": "Get case by a case-id list",
+                "summary": "Get prevoius cases",
                 "parameters": [
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "description": "case IDs",
-                        "name": "caseIDList",
-                        "in": "query",
+                        "type": "integer",
+                        "description": "current case ID",
+                        "name": "caseID",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -194,9 +248,35 @@ var doc = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Delete a case",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "case ID",
+                        "name": "caseID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.ReturnedData"
+                        }
+                    }
+                }
             }
         },
-        "/case/{caseid}/prescription": {
+        "/patient/{patientID}/case/{caseID}/prescription": {
             "get": {
                 "produces": [
                     "application/json"
@@ -279,7 +359,7 @@ var doc = `{
                 }
             }
         },
-        "/case/{caseid}/prescription/{prescriptionid}": {
+        "/patient/{patientID}/case/{caseID}/prescription/{prescriptionID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -317,22 +397,48 @@ var doc = `{
                         }
                     }
                 }
-            }
-        },
-        "/case/{currentcaseid}": {
-            "get": {
+            },
+            "put": {
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Case"
                 ],
-                "summary": "Get prevoius cases by current case ID",
+                "summary": "Update a prescrition",
+                "parameters": [
+                    {
+                        "description": "prescription ID and updated details",
+                        "name": "prescriptionDetails",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.ReturnedData"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Case"
+                ],
+                "summary": "Delete a prescrition",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "current case ID",
-                        "name": "caseID",
+                        "description": "prescription ID",
+                        "name": "prescriptionID",
                         "in": "path",
                         "required": true
                     }
@@ -341,22 +447,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ReturnedData"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/api.ReturnedData"
                         }
                     }
                 }
@@ -374,86 +465,6 @@ var doc = `{
                         "description": "Good, server is up",
                         "schema": {
                             "$ref": "#/definitions/api.ReturnedData"
-                        }
-                    }
-                }
-            }
-        },
-        "/{patientid}/case": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Get the lastest case ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "patient ID",
-                        "name": "patientID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
-        "/{patientid}/case/department": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Case"
-                ],
-                "summary": "Get a case ID list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "patient ID",
-                        "name": "patientID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "department name",
-                        "name": "department",
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/api.ReturnedData"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "data": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "integer"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
                         }
                     }
                 }
