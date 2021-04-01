@@ -41,7 +41,7 @@ type Registration struct {
 	Patient    Patient
 	Department Department
 	Date       time.Time
-	HalfDay    HalfDayEnum            // TODO: a validator for department, only half day is allowed
+	HalfDay    HalfDayEnum            // TODO: a validator for registration, only half day is allowed
 	Status     RegistrationStatusEnum `gorm:"default:'committed'"`
 	// every registration will eventually be terminated, and therefore needs a cause
 	TerminatedCause string `gorm:"default''"`
