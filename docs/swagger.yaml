@@ -130,7 +130,7 @@ paths:
               - properties:
                   data:
                     items:
-                      $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+                      $ref: '#/definitions/pkg_cases.Case'
                     type: array
                 type: object
             type: array
@@ -155,7 +155,7 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+                  $ref: '#/definitions/pkg_cases.Case'
               type: object
       summary: Get the last case
       tags:
@@ -167,7 +167,7 @@ paths:
         name: caseDetail
         required: true
         schema:
-          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+          $ref: '#/definitions/pkg_cases.Case'
       produces:
       - application/json
       responses:
@@ -214,7 +214,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+                    $ref: '#/definitions/pkg_cases.Case'
                   type: array
               type: object
       summary: Get prevoius cases
@@ -258,7 +258,7 @@ paths:
               - properties:
                   data:
                     items:
-                      $ref: '#/definitions/pkg_cases.Prescription'
+                      $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
                     type: array
                 type: object
             type: array
@@ -318,7 +318,7 @@ paths:
             - $ref: '#/definitions/api.ReturnedData'
             - properties:
                 data:
-                  $ref: '#/definitions/pkg_cases.Prescription'
+                  $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription'
               type: object
       summary: Get prescription by prescription id
       tags:

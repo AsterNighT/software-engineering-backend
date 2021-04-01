@@ -73,7 +73,7 @@ var doc = `{
                                             "data": {
                                                 "type": "array",
                                                 "items": {
-                                                    "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                                    "$ref": "#/definitions/pkg_cases.Case"
                                                 }
                                             }
                                         }
@@ -115,7 +115,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                            "$ref": "#/definitions/pkg_cases.Case"
                                         }
                                     }
                                 }
@@ -139,7 +139,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                            "$ref": "#/definitions/pkg_cases.Case"
                         }
                     }
                 ],
@@ -185,7 +185,7 @@ var doc = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
+                                                "$ref": "#/definitions/pkg_cases.Case"
                                             }
                                         }
                                     }
@@ -284,7 +284,7 @@ var doc = `{
                                             "data": {
                                                 "type": "array",
                                                 "items": {
-                                                    "$ref": "#/definitions/pkg_cases.Prescription"
+                                                    "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
                                                 }
                                             }
                                         }
@@ -354,7 +354,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pkg_cases.Prescription"
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
                                         }
                                     }
                                 }
