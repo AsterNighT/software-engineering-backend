@@ -13,7 +13,7 @@ type RegistrationHandler struct {
 // @Tags departments
 // @Description display all departments of a hospital
 // @Produce json
-// @Success 200 {array} api.ReturnedData{data=[]Department}
+// @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
 func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
