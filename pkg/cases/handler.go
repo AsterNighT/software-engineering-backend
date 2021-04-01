@@ -8,7 +8,7 @@ import (
 type CaseHandler struct {
 }
 
-// @Summary Get the lastest case
+// @Summary Get the last case
 // @Description
 // @Tags Case
 // @Produce json
@@ -27,7 +27,7 @@ func (h *CaseHandler) GetLastCase(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param department query string false "department name" nil
-// @Success 200 {array} api.ReturnedData{data=[]uint}
+// @Success 200 {array} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID} [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 	// ...
@@ -40,7 +40,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseDetail body Case true "patient ID, doctor ID, department name and other case details"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
 	// ...
@@ -79,7 +79,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseDetail body string true "case ID and updated details"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	// ...
@@ -92,7 +92,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param prescriptionDetail body string true "case ID and prescription details"
-// @Success 200 {object} api.ReturnedData{data=Prescription}
+// @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	// ...
@@ -144,7 +144,7 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseID path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=[]Prescription}
+// @Success 200 {array} api.ReturnedData{data=[]Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription  [GET]
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	// ...
