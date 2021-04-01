@@ -40,8 +40,9 @@ type Registration struct {
 	Doctor     Doctor
 	Patient    Patient
 	Department Department
-
-	Status RegistrationStatusEnum `gorm:"default:'committed'"`
+	Date       time.Time
+	HalfDay    HalfDayEnum            // TODO: a validator for department, only half day is allowed
+	Status     RegistrationStatusEnum `gorm:"default:'committed'"`
 	// every registration will eventually be terminated, and therefore needs a cause
 	TerminatedCause string `gorm:"default''"`
 	MileStones      []MileStone
