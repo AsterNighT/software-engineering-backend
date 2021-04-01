@@ -7,6 +7,10 @@
 [![codecov](https://codecov.io/gh/AsterNighT/software-engineering-backend/branch/master/graph/badge.svg?token=KVTMLK759A)](https://codecov.io/gh/AsterNighT/software-engineering-backend)
 
 
+## How to run it?
+- run `make` on linux (if you work on windows and you have got no `make`, you have to read the Makefile and do it manually)
+- open in your browser http://localhost:12448/swagger to check the swagger doc.
+
 ## Technology stack
 
 Developing
