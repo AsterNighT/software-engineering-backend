@@ -19,7 +19,7 @@ type DoctorSchedule struct {
 	ID       uint `gorm:"primaryKey"`
 	Doctor   Doctor
 	Date     time.Time
-	HalfDay  HalfDayEnum `gorm:"default:'whole''"`
+	HalfDay  HalfDayEnum `gorm:"default:'whole'"`
 	Capacity int
 }
 
