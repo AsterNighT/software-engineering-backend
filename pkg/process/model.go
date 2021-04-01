@@ -70,7 +70,6 @@ type DepartmentSchedule struct {
 	Capacity   int
 	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
 	Current   int // current number of registrations of this schedule duration
-	Remaining int // remaining available registrations of this schedule duration
 }
 
 // define new enum for registration status
