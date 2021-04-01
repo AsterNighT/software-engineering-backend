@@ -17,8 +17,3 @@ require (
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.5
 )
-
-replace (
-	github.com/AsterNighT/software-engineering-backend/docs => ./docs
-	github.com/AsterNighT/software-engineering-backend/pkg/router => ./pkg/router
-)
