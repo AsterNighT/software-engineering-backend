@@ -20,7 +20,7 @@ type DoctorSchedule struct {
 	ID       uint `gorm:"primaryKey"`
 	Doctor   Doctor
 	Date     time.Time
-	HalfDay  HalfDayEnum `gorm:"default:whole"`
+	HalfDay  HalfDayEnum `gorm:"default:'whole''"`
 	Capacity int
 }
 
@@ -65,7 +65,7 @@ type DepartmentSchedule struct {
 	ID         uint `gorm:"primaryKey"`
 	Department Department
 	Date       time.Time
-	HalfDay    HalfDayEnum `gorm:"check:name <> 'whole'"` // for department, the half day
+	HalfDay    HalfDayEnum  // TODO: a validator for department, only half day is allowed
 	Capacity   int
 	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
 }
