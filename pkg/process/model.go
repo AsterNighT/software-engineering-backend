@@ -2,7 +2,6 @@ package process
 
 import (
 	"time"
-
 )
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -61,13 +60,16 @@ type MileStone struct {
 }
 
 // schedule table for a whole department
+// each object represents a minimal schedule duration
 type DepartmentSchedule struct {
 	ID         uint `gorm:"primaryKey"`
 	Department Department
 	Date       time.Time
-	HalfDay    HalfDayEnum  // TODO: a validator for department, only half day is allowed
+	HalfDay    HalfDayEnum // TODO: a validator for department, only half day is allowed
 	Capacity   int
 	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
+	Current   int // current number of registrations of this schedule duration
+	Remaining int // remaining available registrations of this schedule duration
 }
 
 // define new enum for registration status
