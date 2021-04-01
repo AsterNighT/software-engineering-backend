@@ -46,25 +46,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/api.ReturnedData"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "data": {
-                                                "type": "array",
-                                                "items": {
-                                                    "$ref": "#/definitions/pkg_cases.Case"
-                                                }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                                             }
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
@@ -100,7 +97,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pkg_cases.Case"
+                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                                         }
                                     }
                                 }
@@ -124,7 +121,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/pkg_cases.Case"
+                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                         }
                     }
                 ],
@@ -170,7 +167,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/pkg_cases.Case"
+                                                "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
                                             }
                                         }
                                     }
@@ -257,25 +254,22 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/api.ReturnedData"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "data": {
-                                                "type": "array",
-                                                "items": {
-                                                    "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
-                                                }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.ReturnedData"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/pkg_cases.Prescription"
                                             }
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
@@ -339,7 +333,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Prescription"
+                                            "$ref": "#/definitions/pkg_cases.Prescription"
                                         }
                                     }
                                 }
