@@ -23,8 +23,8 @@ type AccountHandler struct {
 // @Param Type path string true "user type"
 // @Param Name path string true "user name"
 // @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=string}
-// @Failure 400 {string} api.ReturnedData{data=string}
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/account_table [POST]
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
@@ -67,8 +67,8 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=string}
-// @Failure 400 {string} api.ReturnedData{data=string}
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	Email := c.QueryParam("Email")
@@ -92,9 +92,9 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Param Email path string true "user e-mail"
 // @param VeriCode path string true "verification code sent by user"
 // @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=string}
-// @Failure 400 {string} api.ReturnedData{data=string}
-// @Router /account/{id} [POST]
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/{id}/reset [PUT]
 func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 
@@ -132,9 +132,9 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Passwd path string true "user password (the new one)"
-// @Success 200 {string} api.ReturnedData{data=string}
-// @Failure 400 {string} api.ReturnedData{data=string}
-// @Router /account/{id} [POST]
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/{id}/modify [PUT]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	Email := c.QueryParam("Email")
 	Passwd := c.QueryParam("Passwd")
