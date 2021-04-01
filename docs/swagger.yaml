@@ -134,18 +134,17 @@ paths:
                     type: array
                 type: object
             type: array
-      summary: Get a case ID list by patient ID
+      summary: Get cases by patient ID
       tags:
       - Case
   /patient/{patientID}/case:
     get:
       parameters:
       - description: patient ID
-        in: body
+        in: path
         name: patientID
         required: true
-        schema:
-          $ref: '#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case'
+        type: integer
       produces:
       - application/json
       responses:

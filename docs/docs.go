@@ -41,7 +41,7 @@ var doc = `{
                 "tags": [
                     "Case"
                 ],
-                "summary": "Get a case ID list by patient ID",
+                "summary": "Get cases by patient ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -96,13 +96,11 @@ var doc = `{
                 "summary": "Get the lastest case",
                 "parameters": [
                     {
+                        "type": "integer",
                         "description": "patient ID",
                         "name": "patientID",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github.com_AsterNighT_software-engineering-backend_pkg_cases.Case"
-                        }
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
