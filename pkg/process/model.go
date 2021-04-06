@@ -19,7 +19,7 @@ type DoctorSchedule struct {
 	ID       uint `gorm:"primaryKey"`
 	Doctor   Doctor
 	Date     time.Time
-	HalfDay  HalfDayEnum `gorm:"default:0"`
+	HalfDay  HalfDayEnum `gorm:"default:'whole'"`
 	Capacity int
 }
 
@@ -40,8 +40,9 @@ type Registration struct {
 	Doctor     Doctor
 	Patient    Patient
 	Department Department
-
-	Status RegistrationStatusEnum `gorm:"default:2"`
+	Date       time.Time
+	HalfDay    HalfDayEnum            // TODO: a validator for registration, only half day is allowed
+	Status     RegistrationStatusEnum `gorm:"default:'committed'"`
 	// every registration will eventually be terminated, and therefore needs a cause
 	TerminatedCause string `gorm:"default''"`
 	MileStones      []MileStone
@@ -60,29 +61,31 @@ type MileStone struct {
 }
 
 // schedule table for a whole department
+// each object represents a minimal schedule duration
 type DepartmentSchedule struct {
 	ID         uint `gorm:"primaryKey"`
 	Department Department
 	Date       time.Time
-	HalfDay    HalfDayEnum `gorm:"default:0"`
+	HalfDay    HalfDayEnum // TODO: a validator for department, only half day is allowed
 	Capacity   int
 	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
+	Current   int // current number of registrations of this schedule duration
 }
 
 // define new enum for registration status
-type RegistrationStatusEnum int
+type RegistrationStatusEnum string
 
 const (
-	committed  RegistrationStatusEnum = 0
-	accepted   RegistrationStatusEnum = 1
-	terminated RegistrationStatusEnum = 2
+	committed  RegistrationStatusEnum = "committed"
+	accepted   RegistrationStatusEnum = "accepted"
+	terminated RegistrationStatusEnum = "terminated"
 )
 
 // define new enum for half day selection
-type HalfDayEnum int
+type HalfDayEnum string
 
 const (
-	morning   HalfDayEnum = 0
-	afternoon HalfDayEnum = 1
-	full      HalfDayEnum = 2
+	morning   HalfDayEnum = "morning"
+	afternoon HalfDayEnum = "afternoon"
+	whole     HalfDayEnum = "whole"
 )
