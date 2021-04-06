@@ -10,13 +10,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var account_list = list.New()
+var accountList = list.New()
 
 type AccountHandler struct {
 }
 
 // @Summary create and account based on email(as id), type, name and password
-// @Description will check primarykey other, then add to account_list if possible
+// @Description will check primarykey other, then add to accountList if possible
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
@@ -45,13 +45,13 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 
 	// Check uniqueness
-	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
+	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
 			return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
 		}
 	}
 
-	account_list.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
+	accountList.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
 
 	return c.JSON(http.StatusOK, api.Return("Successfully created", nil))
 
@@ -110,17 +110,17 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	for i := 0; i < 6; i++ {
 		buffer[i] = "1234567890"[int(buffer[i])%6]
 	}
-	host_vcode := string(buffer)
+	hostVcode := string(buffer)
 
-	// SendVeriMsg(Email, host_vcode) // Func wait for implementation
+	// SendVeriMsg(Email, hostVcode) // Func wait for implementation
 
 	// Wait for response from client...
 
-	client_vcode := c.QueryParam("VeriCode")
-	new_passwd := c.QueryParam("Passwd")
+	clientVcode := c.QueryParam("VeriCode")
+	newPasswd := c.QueryParam("Passwd")
 
-	if client_vcode == host_vcode {
-		return modifyPasswd(c, Email, new_passwd)
+	if clientVcode == hostVcode {
+		return modifyPasswd(c, Email, newPasswd)
 	} else {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
 	}
@@ -154,7 +154,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
  */
 func checkPasswd(c echo.Context, Email string, Passwd string) error {
 	// Travese to find matched account, use DB later
-	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
+	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
 			if itor.Value.(Account).Passwd == Passwd {
 				return c.JSON(http.StatusOK, api.Return("Successfully logged in", nil))
@@ -171,11 +171,11 @@ func checkPasswd(c echo.Context, Email string, Passwd string) error {
  * @brief private method for modifying password
  */
 func modifyPasswd(c echo.Context, Email string, Passwd string) error {
-	for itor := account_list.Front(); itor != nil; itor = itor.Next() {
+	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
 		if itor.Value.(Account).Email == Email {
 			// Remove this and push a new one with new passwd
-			account_list.PushBack(Account{Email: Email, Type: itor.Value.(Account).Type, Name: itor.Value.(Account).Name, Passwd: Passwd})
-			account_list.Remove(itor)
+			accountList.PushBack(Account{Email: Email, Type: itor.Value.(Account).Type, Name: itor.Value.(Account).Name, Passwd: Passwd})
+			accountList.Remove(itor)
 
 			return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 		}
