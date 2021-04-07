@@ -25,7 +25,7 @@ Doctor's work can be reduced by automatically showing right questions.
 type Catagory struct {
 	ID        uint `gorm:"primaryKey"`
 	Name      string
-	Questions *string //Each catagory correspond with a set of fixed questions
+	Questions []string //Each catagory correspond with a set of fixed questions
 }
 
 type Keyword struct {

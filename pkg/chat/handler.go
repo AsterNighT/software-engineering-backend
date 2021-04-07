@@ -35,28 +35,13 @@ func (h *ChatHandler) DeleteChatByChatID(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Get a message by message ID
-// @Description
-// @Tags Chat
-// @Produce json
-// @Param patientID path uint true "patient ID"
-// @Param chatID path uint true "chat ID"
-// @Param messageID path uint true "message ID"
-// @Success 200 {array} api.ReturnedData{}
-// @Router /patient/{patientID}/chat/{chatID}/messsage/{messageID} [GET]
-func (h *ChatHandler) GetMessageByMessageID(c echo.Context) error {
-	// ...
-	c.Logger().Debug("hello world")
-	return c.JSON(200, api.Return("ok", nil))
-}
-
 // @Summary Get the lastest message
 // @Description
 // @Tags Chat
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param chatID path uint true "chat ID"
-// @Success 200 {object} api.ReturnedData{}
+// @Success 200 {object} api.ReturnedData{data=Message}
 // @Router /patient/{patientID}/chat/{chatID} [GET]
 func (h *ChatHandler) GetLastMessage(c echo.Context) error {
 	// ...
@@ -94,13 +79,28 @@ func (h *ChatHandler) DeleteMessage(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Get a message ID list by chat ID
+// @Summary Get a message by message ID
 // @Description
 // @Tags Chat
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param chatID path uint true "chat ID"
-// @Success 200 {array} api.ReturnedData{}
+// @Param messageID path uint true "message ID"
+// @Success 200 {object} api.ReturnedData{data=Message}
+// @Router /patient/{patientID}/chat/{chatID}/message/{messageID} [GET]
+func (h *ChatHandler) GetMessageByMessageID(c echo.Context) error {
+	// ...
+	c.Logger().Debug("hello world")
+	return c.JSON(200, api.Return("ok", nil))
+}
+
+// @Summary Get a message list by chat ID
+// @Description
+// @Tags Chat
+// @Produce json
+// @Param patientID path uint true "patient ID"
+// @Param chatID path uint true "chat ID"
+// @Success 200 {object} api.ReturnedData{data=[]Message}
 // @Router /patient/{patientID}/chat/{chatID} [GET]
 func (h *ChatHandler) GetMessagesByChatID(c echo.Context) error {
 	// ...
@@ -108,14 +108,14 @@ func (h *ChatHandler) GetMessagesByChatID(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Get catagorys by keyword id
-// @Description
+// @Summary Get a catagory list by message id
+// @Description Parse the message and get the corresponding catagorys
 // @Tags Chat
 // @Produce json
-// @Param keywordID path uint true "keyword ID"
-// @Success 200 {object} api.ReturnedData{}
-// @Router /keyword/{keywordID}  [GET]
-func (h *ChatHandler) GetCatagorysByKeywordID(c echo.Context) error {
+// @Param message path uint true "message ID"
+// @Success 200 {object} api.ReturnedData{[]Catagory}
+// @Router /patient/{patientID}/chat/{chatID}/message/{messageID}  [GET]
+func (h *ChatHandler) GetCatagorysByMessageID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("ok", nil))
@@ -125,9 +125,8 @@ func (h *ChatHandler) GetCatagorysByKeywordID(c echo.Context) error {
 // @Description
 // @Tags Chat
 // @Produce json
-// @Param keywordID path uint true "keyword ID"
 // @Param catagoryID path uint true "catagory ID"
-// @Success 200 {object} api.ReturnedData{}
+// @Success 200 {object} api.ReturnedData{data=[]string}
 // @Router /keyword/{keywordID}/catagory/{catagoryID}  [GET]
 func (h *ChatHandler) GetQuestiosByCatagoryID(c echo.Context) error {
 	// ...
