@@ -14,17 +14,22 @@ type Case struct {
 }
 
 type Prescription struct {
-	ID        uint `gorm:"primarykey"`
-	CaseID    uint
-	Advice    string
-	Medicines []Medicine
+	ID         uint `gorm:"primarykey"`
+	CaseID     uint
+	Advice     string
+	Guidelines []Guideline
+}
+
+type Guideline struct {
+	ID       uint `gorm:"primarykey"`
+	Medicine Medicine
+	Dosage   string
+	Quantity uint
 }
 
 type Medicine struct {
-	ID               uint `gorm:"primarykey`
+	ID               uint `gorm:"primarykey"`
 	Name             string
-	Quantity         uint
 	Price            float32
-	Dosage           string
 	Contraindication string
 }
