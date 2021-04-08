@@ -156,10 +156,10 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param keyword query string true "key word of the medicine"
+// @Param q query string true "key word of the medicine"
 // @Success 200 {object} api.ReturnedData{data=[]Medicine}
-// @Router /medicine
-func (h *CaseHandler) QueryMedicine(c echo.Context) error {
+// @Router /medicine [GET]
+func (h *CaseHandler) GetMedicines(c echo.Context) error {
 	// ...
 	c.Logger().Debug("QueryMedicine")
 	return c.JSON(200, api.Return("success", nil))
