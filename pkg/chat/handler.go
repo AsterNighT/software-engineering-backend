@@ -8,6 +8,9 @@ import (
 type ChatHandler struct {
 }
 
+type KeywordHandler struct {
+}
+
 // @Summary New a chat
 // @Description
 // @Tags Chat
@@ -64,7 +67,7 @@ func (h *ChatHandler) NewMessage(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Delete a message
+// @Summary Delete a message by message id
 // @Description Can be viewed as recall a message
 // @Tags Chat
 // @Produce json
@@ -73,7 +76,7 @@ func (h *ChatHandler) NewMessage(c echo.Context) error {
 // @Param messageID path uint true "message ID"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/chat/{chatID}/message/{messageID} [DELETE]
-func (h *ChatHandler) DeleteMessage(c echo.Context) error {
+func (h *ChatHandler) DeleteMessageByMessageID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("ok", nil))
@@ -108,14 +111,27 @@ func (h *ChatHandler) GetMessagesByChatID(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Get a catagory list by message id
-// @Description Parse the message and get the corresponding catagorys
+// @Summary Get a keyword list by message id
+// @Description Parse the message and get valid keywords
 // @Tags Chat
 // @Produce json
-// @Param message path uint true "message ID"
-// @Success 200 {object} api.ReturnedData{[]Catagory}
+// @Param messageID path uint true "message ID"
+// @Success 200 {object} api.ReturnedData{[]Keyword}
 // @Router /patient/{patientID}/chat/{chatID}/message/{messageID}  [GET]
-func (h *ChatHandler) GetCatagorysByMessageID(c echo.Context) error {
+func (h *ChatHandler) GetKeywordsByMessageID(c echo.Context) error {
+	// ...
+	c.Logger().Debug("hello world")
+	return c.JSON(200, api.Return("ok", nil))
+}
+
+// @Summary Get a catagory list by keyword id
+// @Description
+// @Tags Chat
+// @Produce json
+// @Param keywordID path uint true "keyword ID"
+// @Success 200 {object} api.ReturnedData{[]Catagory}
+// @Router /keyword/{keywordID} [GET]
+func (h *KeywordHandler) GetCatagorysByKeywordID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("ok", nil))
@@ -128,7 +144,7 @@ func (h *ChatHandler) GetCatagorysByMessageID(c echo.Context) error {
 // @Param catagoryID path uint true "catagory ID"
 // @Success 200 {object} api.ReturnedData{data=[]string}
 // @Router /keyword/{keywordID}/catagory/{catagoryID}  [GET]
-func (h *ChatHandler) GetQuestiosByCatagoryID(c echo.Context) error {
+func (h *KeywordHandler) GetQuestionsByCatagoryID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("ok", nil))
