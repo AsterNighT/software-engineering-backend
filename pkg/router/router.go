@@ -38,9 +38,24 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h cases.CaseHandler
-			router = router.Group("/case")
-			router.GET("/:id", h.GetCasesByPatientID)
+			router = router.Group("/patient")
+			router.GET("/:patientID/case", h.GetLastCase)
+			router.GET("/:patientID", h.GetCasesByPatientID)
+			router.POST("/:patientID/case", h.NewCase)
+			router.DELETE("/:paitentID/case/:caseID", h.DeleteCaseByCaseID)
+			router.GET("/:patientID/case/:caseID", h.GetPreviousCases)
+			router.PUT("/:patientID/case/:caseID", h.UpdateCase)
+			router.POST("/:patientID/case/:caseID/prescription", h.NewPrescription)
+			router.DELETE("/:patientID/case/:caseID/prescription/:prescriptionID", h.DeletePrescription)
+			router.PUT("/:patientID/case/:caseID/prescription/:prescriptionID", h.UpdatePrescription)
+			router.GET("/:patientID/case/:caseID/prescription/:prescriptionID", h.GetPrescriptionByPrescriptionID)
+			router.GET("/:patientID/case/:caseID/prescription", h.GetPrescriptionByCaseID)
 		}
+		{
+			var h cases.MedicineHandler
+			router.GET("/medicine", h.GetMedicines)
+		}
+		
 
 	}
 	return nil

@@ -8,6 +8,9 @@ import (
 type CaseHandler struct {
 }
 
+type MedicineHandler struct {
+}
+
 // @Summary Get the last case
 // @Description
 // @Tags Case
@@ -18,7 +21,7 @@ type CaseHandler struct {
 func (h *CaseHandler) GetLastCase(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetLastCase")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Get cases by patient ID
@@ -32,7 +35,7 @@ func (h *CaseHandler) GetLastCase(c echo.Context) error {
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetCasesByPatientID")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary New a case
@@ -45,7 +48,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 func (h *CaseHandler) NewCase(c echo.Context) error {
 	// ...
 	c.Logger().Debug("NewCase")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Delete a case
@@ -58,7 +61,7 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("DeleteCaseByCaseID")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Get prevoius cases
@@ -71,7 +74,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetPreviousCases")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Update case
@@ -84,7 +87,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	// ...
 	c.Logger().Debug("UpdateCase")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary New a prescrition
@@ -97,7 +100,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	// ...
 	c.Logger().Debug("NewPrescription")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Delete a prescrition
@@ -110,7 +113,7 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 	// ...
 	c.Logger().Debug("DeletePrescription")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Update a prescrition
@@ -123,7 +126,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	// ...
 	c.Logger().Debug("UpdatePrescription")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Get prescription by prescription id
@@ -136,7 +139,7 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetPrescriptionByPrescriptionID")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Get prescriptions by case id
@@ -149,18 +152,18 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetPrescriptionByCaseID")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Query medicine by key word
 // @Description
-// @Tags Case
+// @Tags Medicine
 // @Produce json
 // @Param q query string true "key word of the medicine"
 // @Success 200 {object} api.ReturnedData{data=[]Medicine}
 // @Router /medicine [GET]
-func (h *CaseHandler) GetMedicines(c echo.Context) error {
+func (h *MedicineHandler) GetMedicines(c echo.Context) error {
 	// ...
 	c.Logger().Debug("QueryMedicine")
-	return c.JSON(200, api.Return("success", nil))
+	return c.JSON(200, api.Return("ok", nil))
 }
