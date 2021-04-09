@@ -50,9 +50,11 @@ func RegisterRouters(app *echo.Echo) error {
 		}
 		{
 			var h chat.KeywordHandler
-			router = router.Group("/keyword")
-			router.GET("/:keywordID", h.GetCatagorysByKeywordID)
-			router.GET("/:keywordID/catagory/:catagoryID", h.GetQuestionsByCatagoryID)
+			router.GET("/keyword/:keywordID", h.GetCatagorysByKeywordID)
+		}
+		{
+			var h chat.CatagoryHandler
+			router.GET("/catagory/:catagoryID", h.GetQuestionsByCatagoryID)
 		}
 	}
 	return nil

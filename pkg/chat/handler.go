@@ -11,6 +11,9 @@ type ChatHandler struct {
 type KeywordHandler struct {
 }
 
+type CatagoryHandler struct {
+}
+
 // @Summary New a chat
 // @Description
 // @Tags Chat
@@ -143,8 +146,8 @@ func (h *KeywordHandler) GetCatagorysByKeywordID(c echo.Context) error {
 // @Produce json
 // @Param catagoryID path uint true "catagory ID"
 // @Success 200 {object} api.ReturnedData{data=[]string}
-// @Router /keyword/{keywordID}/catagory/{catagoryID}  [GET]
-func (h *KeywordHandler) GetQuestionsByCatagoryID(c echo.Context) error {
+// @Router /catagory/{catagoryID}  [GET]
+func (h *CatagoryHandler) GetQuestionsByCatagoryID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("hello world")
 	return c.JSON(200, api.Return("ok", nil))
