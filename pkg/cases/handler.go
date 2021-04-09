@@ -81,7 +81,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param caseDetail body string true "case ID and updated details"
+// @Param caseDetail body Case true "case ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
@@ -94,7 +94,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetail body string true "case ID and prescription details"
+// @Param prescriptionDetail body Case true "case ID and prescription details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
@@ -120,7 +120,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetails body uint true "prescription ID and updated details"
+// @Param prescriptionDetails body Prescription true "prescription ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [PUT]
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
