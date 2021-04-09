@@ -55,7 +55,6 @@ func RegisterRouters(app *echo.Echo) error {
 			var h cases.MedicineHandler
 			router.GET("/medicine", h.GetMedicines)
 		}
-		
 
 	}
 	return nil
