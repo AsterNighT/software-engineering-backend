@@ -94,7 +94,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetail body Case true "case ID and prescription details"
+// @Param prescriptionDetail body Prescription true "case ID and prescription details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
