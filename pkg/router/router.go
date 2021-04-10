@@ -6,6 +6,7 @@ import (
 	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
+	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -38,10 +39,44 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h cases.CaseHandler
-			router = router.Group("/case")
-			router.GET("/:id", h.GetCaseByCaseID)
+			router = router.Group("/patient")
+			router.GET("/:patientID/case", h.GetLastCase)
+			router.GET("/:patientID", h.GetCasesByPatientID)
+			router.POST("/:patientID/case", h.NewCase)
+			router.DELETE("/:paitentID/case/:caseID", h.DeleteCaseByCaseID)
+			router.GET("/:patientID/case/:caseID", h.GetPreviousCases)
+			router.PUT("/:patientID/case/:caseID", h.UpdateCase)
+			router.POST("/:patientID/case/:caseID/prescription", h.NewPrescription)
+			router.DELETE("/:patientID/case/:caseID/prescription/:prescriptionID", h.DeletePrescription)
+			router.PUT("/:patientID/case/:caseID/prescription/:prescriptionID", h.UpdatePrescription)
+			router.GET("/:patientID/case/:caseID/prescription/:prescriptionID", h.GetPrescriptionByPrescriptionID)
+			router.GET("/:patientID/case/:caseID/prescription", h.GetPrescriptionByCaseID)
 		}
-
+		{
+			var h cases.MedicineHandler
+			router.GET("/medicine", h.GetMedicines)
+		}
+		{
+			// Use nested scopes and shadowing for subgroups
+			var h chat.ChatHandler
+			router = router.Group("/patient")
+			router.POST("/:patientID/chat", h.NewChat)
+			router.DELETE("/:patientID/chat/:chatID", h.DeleteChatByChatID)
+			router.GET("/:patientID/chat/:chatID", h.GetLastMessage)
+			router.POST("/:patientID/chat/:chatID/message", h.NewMessage)
+			router.DELETE("/:patientID/chat/:chatID/message/:messageID", h.DeleteMessageByMessageID)
+			router.GET("/:patientID/chat/:chatID/message/:messageID", h.GetMessageByMessageID)
+			router.GET("/:patientID/chat/:chatID", h.GetMessagesByChatID)
+			router.GET("/:patientID/chat/:chatID/message/:messageID", h.GetKeywordsByMessageID)
+		}
+		{
+			var h chat.KeywordHandler
+			router.GET("/keyword/:keywordID", h.GetCatagorysByKeywordID)
+		}
+		{
+			var h chat.CatagoryHandler
+			router.GET("/catagory/:catagoryID", h.GetQuestionsByCatagoryID)
+		}
 	}
 	return nil
 }
