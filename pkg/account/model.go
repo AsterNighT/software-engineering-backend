@@ -5,7 +5,7 @@ import (
 	chat "github.com/AsterNighT/software-engineering-backend/pkg/chat"
 )
 
-const ACCOUNT_PASSWD_LEN = 8
+const accountPasswdLen = 8
 
 type Account struct {
 	ID    uint `gorm:"primarykey;"`

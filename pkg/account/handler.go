@@ -40,7 +40,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Account Type", nil))
 	}
 
-	if len(Passwd) < ACCOUNT_PASSWD_LEN {
+	if len(Passwd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
@@ -78,7 +78,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
-	if len(Passwd) < ACCOUNT_PASSWD_LEN {
+	if len(Passwd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
@@ -122,9 +122,9 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	// if clientVcode == hostVcode {
 	if clientVcode == string(buffer) {
 		return modifyPasswd(c, Email, newPasswd)
-	} else {
-		return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
 	}
+	return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
+
 }
 
 // @Summary the interface of modifying password
@@ -144,7 +144,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
-	if len(Passwd) < ACCOUNT_PASSWD_LEN {
+	if len(Passwd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 	return modifyPasswd(c, Email, Passwd)
@@ -159,9 +159,8 @@ func checkPasswd(c echo.Context, Email string, Passwd string) error {
 		if itor.Value.(Account).Email == Email {
 			if itor.Value.(Account).Passwd == Passwd {
 				return c.JSON(http.StatusOK, api.Return("Successfully logged in", nil))
-			} else {
-				return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 			}
+			return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 		}
 	}
 
