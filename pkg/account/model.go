@@ -29,7 +29,7 @@ type Doctor struct {
 	DepartmentID uint
 
 	AccountID uint
-	Chats     []chat.Chat  `gorm:"foreignkey:ID"`
+	Chats     []chat.Chat `gorm:"foreignkey:ID"`
 }
 
 type Patient struct {
