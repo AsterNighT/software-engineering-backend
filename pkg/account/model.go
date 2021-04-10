@@ -1,9 +1,14 @@
 package account
 
+import (
+	cases "github.com/AsterNighT/software-engineering-backend/pkg/cases"
+	chat "github.com/AsterNighT/software-engineering-backend/pkg/chat"
+)
+
 const ACCOUNT_PASSWD_LEN = 8
 
 type Account struct {
-	ID    uint `gorm:"primarykey"`
+	ID    uint `gorm:"primarykey;"`
 	Email string
 
 	Type   AcountType
@@ -14,7 +19,24 @@ type Account struct {
 type AcountType string
 
 const (
-	ACCOUNT_TYPE_PATIENT AcountType = "patient"
-	ACCOUNT_TYPE_DOCTOR  AcountType = "doctor"
-	ACCOUNT_TYPE_ADMIN   AcountType = "admin"
+	patient AcountType = "patient"
+	doctor  AcountType = "doctor"
+	admin   AcountType = "admin"
 )
+
+type Doctor struct {
+	ID           uint `gorm:"primarykey"`
+	DepartmentID uint
+
+	AccountID uint
+	Cases     []cases.Case `gorm:"foreignkey:ID"`
+	Chats     []chat.Chat  `gorm:"foreignkey:ID"`
+}
+
+type Patient struct {
+	ID uint `gorm:"primarykey"`
+
+	Account Account      `gorm:"foreignkey:ID"`
+	Cases   []cases.Case `gorm:"foreignkey:ID"`
+	Chats   []chat.Chat  `gorm:"foreignkey:ID"`
+}

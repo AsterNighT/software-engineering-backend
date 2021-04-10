@@ -36,7 +36,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
-	if Type != ACCOUNT_TYPE_PATIENT && Type != ACCOUNT_TYPE_DOCTOR && Type != ACCOUNT_TYPE_ADMIN {
+	if Type != patient && Type != doctor && Type != admin {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Account Type", nil))
 	}
 
@@ -110,7 +110,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	for i := 0; i < 6; i++ {
 		buffer[i] = "1234567890"[int(buffer[i])%6]
 	}
-	hostVcode := string(buffer)
+	// hostVcode := string(buffer)
 
 	// SendVeriMsg(Email, hostVcode) // Func wait for implementation
 
@@ -119,7 +119,8 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	clientVcode := c.QueryParam("VeriCode")
 	newPasswd := c.QueryParam("Passwd")
 
-	if clientVcode == hostVcode {
+	// if clientVcode == hostVcode {
+	if clientVcode == string(buffer) {
 		return modifyPasswd(c, Email, newPasswd)
 	} else {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
