@@ -39,18 +39,19 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h cases.CaseHandler
+			router.GET("/cases", h.GetAllCases)
 			router = router.Group("/patient")
-			router.GET("/:patientID/case", h.GetLastCase)
-			router.GET("/:patientID", h.GetCasesByPatientID)
+			router.GET("/:patientID/case", h.GetLastCaseByPatientID)
 			router.POST("/:patientID/case", h.NewCase)
-			router.DELETE("/:paitentID/case/:caseID", h.DeleteCaseByCaseID)
+			router.GET("/:patientID/cases", h.GetCasesByPatientID)
 			router.GET("/:patientID/case/:caseID", h.GetPreviousCases)
 			router.PUT("/:patientID/case/:caseID", h.UpdateCase)
-			router.POST("/:patientID/case/:caseID/prescription", h.NewPrescription)
-			router.DELETE("/:patientID/case/:caseID/prescription/:prescriptionID", h.DeletePrescription)
-			router.PUT("/:patientID/case/:caseID/prescription/:prescriptionID", h.UpdatePrescription)
-			router.GET("/:patientID/case/:caseID/prescription/:prescriptionID", h.GetPrescriptionByPrescriptionID)
+			router.DELETE("/:patientID/case/:caseID", h.DeleteCaseByCaseID)
 			router.GET("/:patientID/case/:caseID/prescription", h.GetPrescriptionByCaseID)
+			router.POST("/:patientID/case/:caseID/prescription", h.NewPrescription)
+			router.GET("/:patientID/case/:caseID/prescription/:prescriptionID", h.GetPrescriptionByPrescriptionID)
+			router.PUT("/:patientID/case/:caseID/prescription/:prescriptionID", h.UpdatePrescription)
+			router.DELETE("/:patientID/case/:caseID/prescription/:prescriptionID", h.DeletePrescription)
 		}
 		{
 			var h cases.MedicineHandler
@@ -71,11 +72,11 @@ func RegisterRouters(app *echo.Echo) error {
 		}
 		{
 			var h chat.KeywordHandler
-			router.GET("/keyword/:keywordID", h.GetCatagorysByKeywordID)
+			router.GET("/keyword/:keywordID", h.GetCategoriesByKeywordID)
 		}
 		{
-			var h chat.CatagoryHandler
-			router.GET("/catagory/:catagoryID", h.GetQuestionsByCatagoryID)
+			var h chat.CategoryHandler
+			router.GET("/category/:categoryID", h.GetQuestionsByCategoryID)
 		}
 	}
 	return nil
