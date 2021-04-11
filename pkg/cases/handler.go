@@ -30,6 +30,10 @@ func (h *CaseHandler) GetLastCase(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param department query string false "department name" nil
+// @Param doctor query string false "doctor name" nil
+// @Param before query uint false "a timestamp marking end time" nil
+// @Param after query uint false "a timestamp marking start time" nil
+// @Param q query string false "full-text search" nil
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID} [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
@@ -159,7 +163,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Description
 // @Tags Medicine
 // @Produce json
-// @Param q query string true "key word of the medicine"
+// @Param q query string true "full-text search"
 // @Success 200 {object} api.ReturnedData{data=[]Medicine}
 // @Router /medicine [GET]
 func (h *MedicineHandler) GetMedicines(c echo.Context) error {
