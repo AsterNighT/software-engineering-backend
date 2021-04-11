@@ -19,17 +19,17 @@ type Message struct {
 Question catagories
 -------------------------------------------------------------------
 If the patient's message contains some keyword specified in DB,
-then we can find the matching catagory of questions.
+then we can find the matching category of questions.
 Doctor's work can be reduced by automatically showing right questions.
 */
-type Catagory struct {
+type Category struct {
 	ID        uint `gorm:"primaryKey"`
 	Name      string
-	Questions []string //Each catagory correspond with a set of fixed questions
+	Questions []string //Each category correspond with a set of fixed questions
 }
 
 type Keyword struct {
-	ID        uint `gorm:"primaryKey"`
-	Name      string
-	Catagorys []Catagory `gorm:"many2many:keyword_catagorys;"` //Each keyword correspond with a set of fixed catagories
+	ID         uint `gorm:"primaryKey"`
+	Name       string
+	Categories []Category `gorm:"many2many:keyword_categories;"` //Each keyword correspond with a set of fixed catagories
 }

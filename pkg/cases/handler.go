@@ -11,6 +11,24 @@ type CaseHandler struct {
 type MedicineHandler struct {
 }
 
+// @Summary Get all cases
+// @Description
+// @Tags Case
+// @Produce json
+// @Param department query string false "department name" nil
+// @Param patient query string false "patient name" nil
+// @Param doctor query string false "doctor name" nil
+// @Param before query uint false "a timestamp marking end time" nil
+// @Param after query uint false "a timestamp marking start time" nil
+// @Param q query string false "full-text search" nil
+// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Router /cases [GET]
+func (h *CaseHandler) GetAllCases(c echo.Context) error {
+	// ...
+	c.Logger().Debug("GetAllCases")
+	return c.JSON(200, api.Return("ok", nil))
+}
+
 // @Summary Get the last case
 // @Description
 // @Tags Case
@@ -18,7 +36,7 @@ type MedicineHandler struct {
 // @Param patientID path uint true "patient ID"
 // @Success 200 {object} api.ReturnedData{data=Case}
 // @Router /patient/{patientID}/case [GET]
-func (h *CaseHandler) GetLastCase(c echo.Context) error {
+func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetLastCase")
 	return c.JSON(200, api.Return("ok", nil))
@@ -30,8 +48,12 @@ func (h *CaseHandler) GetLastCase(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param department query string false "department name" nil
+// @Param doctor query string false "doctor name" nil
+// @Param before query uint false "a timestamp marking end time" nil
+// @Param after query uint false "a timestamp marking start time" nil
+// @Param q query string false "full-text search" nil
 // @Success 200 {object} api.ReturnedData{data=[]Case}
-// @Router /patient/{patientID} [GET]
+// @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 	// ...
 	c.Logger().Debug("GetCasesByPatientID")
@@ -64,7 +86,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-// @Summary Get prevoius cases
+// @Summary Get previous cases
 // @Description
 // @Tags Case
 // @Produce json
@@ -159,7 +181,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Description
 // @Tags Medicine
 // @Produce json
-// @Param q query string true "key word of the medicine"
+// @Param q query string true "full-text search"
 // @Success 200 {object} api.ReturnedData{data=[]Medicine}
 // @Router /medicine [GET]
 func (h *MedicineHandler) GetMedicines(c echo.Context) error {

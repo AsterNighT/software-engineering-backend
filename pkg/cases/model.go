@@ -1,5 +1,9 @@
 package cases
 
+import (
+	"time"
+)
+
 type Case struct {
 	ID             uint `gorm:"primaryKey"` // Every object should have ID
 	PatientID      uint // A has many relationship should be on this
@@ -7,9 +11,11 @@ type Case struct {
 	Department     string
 	Complaint      string // Use urls to locate pictures
 	Diagnosis      string
-	PastHistory    string
+	Treatment      string
+	History        string
+	Date           time.Time
 	Prescriptions  []Prescription
-	PreviousCase   *Case // Previous case (the lastest one). If there is none prevous case, set nil
+	PreviousCase   *Case // Previous case (the lastest one). If there is none previous case, set nil
 	PreviousCaseID *uint
 }
 
