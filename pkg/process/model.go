@@ -51,11 +51,9 @@ type Registration struct {
 // milestone that represent a small step during the process
 type MileStone struct {
 	ID           uint `gorm:"primaryKey"`
-	Time         time.Time
 	Registration Registration
-
-	Activity string `gorm:"default:''"`
-	Checked  bool   `gorm:"default:false"`
+	Activity     string `gorm:"default:''"`
+	Checked      bool   `gorm:"default:false"`
 }
 
 // schedule table for a whole department
@@ -67,7 +65,7 @@ type DepartmentSchedule struct {
 	HalfDay    HalfDayEnum // TODO: a validator for department, only half day is allowed
 	Capacity   int
 	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
-	Current   int // current number of registrations of this schedule duration
+	Current int // current number of registrations of this schedule duration
 }
 
 // define new enum for registration status

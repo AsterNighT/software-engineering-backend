@@ -29,7 +29,7 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Param DepartmentID path uint true "department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
-// @Router /departments/{department_id} [GET]
+// @Router /departments/{DepartmentID} [GET]
 func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
@@ -73,6 +73,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Summary get all registrations (doctor view)
 // @Tags doctor
 // @Description display all registrations of a patient
+// @Param RegistrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
@@ -88,10 +89,10 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Summary get a registration by its ID (patient view)
 // @Tags patient
 // @Description return a registration details by its ID
-// @Param RegistrationID body uint true "registration's ID"
+// @Param RegistrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
-// @Router /patient/registration [POST]
+// @Router /patient/registration/{RegistrationID} [GET]
 func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -101,10 +102,9 @@ func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 // @Summary get a registration by its ID (doctor view)
 // @Tags doctor
 // @Description return a registration details by its ID
-// @Param RegistrationID body uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
-// @Router /doctor/registration [POST]
+// @Router /doctor/registration/{RegistrationID} [GET]
 func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
