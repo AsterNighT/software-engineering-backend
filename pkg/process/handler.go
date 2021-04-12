@@ -2,6 +2,7 @@ package process
 
 import (
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
@@ -13,11 +14,11 @@ type RegistrationHandler struct {
 // @Description display all departments of a hospital
 // @Produce json
 // @Success 200 {array} api.ReturnedData{data=[]Department}
-// @Router /patient/departments [GET]
+// @Router /departments [GET]
 func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary get a department by its ID
@@ -26,11 +27,11 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Param department_id path uint true "Department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
-// @Router /patient/departments/{department_id} [GET]
+// @Router /departments/{department_id} [GET]
 func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary patient register
@@ -43,7 +44,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 func (h *RegistrationHandler) CreateRegistrationByPatient(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary get all registrations (patient view)
@@ -56,7 +57,7 @@ func (h *RegistrationHandler) CreateRegistrationByPatient(c echo.Context) error 
 func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary get all registrations (doctor view)
@@ -69,7 +70,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary get a registration by its ID (patient view)
@@ -81,7 +82,7 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Router /patient/registration/get/{registration_id} [GET]
 func (h *RegistrationHandler) GetRegistrationDetailByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary get a registration by its ID (doctor view)
@@ -93,7 +94,7 @@ func (h *RegistrationHandler) GetRegistrationDetailByPatient(c echo.Context) err
 // @Router /doctor/registration/get/{registration_id} [GET]
 func (h *RegistrationHandler) GetRegistrationDetailByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary delete a registration by its ID
@@ -106,7 +107,7 @@ func (h *RegistrationHandler) GetRegistrationDetailByDoctor(c echo.Context) erro
 func (h *RegistrationHandler) DeleteRegistrationByPatient(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary update registration status
@@ -119,10 +120,10 @@ func (h *RegistrationHandler) DeleteRegistrationByPatient(c echo.Context) error 
 func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
-// @Summary create new registration
+// @Summary create new registration (by doctor)
 // @Tags doctor
 // @Description the doctor create a new registration for the patient
 // @Param patient_id, department_id
@@ -132,7 +133,7 @@ func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 func (h *RegistrationHandler) CreateRegistrationByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary create milestone
@@ -145,7 +146,7 @@ func (h *RegistrationHandler) CreateRegistrationByDoctor(c echo.Context) error {
 func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // @Summary update milestone
@@ -158,7 +159,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 
@@ -172,5 +173,5 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 func (h *RegistrationHandler) CreateOrder(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("pong", nil))
+	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
