@@ -155,7 +155,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Summary update milestone
 // @Tags doctor
 // @Description the doctor update milestone (check milestone)
-// @Param milestone_id body uint "Milestone's ID"
+// @Param milestone_id body uint true "Milestone's ID"
 // @Param checked body boolean true "Milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{"update success"}
