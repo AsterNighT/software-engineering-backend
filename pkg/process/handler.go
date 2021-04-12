@@ -14,7 +14,7 @@ type RegistrationHandler struct {
 // @Tags patient
 // @Description display all departments of a hospital
 // @Produce json
-// @Success 200 {array} api.ReturnedData{data=[]Department}
+// @Success 200 {array} api.ReturnedData{}
 // @Router /departments [GET]
 func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
@@ -72,7 +72,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Param doctor_id path uint true "Patient ID"
 // @Produce json
 // @Success 200 {array} api.ReturnedData{data=[]Registration}
-// @Router /doctor/registrations/{doctor_id} [GET]
+// @Router /doctor/{doctor_id}/registrations [GET]
 func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
@@ -86,24 +86,11 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Param registration_id path uint true "Registration ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
-// @Router /patient/registration/get/{registration_id} [GET]
+// @Router /patient/registration/{registration_id} [GET]
 func (h *RegistrationHandler) GetRegistrationDetailByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
-
-// this may not be used by doctor view's frontend
-//// @Summary get a registration by its ID (doctor view)
-//// @Tags doctor
-//// @Description return a registration details by its ID
-//// @Param registration_id
-//// @Produce json
-//// @Success 200 {object} api.ReturnedData{data=Registration}
-//// @Router /doctor/registration/get/{registration_id} [GET]
-//func (h *RegistrationHandler) GetRegistrationDetailByDoctor(c echo.Context) error {
-//	c.Logger().Debug("hello world")
-//	return c.JSON(http.StatusCreated, api.Return("ok", nil))
-//}
 
 // DeleteRegistrationByPatient
 // @Summary delete a registration by its ID
@@ -127,7 +114,7 @@ func (h *RegistrationHandler) DeleteRegistrationByPatient(c echo.Context) error 
 // @Param status body string true "Next registration's status"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{"update success"}
-// @Router /doctor/registration/update [POST]
+// @Router /doctor/registration [PUT]
 func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
@@ -172,7 +159,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Param checked body boolean true "Milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{"update success"}
-// @Router /doctor/milestone/update [POST]
+// @Router /doctor/milestone [PUT]
 func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
@@ -180,6 +167,8 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 }
 
 
+
+////
 //// not included in our model
 //// CreateOrder
 //// @Summary create order
@@ -191,6 +180,19 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 //// @Router /doctor/order/create [POST]
 //func (h *RegistrationHandler) CreateOrder(c echo.Context) error {
 //	//verify identity
+//	c.Logger().Debug("hello world")
+//	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+//}
+
+// this may not be used by doctor view's frontend
+//// @Summary get a registration by its ID (doctor view)
+//// @Tags doctor
+//// @Description return a registration details by its ID
+//// @Param registration_id
+//// @Produce json
+//// @Success 200 {object} api.ReturnedData{data=Registration}
+//// @Router /doctor/registration/get/{registration_id} [GET]
+//func (h *RegistrationHandler) GetRegistrationDetailByDoctor(c echo.Context) error {
 //	c.Logger().Debug("hello world")
 //	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 //}
