@@ -54,9 +54,7 @@ type MileStone struct {
 	Time         time.Time
 	Registration Registration
 
-	Location string `gorm:"default:''"`
 	Activity string `gorm:"default:''"`
-	Assignee string `gorm:"default:''"` // someone who is responsible for this small milestone
 	Checked  bool   `gorm:"default:false"`
 }
 
