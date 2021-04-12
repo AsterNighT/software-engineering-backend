@@ -73,7 +73,6 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Summary get all registrations (doctor view)
 // @Tags doctor
 // @Description display all registrations of a patient
-// @Param RegistrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
@@ -114,12 +113,12 @@ func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Summary update registration status
 // @Tags both doctor & patient
 // @Description update registration status
-// @Param RegistrationID body uint true "registration ID"
+// @Param RegistrationID path uint true "registration ID"
 // @Param Status body string true "next status of current registration"
 // @Param TerminatedCause body string false "if registration is shutdown, a cause is required"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
-// @Router /registration [PUT]
+// @Router /registration/{RegistrationID} [PUT]
 func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
@@ -146,12 +145,12 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Summary update milestone
 // @Tags doctor
 // @Description the doctor update milestone (check milestone)
-// @Param MileStoneID body uint true "milestone's ID"
+// @Param MileStoneID path uint true "milestone's ID"
 // @Param Activity body string false "updated milestone's activity"
 // @Param Checked body boolean true "milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone [PUT]
+// @Router /milestone/{MileStoneID} [PUT]
 func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
@@ -161,11 +160,11 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // DeleteMileStoneByDoctor
 // @Summary delete milestone
 // @Tags doctor
-// @Description the doctor update milestone (check milestone)
-// @Param MileStoneID body uint true "milestone's ID"
+// @Description the doctor delete milestone
+// @Param MileStoneID path uint true "milestone's ID"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone [DELETE]
+// @Router /milestone/{MileStoneID} [DELETE]
 func (h *RegistrationHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")

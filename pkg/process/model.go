@@ -4,27 +4,6 @@ import (
 	"time"
 )
 
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-// these tables should be included in account model (maybe)
-type Doctor struct {
-	/* ... */
-	Department Department
-}
-
-type Patient struct {
-	/* ... */
-}
-
-type DoctorSchedule struct {
-	ID       uint `gorm:"primaryKey"`
-	Doctor   Doctor
-	Date     time.Time
-	HalfDay  HalfDayEnum `gorm:"default:'whole'"`
-	Capacity int
-}
-
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 // department table (e.g. orthopedics department, x-ray department)
 type Department struct {
 	ID        uint                 `gorm:"primaryKey"`
