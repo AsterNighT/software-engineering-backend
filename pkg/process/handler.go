@@ -14,7 +14,7 @@ type RegistrationHandler struct {
 // @Tags patient
 // @Description display all departments of a hospital
 // @Produce json
-// @Success 200 {array} api.ReturnedData{}
+// @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
 func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
@@ -26,7 +26,7 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Summary get a department by its ID
 // @Tags patient
 // @Description return a department's details by its ID
-// @Param department_id path uint true "Department ID"
+// @Param DepartmentID path uint true "Department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /departments/{department_id} [GET]
@@ -36,101 +36,91 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
-// CreateRegistrationByPatient
-// @Summary patient register
-// @Tags patient
+// CreateRegistration
+// @Summary create registration
+// @Tags both doctor & patient
 // @Description return registration state
-// @Param patient_id query uint true "Patient ID"
-// @Param department_id query uint true "Department ID"
+// @Param PatientID body uint true "Patient ID"
+// @Param DepartmentID body uint true "Department ID"
+// @Param RegistrationTime body string true "registration's time, basic format 'YYYY-MM-DD-<half-day>'"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{data="register success"}
-// @Router /patient/registration/create [POST]
-func (h *RegistrationHandler) CreateRegistrationByPatient(c echo.Context) error {
+// @Success 200 {object} api.ReturnedData{}
+// @Router /registration [POST]
+func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+// NOTE: we assume a doctor may help the patient commit registration
+
+
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
 // @Tags patient
 // @Description display all registrations of a patient
-// @Param patient_id path uint true "Patient's ID"
 // @Produce json
-// @Success 200 {array} api.ReturnedData{data=[]Registration}
-// @Router /patient/{patient_id}/registrations [GET]
+// @Success 200 {object} api.ReturnedData{data=[]Registration}
+// @Router /patient/registrations [GET]
 func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+// NOTE: use cookie for identification
 
 // GetRegistrationsByDoctor
 // @Summary get all registrations (doctor view)
 // @Tags doctor
 // @Description display all registrations of a patient
-// @Param doctor_id path uint true "Patient ID"
 // @Produce json
-// @Success 200 {array} api.ReturnedData{data=[]Registration}
-// @Router /doctor/{doctor_id}/registrations [GET]
+// @Success 200 {object} api.ReturnedData{data=[]Registration}
+// @Router /doctor/registrations [GET]
 func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+// NOTE: use cookie for identification
 
-// GetRegistrationDetailByPatient
+
+// GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
 // @Tags patient
 // @Description return a registration details by its ID
-// @Param registration_id path uint true "Registration ID"
+// @Param RegistrationID body uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
-// @Router /patient/registration/{registration_id} [GET]
-func (h *RegistrationHandler) GetRegistrationDetailByPatient(c echo.Context) error {
+// @Router /patient/registration [POST]
+func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
-// DeleteRegistrationByPatient
-// @Summary delete a registration by its ID
-// @Tags patient
-// @Description return state
-// @Param registration_id path uint true "Registration ID"
+// GetRegistrationByDoctor
+// @Summary get a registration by its ID (doctor view)
+// @Tags doctor
+// @Description return a registration details by its ID
+// @Param RegistrationID body uint true "registration's ID"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{"delete success"}
-// @Router /patient/registration/delete/{registration_id} [GET]
-func (h *RegistrationHandler) DeleteRegistrationByPatient(c echo.Context) error {
-	//verify identity
+// @Success 200 {object} api.ReturnedData{data=Registration}
+// @Router /doctor/registration [POST]
+func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // UpdateRegistrationStatus
 // @Summary update registration status
-// @Tags doctor
-// @Description doctor change registration status
-// @Param registration_id body uint true "Registration ID"
-// @Param status body string true "Next registration's status"
+// @Tags both doctor & patient
+// @Description update registration status
+// @Param RegistrationID body uint true "Registration ID"
+// @Param Status body string true "next status of current registration"
+// @Param TerminatedCause body string false "if registration is shutdown, a cause is required"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{"update success"}
-// @Router /doctor/registration [PUT]
+// @Success 200 {object} api.ReturnedData{}
+// @Router /registration [PUT]
 func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
-	//verify identity
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
-}
-
-// CreateRegistrationByDoctor
-// @Summary create new registration (by doctor)
-// @Tags doctor
-// @Description the doctor create a new registration for the patient
-// @Param patient_id body uint true "Patient ID"
-// @Param department_id body uint true "Department ID"
-// @Produce json
-// @Success 200 {string} api.ReturnedData{"create success"}
-// @Router /doctor/registration/create [POST]
-func (h *RegistrationHandler) CreateRegistrationByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -140,59 +130,29 @@ func (h *RegistrationHandler) CreateRegistrationByDoctor(c echo.Context) error {
 // @Summary create milestone
 // @Tags doctor
 // @Description the doctor create milestone (type: array)
-// @Param registration_id body uint true "Patient ID"
-// @Param activity body string true "Milestone's activity"
+// @Param RegistrationID body uint true "registration's ID"
+// @Param Activity body string true "Milestone's activity"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{"create success"}
-// @Router /doctor/milestone/create [POST]
+// @Success 200 {string} api.ReturnedData{}
+// @Router /milestone [POST]
 func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
+
 // UpdateMileStoneByDoctor
 // @Summary update milestone
 // @Tags doctor
 // @Description the doctor update milestone (check milestone)
-// @Param milestone_id body uint true "Milestone's ID"
-// @Param checked body boolean true "Milestone is checked or not"
+// @Param MileStoneID body uint true "milestone's ID"
+// @Param Checked body boolean true "milestone is checked or not"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{"update success"}
-// @Router /doctor/milestone [PUT]
+// @Success 200 {string} api.ReturnedData{}
+// @Router /milestone [PUT]
 func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
-
-
-
-////
-//// not included in our model
-//// CreateOrder
-//// @Summary create order
-//// @Tags doctor
-//// @Description the doctor create order for patient
-//// @Param doctor_id, patient_id, medicines{}, description
-//// @Produce json
-//// @Success 200 {string} api.ReturnedData{"create order success"}
-//// @Router /doctor/order/create [POST]
-//func (h *RegistrationHandler) CreateOrder(c echo.Context) error {
-//	//verify identity
-//	c.Logger().Debug("hello world")
-//	return c.JSON(http.StatusCreated, api.Return("ok", nil))
-//}
-
-// this may not be used by doctor view's frontend
-//// @Summary get a registration by its ID (doctor view)
-//// @Tags doctor
-//// @Description return a registration details by its ID
-//// @Param registration_id
-//// @Produce json
-//// @Success 200 {object} api.ReturnedData{data=Registration}
-//// @Router /doctor/registration/get/{registration_id} [GET]
-//func (h *RegistrationHandler) GetRegistrationDetailByDoctor(c echo.Context) error {
-//	c.Logger().Debug("hello world")
-//	return c.JSON(http.StatusCreated, api.Return("ok", nil))
-//}
