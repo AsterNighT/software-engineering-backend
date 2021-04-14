@@ -51,9 +51,8 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+
 // NOTE: we assume a doctor may help the patient commit registration
-
-
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
@@ -67,6 +66,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+
 // NOTE: use cookie for identification
 
 // GetRegistrationsByDoctor
@@ -81,8 +81,8 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
-// NOTE: use cookie for identification
 
+// NOTE: use cookie for identification
 
 // GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
@@ -140,7 +140,6 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
-
 // UpdateMileStoneByDoctor
 // @Summary update milestone
 // @Tags doctor
@@ -170,4 +169,5 @@ func (h *RegistrationHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
+
 // NOTE: use delete method, because there is no dependencies on MileStone
