@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"time"
 )
 
@@ -9,15 +10,15 @@ type Department struct {
 	ID        uint                 `gorm:"primaryKey"`
 	Name      string               // name of this department
 	Detail    string               // detailed introduction of this department
-	Doctors   []Doctor             // foreign key of all the doctors who belongs to this department
+	Doctors   []account.Doctor     // foreign key of all the doctors who belongs to this department
 	Schedules []DepartmentSchedule // time schedule for a whole department
 }
 
 // registration table
 type Registration struct {
 	ID         uint `gorm:"primaryKey"`
-	Doctor     Doctor
-	Patient    Patient
+	Doctor     account.Doctor
+	Patient    account.Patient
 	Department Department
 	Date       time.Time
 	HalfDay    HalfDayEnum            // TODO: a validator for registration, only half day is allowed
