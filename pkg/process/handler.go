@@ -11,7 +11,7 @@ type RegistrationHandler struct {
 
 // GetAllDepartments
 // @Summary get all departments
-// @Tags patient
+// @Tags Process
 // @Description display all departments of a hospital
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Department}
@@ -24,12 +24,12 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
 // GetDepartmentByID
 // @Summary get a department by its ID
-// @Tags patient
+// @Tags Process
 // @Description return a department's details by its ID
 // @Param DepartmentID path uint true "department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
-// @Router /departments/{DepartmentID} [GET]
+// @Router /department/{DepartmentID} [GET]
 func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
@@ -38,7 +38,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 // CreateRegistration
 // @Summary create registration
-// @Tags both doctor & patient
+// @Tags Process 
 // @Description return registration state
 // @Param PatientID body uint true "patient's ID"
 // @Param DepartmentID body uint true "department ID"
@@ -56,7 +56,7 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
-// @Tags patient
+// @Tags Process 
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
@@ -71,7 +71,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 // GetRegistrationsByDoctor
 // @Summary get all registrations (doctor view)
-// @Tags doctor
+// @Tags Process 
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
@@ -86,7 +86,7 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 // GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
-// @Tags patient
+// @Tags Process 
 // @Description return a registration details by its ID
 // @Param RegistrationID path uint true "registration's ID"
 // @Produce json
@@ -99,7 +99,7 @@ func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 
 // GetRegistrationByDoctor
 // @Summary get a registration by its ID (doctor view)
-// @Tags doctor
+// @Tags Process
 // @Description return a registration details by its ID
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
@@ -111,7 +111,7 @@ func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 
 // UpdateRegistrationStatus
 // @Summary update registration status
-// @Tags both doctor & patient
+// @Tags Process
 // @Description update registration status
 // @Param RegistrationID path uint true "registration ID"
 // @Param Status body string true "next status of current registration"
@@ -127,7 +127,7 @@ func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 
 // CreateMileStoneByDoctor
 // @Summary create milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor create milestone (type: array)
 // @Param RegistrationID body uint true "registration's ID"
 // @Param Activity body string true "milestone's activity"
@@ -142,7 +142,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 
 // UpdateMileStoneByDoctor
 // @Summary update milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor update milestone (check milestone)
 // @Param MileStoneID path uint true "milestone's ID"
 // @Param Activity body string false "updated milestone's activity"
@@ -158,7 +158,7 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 
 // DeleteMileStoneByDoctor
 // @Summary delete milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor delete milestone
 // @Param MileStoneID path uint true "milestone's ID"
 // @Produce json
