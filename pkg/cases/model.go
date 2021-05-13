@@ -27,10 +27,12 @@ type Prescription struct {
 }
 
 type Guideline struct {
-	ID       uint `gorm:"primarykey"`
-	Medicine Medicine
-	Dosage   string
-	Quantity uint
+	ID             uint `gorm:"primarykey"`
+	MedicineID     uint
+	Medicine       Medicine
+	PrescriptionID uint
+	Dosage         string
+	Quantity       uint
 }
 
 type Medicine struct {
