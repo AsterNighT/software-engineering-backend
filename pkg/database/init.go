@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/process"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,12 +30,13 @@ func InitDb() {
 		panic(err)
 	}
 
-	//err = db.AutoMigrate(&cases.Prescription{})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//err = db.AutoMigrate(&cases.Case{})
-	//if err != nil {
-	//	panic(err)
-	//}
+	// auto migrate cases
+	err = db.AutoMigrate(&cases.Prescription{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&cases.Case{})
+	if err != nil {
+		panic(err)
+	}
 }
