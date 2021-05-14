@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/AsterNighT/software-engineering-backend/pkg/router"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
