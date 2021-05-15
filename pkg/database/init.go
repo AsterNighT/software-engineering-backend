@@ -47,4 +47,8 @@ func InitDb() {
 		&account.Patient{},
 		&account.Doctor{},
 	)
+
+	if err != nil {
+		panic(err)
+	}
 }
