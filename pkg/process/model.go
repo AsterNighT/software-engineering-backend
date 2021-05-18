@@ -1,8 +1,9 @@
 package process
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"time"
+
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 )
 
 // Department

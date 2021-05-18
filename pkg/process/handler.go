@@ -1,9 +1,10 @@
 package process
 
 import (
+	"net/http"
+
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type RegistrationHandler struct {
@@ -38,7 +39,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 // CreateRegistration
 // @Summary create registration
-// @Tags Process 
+// @Tags Process
 // @Description return registration state
 // @Param PatientID body uint true "patient's ID"
 // @Param DepartmentID body uint true "department ID"
@@ -56,7 +57,7 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
-// @Tags Process 
+// @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
@@ -71,7 +72,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 // GetRegistrationsByDoctor
 // @Summary get all registrations (doctor view)
-// @Tags Process 
+// @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
@@ -86,7 +87,7 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 // GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
-// @Tags Process 
+// @Tags Process
 // @Description return a registration details by its ID
 // @Param RegistrationID path uint true "registration's ID"
 // @Produce json
