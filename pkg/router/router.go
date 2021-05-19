@@ -1,9 +1,10 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
-	"net/http"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
