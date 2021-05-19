@@ -20,7 +20,7 @@ type Case struct {
 }
 
 type Prescription struct {
-	ID         uint `gorm:"primarykey"`
+	ID         uint `gorm:"primarykey" json:"omitempty"`
 	CaseID     uint
 	Advice     string
 	Guidelines []Guideline
