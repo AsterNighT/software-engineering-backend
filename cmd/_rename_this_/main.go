@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// initialize database
-	database.InitDb()
+	database.InitDB()
 
 	// create echo instance
 	app := echo.New()
