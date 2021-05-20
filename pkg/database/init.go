@@ -1,8 +1,10 @@
 package database
 
 import (
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
+	"github.com/AsterNighT/software-engineering-backend/pkg/process"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,6 +26,24 @@ func InitDB() {
 	if err != nil {
 		panic(err)
 	}
+
+	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//		G4 - Process
+	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+	// auto migrate process's table
+	err = db.AutoMigrate(
+		&process.Department{},
+		&process.Registration{},
+		&process.MileStone{},
+		&process.DepartmentSchedule{},
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// auto migrate cases
 	err = db.AutoMigrate(&cases.Prescription{})
 	if err != nil {
 		panic(err)
@@ -32,5 +52,17 @@ func InitDB() {
 	if err != nil {
 		panic(err)
 	}
+  
 	utils.DB = db
+
+	// auto migrate account
+	err = db.AutoMigrate(
+		&account.Account{},
+		&account.Patient{},
+		&account.Doctor{},
+	)
+
+	if err != nil {
+		panic(err)
+	}
 }

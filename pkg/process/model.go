@@ -1,11 +1,13 @@
 package process
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"time"
+
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 )
 
-// department table (e.g. orthopedics department, x-ray department)
+// Department
+//department table (e.g. orthopedics department, x-ray department)
 type Department struct {
 	ID        uint                 `gorm:"primaryKey"`
 	Name      string               // name of this department
@@ -14,40 +16,48 @@ type Department struct {
 	Schedules []DepartmentSchedule // time schedule for a whole department
 }
 
+// Registration
 // registration table
+// every registration will eventually be terminated, and therefore needs a cause
 type Registration struct {
-	ID         uint `gorm:"primaryKey"`
-	Doctor     account.Doctor
-	Patient    account.Patient
-	Department Department
-	Date       time.Time
-	HalfDay    HalfDayEnum            // TODO: a validator for registration, only half day is allowed
-	Status     RegistrationStatusEnum `gorm:"default:'committed'"`
-	// every registration will eventually be terminated, and therefore needs a cause
-	TerminatedCause string `gorm:"default''"`
+	ID              uint            `gorm:"primaryKey"`
+	DoctorID        uint            `swaggerignore:"true"`
+	Doctor          account.Doctor  `swaggerignore:"true"`
+	PatientID       uint            `swaggerignore:"true"`
+	Patient         account.Patient `swaggerignore:"true"`
+	DepartmentID    uint            `swaggerignore:"true"`
+	Department      Department      `swaggerignore:"true"`
+	Date            time.Time
+	HalfDay         HalfDayEnum            // TODO: a validator for registration, only half day is allowed
+	Status          RegistrationStatusEnum `gorm:"default:'committed'"`
+	TerminatedCause string                 `gorm:"default''"`
 	MileStones      []MileStone
 }
 
+// MileStone
 // milestone that represent a small step during the process
 type MileStone struct {
-	ID           uint `gorm:"primaryKey"`
-	Registration Registration
-	Activity     string `gorm:"default:''"`
-	Checked      bool   `gorm:"default:false"`
+	ID             uint         `gorm:"primaryKey" swaggerignore:"true"`
+	RegistrationID uint         `swaggerignore:"true"`
+	Registration   Registration `swaggerignore:"true"`
+	Activity       string       `gorm:"default:''"`
+	Checked        bool         `gorm:"default:false"`
 }
 
+// DepartmentSchedule
 // schedule table for a whole department
 // each object represents a minimal schedule duration
 type DepartmentSchedule struct {
-	ID         uint `gorm:"primaryKey"`
-	Department Department
-	Date       time.Time
-	HalfDay    HalfDayEnum // TODO: a validator for department, only half day is allowed
-	Capacity   int
-	// DepartmentSchedule.Capacity = SUM(DoctorSchedule.Capacity if the doctor belongs to this department)
-	Current int // current number of registrations of this schedule duration
+	ID           uint       `gorm:"primaryKey" swaggerignore:"true"`
+	DepartmentID uint       `swaggerignore:"true"`
+	Department   Department `swaggerignore:"true"`
+	Date         time.Time
+	HalfDay      HalfDayEnum // TODO: a validator for department, only half day is allowed
+	Capacity     int
+	Current      int // current number of registrations of this schedule duration
 }
 
+// RegistrationStatusEnum
 // define new enum for registration status
 type RegistrationStatusEnum string
 
@@ -57,6 +67,7 @@ const (
 	terminated RegistrationStatusEnum = "terminated"
 )
 
+// HalfDayEnum
 // define new enum for half day selection
 type HalfDayEnum string
 

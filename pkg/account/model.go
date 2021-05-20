@@ -1,8 +1,8 @@
 package account
 
 import (
-	cases "github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	chat "github.com/AsterNighT/software-engineering-backend/pkg/chat"
+	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
+	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 )
 
 const accountPasswdLen = 8

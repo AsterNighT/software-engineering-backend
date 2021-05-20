@@ -1,22 +1,23 @@
 package process
 
 import (
+	"net/http"
+
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
-type RegistrationHandler struct {
+type ProcessHandler struct {
 }
 
 // GetAllDepartments
 // @Summary get all departments
-// @Tags patient
+// @Tags Process
 // @Description display all departments of a hospital
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
-func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
+func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -24,13 +25,13 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 
 // GetDepartmentByID
 // @Summary get a department by its ID
-// @Tags patient
+// @Tags Process
 // @Description return a department's details by its ID
 // @Param DepartmentID path uint true "department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
-// @Router /departments/{DepartmentID} [GET]
-func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
+// @Router /department/{DepartmentID} [GET]
+func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -38,7 +39,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 
 // CreateRegistration
 // @Summary create registration
-// @Tags both doctor & patient
+// @Tags Process
 // @Description return registration state
 // @Param PatientID body uint true "patient's ID"
 // @Param DepartmentID body uint true "department ID"
@@ -46,7 +47,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration [POST]
-func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
+func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -56,12 +57,12 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
-// @Tags patient
+// @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /patient/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -71,12 +72,12 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 // GetRegistrationsByDoctor
 // @Summary get all registrations (doctor view)
-// @Tags doctor
+// @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -86,32 +87,32 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 // GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
-// @Tags patient
+// @Tags Process
 // @Description return a registration details by its ID
 // @Param RegistrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /patient/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // GetRegistrationByDoctor
 // @Summary get a registration by its ID (doctor view)
-// @Tags doctor
+// @Tags Process
 // @Description return a registration details by its ID
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /doctor/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
 // UpdateRegistrationStatus
 // @Summary update registration status
-// @Tags both doctor & patient
+// @Tags Process
 // @Description update registration status
 // @Param RegistrationID path uint true "registration ID"
 // @Param Status body string true "next status of current registration"
@@ -119,7 +120,7 @@ func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{RegistrationID} [PUT]
-func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
+func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -127,14 +128,14 @@ func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 
 // CreateMileStoneByDoctor
 // @Summary create milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor create milestone (type: array)
 // @Param RegistrationID body uint true "registration's ID"
 // @Param Activity body string true "milestone's activity"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone [POST]
-func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -142,7 +143,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 
 // UpdateMileStoneByDoctor
 // @Summary update milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor update milestone (check milestone)
 // @Param MileStoneID path uint true "milestone's ID"
 // @Param Activity body string false "updated milestone's activity"
@@ -150,7 +151,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [PUT]
-func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -158,13 +159,13 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 
 // DeleteMileStoneByDoctor
 // @Summary delete milestone
-// @Tags doctor
+// @Tags Process
 // @Description the doctor delete milestone
 // @Param MileStoneID path uint true "milestone's ID"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [DELETE]
-func (h *RegistrationHandler) DeleteMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
