@@ -3,10 +3,11 @@ package router
 import (
 	"net/http"
 
-	"github.com/AsterNighT/software-engineering-backend/api"
-	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
+
+	"github.com/AsterNighT/software-engineering-backend/api"
+	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
