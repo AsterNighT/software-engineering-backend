@@ -23,10 +23,10 @@ type AccountHandler struct {
 }
 
 // Init : Init Router
-func (ctrl AccountHandler) Init(g *echo.Group) {
-	g.POST("/register", ctrl.CreateAccount)
-	g.POST("/login", ctrl.LoginAccount)
-	g.POST("/logout", ctrl.LogoutAccount, Authoriszed)
+func (h AccountHandler) Init(g *echo.Group) {
+	g.POST("/register", h.CreateAccount)
+	g.POST("/login", h.LoginAccount)
+	g.POST("/logout", h.LogoutAccount, Authoriszed)
 }
 
 // @Summary create and account based on email(as id), type, name and password
@@ -83,13 +83,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
 	}
 
-	account := Account{
-		ID:     body.ID,
-		Email:  body.Email,
-		Type:   body.Type,
-		Name:   body.Name,
-		Passwd: body.Passwd,
-	}
+	account := Account(body)
 
 	// accountList.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
 	account.HashPassword()
@@ -231,9 +225,9 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 // @Router /account/{id}/modify [PUT]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	type RequestBody struct {
-		Email      string `json:"email" validate:"required"`
-		Passwd     string `json:"passwd" validate:"required"`
-		New_Passwd string `json:"new_passwd" validate:"required"`
+		Email     string `json:"email" validate:"required"`
+		Passwd    string `json:"passwd" validate:"required"`
+		NewPasswd string `json:"newpasswd" validate:"required"`
 	}
 	var body RequestBody
 
@@ -256,11 +250,11 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 		return ret
 	}
 
-	if len(body.New_Passwd) < accountPasswdLen {
+	if len(body.NewPasswd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
-	account.Passwd = body.New_Passwd
+	account.Passwd = body.NewPasswd
 	account.HashPassword()
 
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
