@@ -1,18 +1,32 @@
 package account
 
 import (
-	"container/list"
-	"crypto/rand"
+	"fmt"
 	"net/http"
 	"regexp"
+	"time"
+
+	// "pkg/db_lite"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	// "github.com/cjaewon/echo-gorm-example/lib/middlewares"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
-var accountList = list.New()
+// var accountList = list.New()
 
 type AccountHandler struct {
+}
+
+// Init : Init Router
+func (ctrl AccountHandler) Init(g *echo.Group) {
+	g.POST("/register", ctrl.CreateAccount)
+	g.POST("/login", ctrl.LoginAccount)
+	g.POST("/logout", ctrl.LogoutAccount, Authoriszed)
 }
 
 // @Summary create and account based on email(as id), type, name and password
@@ -27,33 +41,73 @@ type AccountHandler struct {
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/account_table [POST]
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
-	Email := c.QueryParam("Email")
-	Type := AcountType(c.QueryParam("Type"))
-	Name := c.QueryParam("Name")
-	Passwd := c.QueryParam("Passwd")
+	type RequestBody struct {
+		ID    uint   `json:"id" validate:"required"`
+		Email string `json:"email" validate:"required"`
 
-	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
+		Type   AcountType `json:"type" validate:"required"`
+		Name   string     `json:"name" validate:"required"`
+		Passwd string     `json:"passwd" validate:"required"`
+	}
+
+	var body RequestBody
+
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
+	}
+	if err := c.Validate(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
-	if Type != patient && Type != doctor && Type != admin {
+	if body.Type != patient && body.Type != doctor && body.Type != admin {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Account Type", nil))
 	}
 
-	if len(Passwd) < accountPasswdLen {
+	if len(body.Passwd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
 
 	// Check uniqueness
-	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
-		if itor.Value.(Account).Email == Email {
-			return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
-		}
+	// for itor := accountList.Front(); itor != nil; itor = itor.Next() {
+	// 	if itor.Value.(Account).Email == body.Email {
+	// 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
+	// 	}
+	// }
+	db, _ := c.Get("db").(*gorm.DB)
+	if err := db.Where("id = ?", body.ID).First(&Account{}).Error; err == nil {
+		// return c.NoContent(http.StatusConflict)
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
 	}
 
-	accountList.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
+	account := Account{
+		ID:     body.ID,
+		Email:  body.Email,
+		Type:   body.Type,
+		Name:   body.Name,
+		Passwd: body.Passwd,
+	}
 
-	return c.JSON(http.StatusOK, api.Return("Successfully created", nil))
+	// accountList.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
+	account.HashPassword()
+	db.Create(&account)
+
+	token, _ := account.GenerateToken()
+	cookie := http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: time.Now().Add(7 * 24 * time.Hour),
+	}
+	c.SetCookie(&cookie)
+
+	// return c.JSON(http.StatusOK, api.Return("Successfully created", nil))
+	return c.JSON(http.StatusOK, api.Return("Created", echo.Map{
+		"account":      account,
+		"cookie_token": token,
+	}))
 
 }
 
@@ -71,18 +125,57 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
-	Email := c.QueryParam("Email")
-	Passwd := c.QueryParam("Passwd")
+	type RequestBody struct {
+		Email  string `json:"email" validate:"required"`
+		Passwd string `json:"passwd" validate:"required"`
+	}
+	var body RequestBody
 
-	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
+	}
+	if err := c.Validate(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
 	}
 
-	if len(Passwd) < accountPasswdLen {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+	if len(body.Passwd) < accountPasswdLen {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
-	return checkPasswd(c, Email, Passwd)
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+
+	if ret := checkPasswd(c, body.Email, body.Passwd, &account, db); ret != c.NoContent(http.StatusOK) {
+		return ret
+	}
+
+	token, _ := account.GenerateToken()
+	cookie := http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: time.Now().Add(7 * 24 * time.Hour),
+	}
+	c.SetCookie(&cookie)
+
+	return c.JSON(http.StatusOK, api.Return("Logged in", echo.Map{
+		"account":      account,
+		"cookie_token": token,
+	}))
+}
+
+// Logout : Logout Router
+func (h *AccountHandler) LogoutAccount(c echo.Context) error {
+	tokenCookie, _ := c.Get("tokenCookie").(*http.Cookie)
+
+	tokenCookie.Value = ""
+	tokenCookie.Expires = time.Unix(0, 0)
+
+	c.SetCookie(tokenCookie)
+
+	return c.JSON(http.StatusOK, api.Return("Account logged out", nil))
 }
 
 // @Summary reset password
@@ -95,37 +188,37 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/{id}/reset [PUT]
-func (h *AccountHandler) ResetPasswd(c echo.Context) error {
-	Email := c.QueryParam("Email")
+// func (h *AccountHandler) ResetPasswd(c echo.Context) error {
+// 	Email := c.QueryParam("Email")
 
-	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
-	}
+// 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
+// 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
+// 	}
 
-	// Gen verification code
-	buffer := make([]byte, 6)
-	if _, err := rand.Read(buffer); err != nil {
-		panic(err)
-	}
-	for i := 0; i < 6; i++ {
-		buffer[i] = "1234567890"[int(buffer[i])%6]
-	}
-	// hostVcode := string(buffer)
+// 	// Gen verification code
+// 	buffer := make([]byte, 6)
+// 	if _, err := rand.Read(buffer); err != nil {
+// 		panic(err)
+// 	}
+// 	for i := 0; i < 6; i++ {
+// 		buffer[i] = "1234567890"[int(buffer[i])%6]
+// 	}
+// 	// hostVcode := string(buffer)
 
-	// SendVeriMsg(Email, hostVcode) // Func wait for implementation
+// 	// SendVeriMsg(Email, hostVcode) // Func wait for implementation
 
-	// Wait for response from client...
+// 	// Wait for response from client...
 
-	clientVcode := c.QueryParam("VeriCode")
-	newPasswd := c.QueryParam("Passwd")
+// 	clientVcode := c.QueryParam("VeriCode")
+// 	newPasswd := c.QueryParam("Passwd")
 
-	// if clientVcode == hostVcode {
-	if clientVcode == string(buffer) {
-		return modifyPasswd(c, Email, newPasswd)
-	}
-	return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
+// 	// if clientVcode == hostVcode {
+// 	if clientVcode == string(buffer) {
+// 		return modifyPasswd(c, Email, newPasswd)
+// 	}
+// 	return c.JSON(http.StatusBadRequest, api.Return("Wrong Verification Code", nil))
 
-}
+// }
 
 // @Summary the interface of modifying password
 // @Description can only be called during logged-in status since there is no password check
@@ -137,48 +230,97 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/{id}/modify [PUT]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
-	Email := c.QueryParam("Email")
-	Passwd := c.QueryParam("Passwd")
+	type RequestBody struct {
+		Email      string `json:"email" validate:"required"`
+		Passwd     string `json:"passwd" validate:"required"`
+		New_Passwd string `json:"new_passwd" validate:"required"`
+	}
+	var body RequestBody
 
-	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
+	}
+	if err := c.Validate(&body); err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
 	}
 
-	if len(Passwd) < accountPasswdLen {
+	// Check old passwd
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+
+	if ret := checkPasswd(c, body.Email, body.Passwd, &account, db); ret != c.NoContent(http.StatusOK) {
+		return ret
+	}
+
+	if len(body.New_Passwd) < accountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
 	}
-	return modifyPasswd(c, Email, Passwd)
+
+	account.Passwd = body.New_Passwd
+	account.HashPassword()
+
+	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 }
 
 /**
  * @brief private method for checking password
  */
-func checkPasswd(c echo.Context, Email string, Passwd string) error {
-	// Travese to find matched account, use DB later
-	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
-		if itor.Value.(Account).Email == Email {
-			if itor.Value.(Account).Passwd == Passwd {
-				return c.JSON(http.StatusOK, api.Return("Successfully logged in", nil))
-			}
-			return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
-		}
+func checkPasswd(c echo.Context, Email string, Passwd string, account *Account, db *gorm.DB) error {
+	if err := db.Where("email = ?", Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
 	}
-
-	return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
+	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(Passwd)) != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
+	}
+	return c.NoContent(http.StatusOK)
 }
 
 /**
- * @brief private method for modifying password
+ * @brief private method for hashing password
  */
-func modifyPasswd(c echo.Context, Email string, Passwd string) error {
-	for itor := accountList.Front(); itor != nil; itor = itor.Next() {
-		if itor.Value.(Account).Email == Email {
-			// Remove this and push a new one with new passwd
-			accountList.PushBack(Account{Email: Email, Type: itor.Value.(Account).Type, Name: itor.Value.(Account).Name, Passwd: Passwd})
-			accountList.Remove(itor)
+func (u *Account) HashPassword() {
+	bytes, _ := bcrypt.GenerateFromPassword([]byte(u.Passwd), bcrypt.DefaultCost)
+	u.Passwd = string(bytes)
+}
 
-			return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
+/**
+ * @brief private method for generateing cookie token
+ */
+func (u *Account) GenerateToken() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id": u.ID,
+	})
+
+	tokenString, err := token.SignedString(jwtKey)
+	return tokenString, err
+}
+
+// Authoriszed : Check Auth
+func Authoriszed(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cookie, err := c.Cookie("token")
+		if err != nil {
+			return c.NoContent(http.StatusUnauthorized)
 		}
+
+		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected Signing Method: %v", token.Header["alg"])
+			}
+
+			return jwtKey, nil
+		})
+
+		if !token.Valid || err != nil {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		c.Set("username", token.Claims.(jwt.MapClaims)["username"])
+
+		return next(c)
 	}
-	return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
 }

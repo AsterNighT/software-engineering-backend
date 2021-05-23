@@ -1,6 +1,8 @@
 package account
 
 import (
+	"os"
+
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 )
@@ -40,3 +42,7 @@ type Patient struct {
 	Cases   []cases.Case `gorm:"foreignkey:ID"`
 	Chats   []chat.Chat  `gorm:"foreignkey:ID"`
 }
+
+var (
+	jwtKey = os.Getenv("JWT_KEY")
+)

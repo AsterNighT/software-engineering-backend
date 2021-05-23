@@ -9,11 +9,14 @@ import (
 
 func main() {
 	// initialize database
-	database.InitDb()
+	db := database.InitDb()
+	// defer db.Close()
 
 	// create echo instance
 	app := echo.New()
 	app.Use(middleware.Logger())
+
+	app.Use(database.ContextDB(db))
 
 	err := router.RegisterRouters(app)
 	if err != nil {
