@@ -125,7 +125,6 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	var case1 Case
 	var cases []Case
 	db.First(&case1, c.Param("caseID"))
-	cases = append(cases, case1)
 	for case1.PreviousCaseID != nil {
 		case1.ID = *case1.PreviousCaseID
 		db.First(case1, *case1.PreviousCaseID)
