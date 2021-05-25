@@ -1,8 +1,6 @@
 package cases
 
 import (
-	"encoding/json"
-
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
@@ -160,7 +158,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	db := utils.GetDB()
 	var pre Prescription
-	err := json.NewDecoder(c.Request().Body).Decode(&pre)
+	err := c.Bind(&pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
@@ -196,7 +194,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	db := utils.GetDB()
 	var pre Prescription
-	err := json.NewDecoder(c.Request().Body).Decode(&pre)
+	err := c.Bind(&pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
