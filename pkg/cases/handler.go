@@ -157,7 +157,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	db := utils.GetDB()
 	var pre Prescription
-	err := c.Bind(&pre)
+	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
@@ -193,7 +193,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	db := utils.GetDB()
 	var pre Prescription
-	err := c.Bind(&pre)
+	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
