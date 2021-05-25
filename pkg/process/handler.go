@@ -2,12 +2,18 @@ package process
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
-type RegistrationHandler struct {
+
+
+type ProcessHandler struct {
 }
 
 // GetAllDepartments
@@ -17,10 +23,13 @@ type RegistrationHandler struct {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
-func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
+func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
+	DB := utils.GetDB()
 
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+	var Departments []Department
+	DB.Find(&Departments)
+
+	return c.JSON(http.StatusOK, api.Return("ok", Departments))
 }
 
 // GetDepartmentByID
@@ -31,10 +40,14 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /department/{DepartmentID} [GET]
-func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
+func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+	db := utils.GetDB()
+	var department Department
+	db.First(&department, c.Param("departmentID"))
+	c.Logger().Debug("GetDepartmentByID")
+	return c.JSON(http.StatusOK, api.Return("ok", department))
+
 }
 
 // CreateRegistration
@@ -47,10 +60,20 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration [POST]
-func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
-
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
+	registration := Registration{
+		//TODO: need to allocate an doctor for patient by algorithm
+		DoctorID:     uint(c.Get("DoctorID").(int)),
+		PatientID:    uint(c.Get("PatientID").(int)),
+		DepartmentID: uint(c.Get("DepartmentID").(int)),
+		Date:         time.Now(),
+	}
+	db := utils.GetDB()
+	if err := db.Create(registration).Error; err != nil {
+		c.Logger().Error("Registration insert failed!")
+	}
+	c.Logger().Debug("CreateRegistration")
+	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // NOTE: we assume a doctor may help the patient commit registration
@@ -62,10 +85,16 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /patient/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
-
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
+	patientID, err := strconv.ParseUint(c.Param("patientID"), 10, 64)
+	if err != nil {
+		c.Logger().Error("Patient not found!")
+	}
+	db := utils.GetDB()
+	var registrations Registration
+	db.Where("PatientID = ?", patientID).Find(&registrations)
+	c.Logger().Debug("GetRegistrationsByPatient")
+	return c.JSON(http.StatusOK, api.Return("ok", registrations))
 }
 
 // NOTE: use cookie for identification
@@ -77,10 +106,16 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
-
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
+	doctorID, err := strconv.ParseUint(c.Param("doctorID"), 10, 64)
+	if err != nil {
+		c.Logger().Error("Doctor not found!")
+	}
+	db := utils.GetDB()
+	var registrations Registration
+	db.Where("DoctorID = ?", doctorID).Find(&registrations)
+	c.Logger().Debug("GetRegistrationsByDoctor")
+	return c.JSON(http.StatusCreated, api.Return("ok", registrations))
 }
 
 // NOTE: use cookie for identification
@@ -93,9 +128,21 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /patient/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
+	//Must make sure RegistrationID in patientID's registration list.
+	patientID, err := strconv.ParseUint(c.Param("patientID"), 10, 64)
+	if err != nil {
+		return c.NoContent(http.StatusPreconditionFailed)
+	}
+	registrationID, err := strconv.ParseUint(c.Param("registrationID"), 10, 64)
+	if err != nil {
+		return c.NoContent(http.StatusPreconditionFailed)
+	}
+	db := utils.GetDB()
+	var registration Registration
+	db.Where("PatientID = ? and RegistrationID = ?", patientID, registrationID).First(&registration)
+	c.Logger().Debug("GetRegistrationByPatient")
+	return c.JSON(http.StatusCreated, api.Return("ok", registration))
 }
 
 // GetRegistrationByDoctor
@@ -105,9 +152,21 @@ func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /doctor/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
+	//Must make sure RegistrationID in patientID's registration list.
+	doctorID, err := strconv.ParseUint(c.Param("doctorID"), 10, 64)
+	if err != nil {
+		return c.NoContent(http.StatusPreconditionFailed)
+	}
+	registrationID, err := strconv.ParseUint(c.Param("registrationID"), 10, 64)
+	if err != nil {
+		return c.NoContent(http.StatusPreconditionFailed)
+	}
+	db := utils.GetDB()
+	var registration Registration
+	db.Where("DoctorID = ? and RegistrationID = ?", doctorID, registrationID).First(&registration)
+	c.Logger().Debug("GetRegistrationByDoctor")
+	return c.JSON(http.StatusCreated, api.Return("ok", registration))
 }
 
 // UpdateRegistrationStatus
@@ -120,9 +179,38 @@ func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{RegistrationID} [PUT]
-func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
-	//verify identity
-	c.Logger().Debug("hello world")
+func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
+	// TODO verify identity
+	DB := utils.GetDB()
+
+	RegistrationID, err := strconv.ParseUint(c.QueryParam("RegistrationID"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	// TODO validation for status
+	Status := RegistrationStatusEnum(c.QueryParam("Status"))
+	TerminatedCause := c.QueryParam("TerminatedCause")
+
+	var Registration Registration
+	err = DB.First(&Registration, RegistrationID).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	Registration.Status = Status
+
+	if Status == terminated {
+		if TerminatedCause != "" {
+			Registration.Status = Status
+			Registration.TerminatedCause = TerminatedCause
+		} else {
+			return c.JSON(http.StatusBadRequest, api.Return("ok", "Missing terminated causes"))
+		}
+	} else {
+		Registration.Status = Status
+	}
+
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
@@ -133,11 +221,25 @@ func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Param RegistrationID body uint true "registration's ID"
 // @Param Activity body string true "milestone's activity"
 // @Produce json
-// @Success 200 {string} api.ReturnedData{}
+// @Success 204 {string} api.ReturnedData{}
 // @Router /milestone [POST]
-func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
-	//verify identity
-	c.Logger().Debug("hello world")
+func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
+	DB := utils.GetDB()
+
+	RegistrationID, err := strconv.ParseUint(c.QueryParam("RegistrationID"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+	milestone := MileStone{
+		RegistrationID: uint(RegistrationID),
+		Activity:       c.QueryParam("Activity"),
+	}
+
+	result := DB.Create(&milestone)
+	if result.Error != nil {
+		return c.JSON(http.StatusUnprocessableEntity, api.Return("error", result.Error))
+	}
+
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
 
@@ -151,10 +253,24 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [PUT]
-func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
-	//verify identity
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
+	DB := utils.GetDB()
+
+	var Milestone MileStone
+	var err error
+	var Checked bool
+
+	DB.First(&Milestone, c.QueryParam("MileStoneID"))
+	Checked, err = strconv.ParseBool(c.Param("Checked"))
+
+	if err != nil {
+		log.Error("UpdateMileStoneByDoctor failed due to", err)
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+	Milestone.Checked = Checked
+	Milestone.Activity = c.QueryParam("Activity")
+
+	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // DeleteMileStoneByDoctor
@@ -165,10 +281,12 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [DELETE]
-func (h *RegistrationHandler) DeleteMileStoneByDoctor(c echo.Context) error {
-	//verify identity
-	c.Logger().Debug("hello world")
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
+	// TODO verify identity
+	DB := utils.GetDB()
+	DB.Delete(&MileStone{}, c.Param("MileStoneID"))
+
+	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // NOTE: use delete method, because there is no dependencies on MileStone

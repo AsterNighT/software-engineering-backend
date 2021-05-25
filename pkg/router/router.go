@@ -5,6 +5,7 @@ import (
 
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
+	"github.com/AsterNighT/software-engineering-backend/pkg/process"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/docs" // swagger doc
@@ -78,6 +79,22 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			var h chat.CategoryHandler
 			router.GET("/category/:categoryID", h.GetQuestionsByCategoryID)
+		}
+		{
+			// Use nested scopes and shadowing for subgroups
+			// G4-Process's router
+			var h process.ProcessHandler
+			router.GET("/departments", h.GetAllDepartments)
+			router.GET("/department/:DepartmentID", h.GetDepartmentByID)
+			router.POST("/registration", h.CreateRegistration)
+			router.GET("/patient/registrations", h.GetRegistrationsByPatient)
+			router.GET("/doctor/registrations", h.GetRegistrationByDoctor)
+			router.GET("/doctor/registration/:RegistrationID", h.GetRegistrationByDoctor)
+			router.GET("/patient/registration/:RegistrationID", h.GetRegistrationByPatient)
+			router.PUT("/registration/:RegistrationID", h.UpdateRegistrationStatus)
+			router.POST("/milestone", h.CreateMileStoneByDoctor)
+			router.PUT("/milestone/:MileStoneID", h.UpdateMileStoneByDoctor)
+			router.DELETE("/milestone/:MileStoneID", h.DeleteMileStoneByDoctor)
 		}
 	}
 	return nil

@@ -2,6 +2,7 @@ package cases
 
 import (
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,9 +25,23 @@ type MedicineHandler struct {
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	params := []string{
+		"department",
+		"patient",
+		"doctor",
+	}
+	for _, s := range params {
+		if c.QueryParam(s) != "" {
+			db.Where("? LIKE ?", s, "%"+c.QueryParam(s)+"%")
+		}
+	}
+
+	var cases []Case
+	db.Find(&cases)
+
 	c.Logger().Debug("GetAllCases")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", cases))
 }
 
 // @Summary Get the last case
@@ -37,9 +52,14 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Case}
 // @Router /patient/{patientID}/case [GET]
 func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	db.Where("PatientID = ?", c.Param("patientID"))
+
+	var case1 Case
+	db.Last(&case1)
+
 	c.Logger().Debug("GetLastCase")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", case1))
 }
 
 // @Summary Get cases by patient ID
@@ -55,9 +75,14 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	db.Where("PatientID = ?", c.Param("patientID"))
+
+	var cases Case
+	db.Find(&cases)
+
 	c.Logger().Debug("GetCasesByPatientID")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", cases))
 }
 
 // @Summary New a case
@@ -81,7 +106,9 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [DELETE]
 func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+
+	db.Delete(&Case{}, c.Param("caseID"))
 	c.Logger().Debug("DeleteCaseByCaseID")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -94,9 +121,17 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID}/case/{caseID} [GET]
 func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var case1 Case
+	var cases []Case
+	db.First(&case1, c.Param("caseID"))
+	for case1.PreviousCaseID != nil {
+		case1.ID = *case1.PreviousCaseID
+		db.First(case1, *case1.PreviousCaseID)
+		cases = append(cases, case1)
+	}
 	c.Logger().Debug("GetPreviousCases")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", cases))
 }
 
 // @Summary Update case
@@ -120,7 +155,16 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var pre Prescription
+	err := utils.ExtractDataWithValidating(c, &pre)
+	if err != nil {
+		return c.JSON(400, api.Return("error", err))
+	}
+	result := db.Create(&pre)
+	if result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
 	c.Logger().Debug("NewPrescription")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -133,7 +177,8 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [DELETE]
 func (h *CaseHandler) DeletePrescription(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	db.Delete(&Prescription{}, c.Param("prescriptionID"))
 	c.Logger().Debug("DeletePrescription")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -146,7 +191,16 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [PUT]
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var pre Prescription
+	err := utils.ExtractDataWithValidating(c, &pre)
+	if err != nil {
+		return c.JSON(400, api.Return("error", err))
+	}
+	result := db.Model(&pre).Updates(pre)
+	if result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
 	c.Logger().Debug("UpdatePrescription")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -159,9 +213,11 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID}  [GET]
 func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var pre Prescription
+	db.First(&pre, c.Param("prescriptionID"))
 	c.Logger().Debug("GetPrescriptionByPrescriptionID")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", pre))
 }
 
 // @Summary Get prescriptions by case id
@@ -172,9 +228,12 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription  [GET]
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	db.Where("CaseID = ?", c.Param("caseID"))
+	var pres []Prescription
+	db.Find(&pres)
 	c.Logger().Debug("GetPrescriptionByCaseID")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", pres))
 }
 
 // @Summary Query medicine by key word
@@ -185,7 +244,10 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Medicine}
 // @Router /medicine [GET]
 func (h *MedicineHandler) GetMedicines(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	db.Where("name = ?", c.QueryParam("q"))
+	var meds []Medicine
+	db.Find(&meds)
 	c.Logger().Debug("QueryMedicine")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", meds))
 }
