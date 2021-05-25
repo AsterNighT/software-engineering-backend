@@ -3,14 +3,26 @@ package database
 import (
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/AsterNighT/software-engineering-backend/pkg/process"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitDb() {
+var db *gorm.DB
+
+func InitDB() {
 	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	var err error
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&cases.Medicine{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.AutoMigrate(&cases.Guideline{})
 	if err != nil {
 		panic(err)
 	}
@@ -40,6 +52,8 @@ func InitDb() {
 	if err != nil {
 		panic(err)
 	}
+  
+	utils.DB = db
 
 	// auto migrate account
 	err = db.AutoMigrate(
