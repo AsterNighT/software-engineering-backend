@@ -3,8 +3,8 @@ package database
 import (
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/AsterNighT/software-engineering-backend/pkg/process"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -52,7 +52,7 @@ func InitDB() {
 	if err != nil {
 		panic(err)
 	}
-  
+
 	utils.DB = db
 
 	// auto migrate account
