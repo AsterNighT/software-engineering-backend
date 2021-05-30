@@ -8,13 +8,9 @@ import (
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 )
 
-
-
-type ProcessHandler struct {
-}
+type ProcessHandler struct{}
 
 // GetAllDepartments
 // @Summary get all departments
@@ -264,7 +260,7 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	Checked, err = strconv.ParseBool(c.Param("Checked"))
 
 	if err != nil {
-		log.Error("UpdateMileStoneByDoctor failed due to", err)
+		c.Logger().Error("UpdateMileStoneByDoctor failed due to", err)
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 	Milestone.Checked = Checked
