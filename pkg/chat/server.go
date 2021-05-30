@@ -35,7 +35,3 @@ func StartServer() {
 	fmt.Println("ChatServer:$System on")
 	http.ListenAndServe(":8080", nil)
 }
-
-func main() {
-	StartServer()
-}
