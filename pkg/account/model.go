@@ -1,8 +1,6 @@
 package account
 
 import (
-	"os"
-
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 )
@@ -44,5 +42,6 @@ type Patient struct {
 }
 
 var (
-	jwtKey = os.Getenv("JWT_KEY")
+	jwtKey = "ABCDEFGH" // For test only
+	// jwtKey = os.Getenv("JWT_KEY")
 )

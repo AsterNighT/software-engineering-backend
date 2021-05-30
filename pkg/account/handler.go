@@ -6,12 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	// "pkg/db_lite"
-
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
-	// "github.com/cjaewon/echo-gorm-example/lib/middlewares"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
