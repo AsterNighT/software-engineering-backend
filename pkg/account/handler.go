@@ -24,7 +24,7 @@ type AccountHandler struct {
 
 // Init : Init Router
 func (h AccountHandler) Init(g *echo.Group) {
-	g.POST("/register", h.CreateAccount)
+	g.POST("/create", h.CreateAccount)
 	g.POST("/login", h.LoginAccount)
 	g.POST("/logout", h.LogoutAccount, Authoriszed)
 }
@@ -52,23 +52,16 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 
 	var body RequestBody
 
-	if err := c.Bind(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
-	}
-	if err := c.Validate(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
-	}
-
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
 
 	if body.Type != patient && body.Type != doctor && body.Type != admin {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali Account Type", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Account Type", nil))
 	}
 
 	if len(body.Passwd) < accountPasswdLen {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	// Check uniqueness
@@ -126,10 +119,10 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	var body RequestBody
 
 	if err := c.Bind(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Bind Error", nil))
 	}
 	if err := c.Validate(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Validate Error", nil))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -186,7 +179,7 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 // 	Email := c.QueryParam("Email")
 
 // 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, Email); !ok {
-// 		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
+// 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 // 	}
 
 // 	// Gen verification code
@@ -232,14 +225,14 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	var body RequestBody
 
 	if err := c.Bind(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Bind Error", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Bind Error", nil))
 	}
 	if err := c.Validate(&body); err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("Validate Error", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Validate Error", nil))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali E-mail Address", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
 
 	// Check old passwd
@@ -251,7 +244,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	}
 
 	if len(body.NewPasswd) < accountPasswdLen {
-		return c.JSON(http.StatusBadRequest, api.Return("Invali Password Length", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	account.Passwd = body.NewPasswd
@@ -303,7 +296,7 @@ func Authoriszed(next echo.HandlerFunc) echo.HandlerFunc {
 
 		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected Signing Method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 
 			return jwtKey, nil
@@ -313,7 +306,7 @@ func Authoriszed(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.NoContent(http.StatusUnauthorized)
 		}
 
-		c.Set("username", token.Claims.(jwt.MapClaims)["username"])
+		c.Set("id", token.Claims.(jwt.MapClaims)["id"])
 
 		return next(c)
 	}

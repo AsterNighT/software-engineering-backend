@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type RegistrationHandler struct {
+type ProcessHandler struct {
 }
 
 // GetAllDepartments
@@ -17,7 +17,7 @@ type RegistrationHandler struct {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
-func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
+func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -31,7 +31,7 @@ func (h *RegistrationHandler) GetAllDepartments(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /department/{DepartmentID} [GET]
-func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
+func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -47,7 +47,7 @@ func (h *RegistrationHandler) GetDepartmentByID(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration [POST]
-func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
+func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -62,7 +62,7 @@ func (h *RegistrationHandler) CreateRegistration(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /patient/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -77,7 +77,7 @@ func (h *RegistrationHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
-func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -93,7 +93,7 @@ func (h *RegistrationHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /patient/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
@@ -105,7 +105,7 @@ func (h *RegistrationHandler) GetRegistrationByPatient(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /doctor/registration/{RegistrationID} [GET]
-func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
+func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
 }
@@ -120,7 +120,7 @@ func (h *RegistrationHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{RegistrationID} [PUT]
-func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
+func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -135,7 +135,7 @@ func (h *RegistrationHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone [POST]
-func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -151,7 +151,7 @@ func (h *RegistrationHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [PUT]
-func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -165,7 +165,7 @@ func (h *RegistrationHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [DELETE]
-func (h *RegistrationHandler) DeleteMileStoneByDoctor(c echo.Context) error {
+func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	//verify identity
 	c.Logger().Debug("hello world")
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
