@@ -20,10 +20,10 @@ type ProcessHandler struct{}
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
 func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
-	DB := utils.GetDB()
+	db := utils.GetDB()
 
 	var Departments []Department
-	DB.Find(&Departments)
+	db.Find(&Departments)
 
 	return c.JSON(http.StatusOK, api.Return("ok", Departments))
 }
@@ -32,7 +32,7 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Summary get a department by its ID
 // @Tags Process
 // @Description return a department's details by its ID
-// @Param DepartmentID path uint true "department ID"
+// @Param departmentID path uint true "department ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /department/{DepartmentID} [GET]
@@ -50,18 +50,18 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Summary create registration
 // @Tags Process
 // @Description return registration state
-// @Param PatientID body uint true "patient's ID"
-// @Param DepartmentID body uint true "department ID"
-// @Param RegistrationTime body string true "registration's time, basic format 'YYYY-MM-DD-<half-day>'"
+// @Param patientID body uint true "patient's ID"
+// @Param departmentID body uint true "department ID"
+// @Param registrationTime body string true "registration's time, basic format 'YYYY-MM-DD-<half-day>'"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration [POST]
 func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 	registration := Registration{
 		//TODO: need to allocate an doctor for patient by algorithm
-		DoctorID:     uint(c.Get("DoctorID").(int)),
-		PatientID:    uint(c.Get("PatientID").(int)),
-		DepartmentID: uint(c.Get("DepartmentID").(int)),
+		DoctorID:     uint(c.Get("doctorID").(int)),
+		PatientID:    uint(c.Get("patientID").(int)),
+		DepartmentID: uint(c.Get("departmentID").(int)),
 		Date:         time.Now(),
 	}
 	db := utils.GetDB()
@@ -103,6 +103,7 @@ func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
 // @Router /doctor/registrations [GET]
 func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
+	// TODO this is from user model
 	doctorID, err := strconv.ParseUint(c.Param("doctorID"), 10, 64)
 	if err != nil {
 		c.Logger().Error("Doctor not found!")
@@ -120,12 +121,13 @@ func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Summary get a registration by its ID (patient view)
 // @Tags Process
 // @Description return a registration details by its ID
-// @Param RegistrationID path uint true "registration's ID"
+// @Param registrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /patient/registration/{RegistrationID} [GET]
 func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
 	//Must make sure RegistrationID in patientID's registration list.
+	// TODO from user model
 	patientID, err := strconv.ParseUint(c.Param("patientID"), 10, 64)
 	if err != nil {
 		return c.NoContent(http.StatusPreconditionFailed)
@@ -169,42 +171,42 @@ func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Summary update registration status
 // @Tags Process
 // @Description update registration status
-// @Param RegistrationID path uint true "registration ID"
-// @Param Status body string true "next status of current registration"
-// @Param TerminatedCause body string false "if registration is shutdown, a cause is required"
+// @Param registrationID path uint true "registration ID"
+// @Param status body string true "next status of current registration"
+// @Param terminatedCause body string false "if registration is shutdown, a cause is required"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{RegistrationID} [PUT]
 func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	// TODO verify identity
-	DB := utils.GetDB()
+	db := utils.GetDB()
 
-	RegistrationID, err := strconv.ParseUint(c.QueryParam("RegistrationID"), 10, 64)
+	registrationID, err := strconv.ParseUint(c.QueryParam("registrationID"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
 	// TODO validation for status
-	Status := RegistrationStatusEnum(c.QueryParam("Status"))
-	TerminatedCause := c.QueryParam("TerminatedCause")
+	status := RegistrationStatusEnum(c.QueryParam("status"))
+	terminatedCause := c.QueryParam("terminatedCause")
 
 	var Registration Registration
-	err = DB.First(&Registration, RegistrationID).Error
+	err = db.First(&Registration, registrationID).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
-	Registration.Status = Status
+	Registration.Status = status
 
-	if Status == terminated {
-		if TerminatedCause != "" {
-			Registration.Status = Status
-			Registration.TerminatedCause = TerminatedCause
+	if status == terminated {
+		if terminatedCause != "" {
+			Registration.Status = status
+			Registration.TerminatedCause = terminatedCause
 		} else {
 			return c.JSON(http.StatusBadRequest, api.Return("ok", "Missing terminated causes"))
 		}
 	} else {
-		Registration.Status = Status
+		Registration.Status = status
 	}
 
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
@@ -214,24 +216,24 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Summary create milestone
 // @Tags Process
 // @Description the doctor create milestone (type: array)
-// @Param RegistrationID body uint true "registration's ID"
-// @Param Activity body string true "milestone's activity"
+// @Param registrationID body uint true "registration's ID"
+// @Param activity body string true "milestone's activity"
 // @Produce json
 // @Success 204 {string} api.ReturnedData{}
 // @Router /milestone [POST]
 func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
-	DB := utils.GetDB()
+	db := utils.GetDB()
 
-	RegistrationID, err := strconv.ParseUint(c.QueryParam("RegistrationID"), 10, 64)
+	registrationID, err := strconv.ParseUint(c.QueryParam("registrationID"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 	milestone := MileStone{
-		RegistrationID: uint(RegistrationID),
-		Activity:       c.QueryParam("Activity"),
+		RegistrationID: uint(registrationID),
+		Activity:       c.QueryParam("activity"),
 	}
 
-	result := DB.Create(&milestone)
+	result := db.Create(&milestone)
 	if result.Error != nil {
 		return c.JSON(http.StatusUnprocessableEntity, api.Return("error", result.Error))
 	}
@@ -243,28 +245,28 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Summary update milestone
 // @Tags Process
 // @Description the doctor update milestone (check milestone)
-// @Param MileStoneID path uint true "milestone's ID"
-// @Param Activity body string false "updated milestone's activity"
-// @Param Checked body boolean true "milestone is checked or not"
+// @Param mileStoneID path uint true "milestone's ID"
+// @Param activity body string false "updated milestone's activity"
+// @Param checked body boolean true "milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
-	DB := utils.GetDB()
+	db := utils.GetDB()
 
-	var Milestone MileStone
+	var milestone MileStone
 	var err error
-	var Checked bool
+	var checked bool
 
-	DB.First(&Milestone, c.QueryParam("MileStoneID"))
-	Checked, err = strconv.ParseBool(c.Param("Checked"))
+	db.First(&milestone, c.QueryParam("mileStoneID"))
+	checked, err = strconv.ParseBool(c.Param("checked"))
 
 	if err != nil {
 		c.Logger().Error("UpdateMileStoneByDoctor failed due to", err)
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
-	Milestone.Checked = Checked
-	Milestone.Activity = c.QueryParam("Activity")
+	milestone.Checked = checked
+	milestone.Activity = c.QueryParam("activity")
 
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
@@ -273,14 +275,14 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Summary delete milestone
 // @Tags Process
 // @Description the doctor delete milestone
-// @Param MileStoneID path uint true "milestone's ID"
+// @Param mileStoneID path uint true "milestone's ID"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{MileStoneID} [DELETE]
 func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	// TODO verify identity
-	DB := utils.GetDB()
-	DB.Delete(&MileStone{}, c.Param("MileStoneID"))
+	db := utils.GetDB()
+	db.Delete(&MileStone{}, c.Param("mileStoneID"))
 
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
