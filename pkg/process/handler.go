@@ -190,23 +190,23 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	status := RegistrationStatusEnum(c.QueryParam("status"))
 	terminatedCause := c.QueryParam("terminatedCause")
 
-	var Registration Registration
-	err = db.First(&Registration, registrationID).Error
+	var registration Registration
+	err = db.First(&registration, registrationID).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
-	Registration.Status = status
+	registration.Status = status
 
 	if status == terminated {
 		if terminatedCause != "" {
-			Registration.Status = status
-			Registration.TerminatedCause = terminatedCause
+			registration.Status = status
+			registration.TerminatedCause = terminatedCause
 		} else {
 			return c.JSON(http.StatusBadRequest, api.Return("ok", "Missing terminated causes"))
 		}
 	} else {
-		Registration.Status = status
+		registration.Status = status
 	}
 
 	return c.JSON(http.StatusCreated, api.Return("ok", nil))
