@@ -12,13 +12,14 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := Upgrade(w, r)
 	if err != nil {
 		fmt.Println("ChatServer:$Error:" + err.Error())
-		return
+		return 
 	}
 	newClient := &Client{
 		ID:        strconv.Itoa(len(Clients)),
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
 	}
+
 
 	Register <- newClient
 	go newClient.Read()

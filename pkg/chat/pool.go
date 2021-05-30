@@ -1,6 +1,6 @@
 package chat
 
-import "fmt";
+import "fmt"
 
 var Clients map[*Client]bool = make(map[*Client]bool)
 var Connections map[*Client][]*Client = make(map[*Client][]*Client)
