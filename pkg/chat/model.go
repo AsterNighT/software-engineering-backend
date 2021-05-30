@@ -7,6 +7,7 @@ type Chat struct {
 	PatientID uint
 }
 
+/*
 type Message struct {
 	ID        uint `gorm:"primaryKey"`
 	Chat      Chat //Default foreign key:ID in Chat
@@ -14,6 +15,7 @@ type Message struct {
 	Type      uint   //Texts, pictures....
 	Content   string //Use escaped string for PictureURL
 }
+*/
 
 /*
 Question catagories

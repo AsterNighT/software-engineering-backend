@@ -7,6 +7,7 @@ require (
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/labstack/echo/v4 v4.2.1
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
