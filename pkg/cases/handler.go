@@ -93,7 +93,16 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var cas Case
+	err := utils.ExtractDataWithValidating(c, &cas)
+	if err != nil {
+		return c.JSON(400, api.Return("error", err))
+	}
+	result := db.Create(&cas)
+	if result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
 	c.Logger().Debug("NewCase")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -142,7 +151,16 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
-	// ...
+	db := utils.GetDB()
+	var cas Case
+	err := utils.ExtractDataWithValidating(c, &cas)
+	if err != nil {
+		return c.JSON(400, api.Return("error", err))
+	}
+	result := db.Model(&cas).Updates(cas)
+	if result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
 	c.Logger().Debug("UpdateCase")
 	return c.JSON(200, api.Return("ok", nil))
 }
