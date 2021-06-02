@@ -21,7 +21,6 @@ const (
 type MessageType int
 
 const (
-	HELLO                  MessageType = 0
 	MSG_FROM_CLIENT        MessageType = 1
 	CLOSE_CHAT             MessageType = 2
 	REQUIRE_MEDICAL_RECORD MessageType = 3
@@ -194,10 +193,7 @@ type Message struct {
 func (sender *Client) ProcessMessage(msgBytes []byte) {
 	message := &Message{}
 	json.Unmarshal(msgBytes, message)
-	switch message.Type {
-	//client to server
-	case HELLO:
-		//sender.Hello(message)
+	switch message.Type { //client to server
 	case MSG_FROM_CLIENT:
 		sender.MsgFromClient(message)
 	case CLOSE_CHAT:
@@ -280,26 +276,6 @@ func (sender *Client) RequireQuestions(message *Message) {
 	}
 
 	sender.MsgBuffer <- msgBytes //add the message to sender buffer
-}
-
-//Process newpatient message
-func (sender *Client) NewPatient(message *Message) {
-}
-
-//Process msgfromserver message
-func (sender *Client) MsgFromServer(message *Message) {
-}
-
-//Process sendmedicalrecord message
-func (sender *Client) SendMedicalRecord(message *Message) {
-}
-
-//Process sendprescription message
-func (sender *Client) SendPrescription(message *Message) {
-}
-
-//Process sendquestions message
-func (sender *Client) SendQuestions(message *Message) {
 }
 
 //Find the receiver of specific message
