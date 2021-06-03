@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -48,6 +49,10 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 
 	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(400, api.Return("error", err))
+	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
@@ -115,11 +120,9 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	}
 	var body RequestBody
 
-	if err := c.Bind(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Bind Error", nil))
-	}
-	if err := c.Validate(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Validate Error", nil))
+	
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(400, api.Return("error", err))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -221,11 +224,8 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	}
 	var body RequestBody
 
-	if err := c.Bind(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Bind Error", nil))
-	}
-	if err := c.Validate(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Validate Error", nil))
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(400, api.Return("error", err))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {

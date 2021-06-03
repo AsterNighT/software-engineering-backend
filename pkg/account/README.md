@@ -10,6 +10,14 @@ Request
     "name": "Scott",
     "passwd": "unhashed passwd"  // use account.HashPassword(), discuss later
 }
+// demo
+{
+    "id": 111,
+    "email": "1@a.com",
+    "type": "admin",
+    "name": "Scott",
+    "passwd": "123456"
+}
 ```
 
 Return:
