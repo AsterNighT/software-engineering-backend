@@ -63,22 +63,13 @@ func RegisterRouters(app *echo.Echo) error {
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
 			router = router.Group("/patient")
-			router.POST("/:patientID/chat", h.NewChat)
-			router.DELETE("/:patientID/chat/:chatID", h.DeleteChatByChatID)
-			router.GET("/:patientID/chat/:chatID", h.GetLastMessage)
-			router.POST("/:patientID/chat/:chatID/message", h.NewMessage)
-			router.DELETE("/:patientID/chat/:chatID/message/:messageID", h.DeleteMessageByMessageID)
-			router.GET("/:patientID/chat/:chatID/message/:messageID", h.GetMessageByMessageID)
-			router.GET("/:patientID/chat/:chatID", h.GetMessagesByChatID)
-			router.GET("/:patientID/chat/:chatID/message/:messageID", h.GetKeywordsByMessageID)
-		}
-		{
-			var h chat.KeywordHandler
-			router.GET("/keyword/:keywordID", h.GetCategoriesByKeywordID)
+			router.POST("/:patientID/chat", h.NewPatientConn)
+			router = router.Group("/doctor")
+			router.POST("/:doctorID/chat", h.NewDoctorConn)
 		}
 		{
 			var h chat.CategoryHandler
-			router.GET("/category/:categoryID", h.GetQuestionsByCategoryID)
+			router.GET("/category/:categoryID", h.GetQuestionsByDepartmentID)
 		}
 		{
 			// Use nested scopes and shadowing for subgroups
