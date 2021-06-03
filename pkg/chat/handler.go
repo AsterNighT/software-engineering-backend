@@ -1,10 +1,11 @@
 package chat
 
 import (
-	"SE/software-engineering-backend/api"
-	"SE/software-engineering-backend/pkg/utils"
 	"encoding/json"
 	"fmt"
+
+	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
