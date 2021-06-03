@@ -11,27 +11,31 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type RoleType int
+type RoleType = int
 
 const (
 	DOCTOR  RoleType = 0
 	PATIENT RoleType = 1
 )
 
-type MessageType int
+type ClientMsgType = int
 
 const (
-	HELLO                  MessageType = 0
-	MSG_FROM_CLIENT        MessageType = 1
-	CLOSE_CHAT             MessageType = 2
-	REQUIRE_MEDICAL_RECORD MessageType = 3
-	REQUIRE_PRESCRIPTION   MessageType = 4
-	REQUIRE_QUESTIONS      MessageType = 5
-	NEW_PATIENT            MessageType = 6
-	MSG_FROM_SERVER        MessageType = 7
-	SEND_MEDICAL_RECORD    MessageType = 8
-	SEND_PRESCRIPTION      MessageType = 9
-	SEND_QUESTIONS         MessageType = 10
+	MSG_FROM_CLIENT        ClientMsgType = 1
+	CLOSE_CHAT             ClientMsgType = 2
+	REQUIRE_MEDICAL_RECORD ClientMsgType = 3
+	REQUIRE_PRESCRIPTION   ClientMsgType = 4
+	REQUIRE_QUESTIONS      ClientMsgType = 5
+)
+
+type ServerMsgType int
+
+const (
+	MSG_FROM_SERVER     ServerMsgType = 6
+	NEW_PATIENT         ServerMsgType = 7
+	SEND_MEDICAL_RECORD ServerMsgType = 8
+	SEND_PRESCRIPTION   ServerMsgType = 9
+	SEND_QUESTIONS      ServerMsgType = 10
 )
 
 type Client struct {
@@ -169,35 +173,44 @@ func (client *Client) Send() {
 	for {
 		message, ok := <-client.MsgBuffer
 		if !ok {
-			client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			err := client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			if err != nil {
+				return //TODO
+			}
 			break
 		}
-		client.Conn.WriteMessage(websocket.TextMessage, message)
+
+		err := client.Conn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			return
+		}
+
 	}
 }
 
 type Message struct {
-	Type       MessageType `json:"type"`
-	Role       RoleType    `json:"role,omitempty"`
-	Name       string      `json:"name,omitempty"`
-	SenderID   string      `json:"senderid,omitempty"`
-	ReceiverID string      `json:"receiverid,omitempty"`
-	PatientID  string      `json:"petientid,omitempty"`
-	DoctorID   string      `json:"doctorid,omitempty"`
-	Content    string      `json:"content,omitempty"`
-	Time       string      `json:"time,omitempty"`
-	URL        string      `json:"url,omitempty"`
-	Questions  []string    `json:"questions,omitempty"`
+	Type       int      `json:"type"`
+	Role       RoleType `json:"role,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	SenderID   string   `json:"senderid,omitempty"`
+	ReceiverID string   `json:"receiverid,omitempty"`
+	PatientID  string   `json:"petientid,omitempty"`
+	DoctorID   string   `json:"doctorid,omitempty"`
+	Content    string   `json:"content,omitempty"`
+	Time       string   `json:"time,omitempty"`
+	URL        string   `json:"url,omitempty"`
+	Questions  []string `json:"questions,omitempty"`
 }
 
 //Process one message
 func (sender *Client) ProcessMessage(msgBytes []byte) {
 	message := &Message{}
-	json.Unmarshal(msgBytes, message)
+	err := json.Unmarshal(msgBytes, message)
+	if err != nil {
+		return
+	}
 	switch message.Type {
 	//client to server
-	case HELLO:
-		//sender.Hello(message)
 	case MSG_FROM_CLIENT:
 		sender.MsgFromClient(message)
 	case CLOSE_CHAT:
