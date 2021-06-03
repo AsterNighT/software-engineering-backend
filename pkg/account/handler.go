@@ -66,25 +66,22 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
-	// Check uniqueness
-	// for itor := accountList.Front(); itor != nil; itor = itor.Next() {
-	// 	if itor.Value.(Account).Email == body.Email {
-	// 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
-	// 	}
-	// }
 	db, _ := c.Get("db").(*gorm.DB)
-	if err := db.Where("id = ?", body.ID).First(&Account{}).Error; err == nil {
-		// return c.NoContent(http.StatusConflict)
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail occupied", nil))
+	if err := db.Where("id = ? OR email = ?", body.ID, body.Email).First(&Account{}).Error; err == nil {
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail or AccountID occupied", nil))
 	}
 
 	account := Account(body)
 
 	// accountList.PushBack(Account{Email: Email, Type: Type, Name: Name, Passwd: Passwd})
 	account.HashPassword()
-	db.Create(&account)
+
+	if result := db.Create(&account); result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
 
 	token, _ := account.GenerateToken()
+	c.Logger().Debug("token: " + token)
 	cookie := http.Cookie{
 		Name:    "token",
 		Value:   token,
@@ -120,7 +117,6 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	}
 	var body RequestBody
 
-	
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
@@ -139,7 +135,12 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		return ret
 	}
 
+	if result := db.Create(&account); result.Error != nil {
+		return c.JSON(400, api.Return("error", result.Error))
+	}
+
 	token, _ := account.GenerateToken()
+	c.Logger().Debug("token: " + token)
 	cookie := http.Cookie{
 		Name:    "token",
 		Value:   token,
@@ -278,8 +279,9 @@ func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id": u.ID,
 	})
-
+	// print(token)
 	tokenString, err := token.SignedString(jwtKey)
+	// print(err.Error())
 	return tokenString, err
 }
 

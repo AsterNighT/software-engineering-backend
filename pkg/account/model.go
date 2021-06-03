@@ -1,8 +1,8 @@
 package account
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
+	// "github.com/AsterNighT/software-engineering-backend/pkg/cases"
+	// "github.com/AsterNighT/software-engineering-backend/pkg/chat"
 )
 
 const accountPasswdLen = 8
@@ -29,19 +29,24 @@ type Doctor struct {
 	DepartmentID uint
 
 	AccountID uint
-	Cases     []cases.Case `gorm:"foreignkey:ID"`
-	Chats     []chat.Chat  `gorm:"foreignkey:ID"`
+	CaseID    uint
+	ChatID    uint
+	// Cases     []cases.Case `gorm:"foreignkey:ID"`
+	// Chats     []chat.Chat  `gorm:"foreignkey:ID"`
 }
 
 type Patient struct {
 	ID uint `gorm:"primarykey"`
 
-	Account Account      `gorm:"foreignkey:ID"`
-	Cases   []cases.Case `gorm:"foreignkey:ID"`
-	Chats   []chat.Chat  `gorm:"foreignkey:ID"`
+	AccountID uint
+	CaseID    uint
+	ChatID    uint
+	// Account Account      `gorm:"foreignkey:ID"`
+	// Cases   []cases.Case `gorm:"foreignkey:ID"`
+	// Chats   []chat.Chat  `gorm:"foreignkey:ID"`
 }
 
 var (
-	jwtKey = "ABCDEFGH" // For test only
+	jwtKey = []byte("ECHOGORMEXAMPLEJWTKEY") // For test only
 	// jwtKey = os.Getenv("JWT_KEY")
 )
