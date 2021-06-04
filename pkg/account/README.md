@@ -1,4 +1,20 @@
-# Create
+# getAccountID
+
+call `account.getAccountID(c)` to get current logged-in account's ID.
+
+Usage
+
+```go
+accountID, err := account.getAccountID(c)
+if err != nil {
+    return err
+}
+// ...
+```
+
+# API
+
+## Create
 
 Request
 
@@ -22,7 +38,7 @@ localhost:12448/api/account/create
 }
 ```
 
-Return:
+Response:
 
 ```json
 {
@@ -40,7 +56,7 @@ Return:
 }
 ```
 
-# Log in
+## Log in
 
 Request:
 
@@ -52,7 +68,7 @@ localhost:12448/api/account/login
 }
 ```
 
-Return:
+Response:
 
 ```json
 {
@@ -70,7 +86,7 @@ Return:
 }
 ```
 
-# Log out
+## Log out
 
 Operation:
 
@@ -78,7 +94,7 @@ Operation:
 localhost:12448/api/account/123456/logout
 ```
 
-Return:
+Response:
 
 ```json
 {
@@ -86,7 +102,7 @@ Return:
 }
 ```
 
-# Modify password
+## Modify password
 
 Request:
 
@@ -99,7 +115,7 @@ localhost:12448/api/account/123456/modifypasswd
 }
 ```
 
-Return:
+Response:
 
 ```json
 {

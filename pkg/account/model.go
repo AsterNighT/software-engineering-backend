@@ -1,19 +1,19 @@
 package account
 
-import (
-	// "github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	// "github.com/AsterNighT/software-engineering-backend/pkg/chat"
-)
+// "github.com/AsterNighT/software-engineering-backend/pkg/cases"
+// "github.com/AsterNighT/software-engineering-backend/pkg/chat"
 
 const accountPasswdLen = 8
 
 type Account struct {
-	ID    uint `gorm:"primarykey;"`
+	ID    string `gorm:"primarykey;"`
 	Email string
 
 	Type   AcountType
 	Name   string
 	Passwd string // Wait for encryption
+
+	Token string
 }
 
 type AcountType string
