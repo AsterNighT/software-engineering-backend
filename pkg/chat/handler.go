@@ -58,12 +58,10 @@ func AddClient(client *Client) {
 
 //Delete a client from pool
 func DeleteClient(client *Client) {
-	_, ok := Clients[client]
-	if ok {
+	if _, ok := Clients[client]; ok {
 		delete(Clients, client)
 	}
-	_, yes := Connections[client]
-	if yes {
+	if _, yes := Connections[client]; yes {
 		delete(Connections, client)
 	}
 }
