@@ -21,21 +21,21 @@ const (
 type ClientMsgType = int
 
 const (
-	Msg_From_Client        ClientMsgType = 1
-	Close_Chat             ClientMsgType = 2
-	Require_Medical_Record ClientMsgType = 3
-	Require_Prescription   ClientMsgType = 4
-	Require_Questions      ClientMsgType = 5
+	MsgFromClient        ClientMsgType = 1
+	Close_Chat           ClientMsgType = 2
+	RequireMedicalRecord ClientMsgType = 3
+	RequirePrescription  ClientMsgType = 4
+	RequireQuestions     ClientMsgType = 5
 )
 
 type ServerMsgType int
 
 const (
-	Msg_From_Server     ServerMsgType = 6
-	New_Patient         ServerMsgType = 7
-	Send_Medical_Record ServerMsgType = 8
-	Send_Prescription   ServerMsgType = 9
-	Send_Questions      ServerMsgType = 10
+	MsgFromServer     ServerMsgType = 6
+	NewPatient        ServerMsgType = 7
+	SendMedicalRecord ServerMsgType = 8
+	SendPrescription  ServerMsgType = 9
+	SendQuestions     ServerMsgType = 10
 )
 
 type Client struct {
@@ -162,10 +162,8 @@ func (client *Client) Read() {
 			//fmt.Println("ChatServer:$Error:" + err.Error())
 			break
 		}
-
 		client.ProcessMessage(message)
 	}
-
 }
 
 //Send subroutine for client
@@ -184,7 +182,6 @@ func (client *Client) Send() {
 		if err != nil {
 			return
 		}
-
 	}
 }
 
@@ -211,15 +208,15 @@ func (client *Client) ProcessMessage(msgBytes []byte) {
 	}
 	switch message.Type {
 	//client to server
-	case Msg_From_Client:
+	case MsgFromClient:
 		client.MsgFromClient(message)
 	case Close_Chat:
 		client.CloseChat(message)
-	case Require_Medical_Record:
+	case RequireMedicalRecord:
 		client.RequireMedicalRecord(message)
-	case Require_Prescription:
+	case RequirePrescription:
 		client.RequirePrescription(message)
-	case Require_Questions:
+	case RequireQuestions:
 		client.RequireQuestions(message)
 	default:
 		client.WrongMsgType(message)
