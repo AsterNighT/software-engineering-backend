@@ -21,11 +21,11 @@ type AccountHandler struct {
 }
 
 // Init : Init Router
-func (h AccountHandler) Init(g *echo.Group) {
-	g.POST("/create", h.CreateAccount)
-	g.POST("/login", h.LoginAccount)
-	g.POST("/logout", h.LogoutAccount, Authoriszed)
-}
+// func (h AccountHandler) Init(g *echo.Group) {
+// 	g.POST("/create", h.CreateAccount)
+// 	g.POST("/login", h.LoginAccount)
+// 	g.POST("/logout", h.LogoutAccount, Authoriszed)
+// }
 
 // @Summary create and account based on email(as id), type, name and password
 // @Description will check primarykey other, then add to accountList if possible
@@ -51,7 +51,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -77,11 +77,10 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	account.HashPassword()
 
 	if result := db.Create(&account); result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
 	}
 
 	token, _ := account.GenerateToken()
-	c.Logger().Debug("token: " + token)
 	cookie := http.Cookie{
 		Name:    "token",
 		Value:   token,
@@ -94,7 +93,6 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		"account":      account,
 		"cookie_token": token,
 	}))
-
 }
 
 /**
@@ -118,7 +116,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -130,17 +128,14 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
-
-	if ret := checkPasswd(c, body.Email, body.Passwd, &account, db); ret != c.NoContent(http.StatusOK) {
-		return ret
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
 	}
-
-	if result := db.Create(&account); result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(body.Passwd)) != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
 	token, _ := account.GenerateToken()
-	c.Logger().Debug("token: " + token)
 	cookie := http.Cookie{
 		Name:    "token",
 		Value:   token,
@@ -154,14 +149,21 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	}))
 }
 
-// Logout : Logout Router
+// @Summary logout using cookie
+// @Description
+// @Tags Account
+// @Produce json
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account [GET]
 func (h *AccountHandler) LogoutAccount(c echo.Context) error {
-	tokenCookie, _ := c.Get("tokenCookie").(*http.Cookie)
-
-	tokenCookie.Value = ""
-	tokenCookie.Expires = time.Unix(0, 0)
-
-	c.SetCookie(tokenCookie)
+	cookie, err := c.Cookie("token")
+	if err != nil || cookie.Value == "" {
+		return c.JSON(http.StatusBadRequest, api.Return("Not Logged in", nil))
+	}
+	cookie.Value = ""
+	cookie.Expires = time.Unix(0, 0)
+	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, api.Return("Account logged out", nil))
 }
@@ -226,7 +228,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -236,9 +238,11 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	// Check old passwd
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
-
-	if ret := checkPasswd(c, body.Email, body.Passwd, &account, db); ret != c.NoContent(http.StatusOK) {
-		return ret
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
+	}
+	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(body.Passwd)) != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
 	if len(body.NewPasswd) < accountPasswdLen {
@@ -248,20 +252,11 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	account.Passwd = body.NewPasswd
 	account.HashPassword()
 
-	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
-}
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
 
-/**
- * @brief private method for checking password
- */
-func checkPasswd(c echo.Context, Email string, Passwd string, account *Account, db *gorm.DB) error {
-	if err := db.Where("email = ?", Email).First(&account).Error; err != nil { // not found
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
-	}
-	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(Passwd)) != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
-	}
-	return c.NoContent(http.StatusOK)
+	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 }
 
 /**
