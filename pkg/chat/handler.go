@@ -14,28 +14,28 @@ import (
 type RoleType = int
 
 const (
-	DOCTOR  RoleType = 0
-	PATIENT RoleType = 1
+	Doctor  RoleType = 0
+	Patient RoleType = 1
 )
 
 type ClientMsgType = int
 
 const (
-	MSG_FROM_CLIENT        ClientMsgType = 1
-	CLOSE_CHAT             ClientMsgType = 2
-	REQUIRE_MEDICAL_RECORD ClientMsgType = 3
-	REQUIRE_PRESCRIPTION   ClientMsgType = 4
-	REQUIRE_QUESTIONS      ClientMsgType = 5
+	Msg_From_Client        ClientMsgType = 1
+	Close_Chat             ClientMsgType = 2
+	Require_Medical_Record ClientMsgType = 3
+	Require_Prescription   ClientMsgType = 4
+	Require_Questions      ClientMsgType = 5
 )
 
 type ServerMsgType int
 
 const (
-	MSG_FROM_SERVER     ServerMsgType = 6
-	NEW_PATIENT         ServerMsgType = 7
-	SEND_MEDICAL_RECORD ServerMsgType = 8
-	SEND_PRESCRIPTION   ServerMsgType = 9
-	SEND_QUESTIONS      ServerMsgType = 10
+	Msg_From_Server     ServerMsgType = 6
+	New_Patient         ServerMsgType = 7
+	Send_Medical_Record ServerMsgType = 8
+	Send_Prescription   ServerMsgType = 9
+	Send_Questions      ServerMsgType = 10
 )
 
 type Client struct {
@@ -46,9 +46,9 @@ type Client struct {
 }
 
 var (
-	upgrader                          = websocket.Upgrader{}
-	Clients     map[*Client]bool      = make(map[*Client]bool)
-	Connections map[*Client][]*Client = make(map[*Client][]*Client)
+	upgrader    = websocket.Upgrader{}
+	Clients     = make(map[*Client]bool)
+	Connections = make(map[*Client][]*Client)
 )
 
 //Add a new client into pool
@@ -90,7 +90,7 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 	defer conn.Close()
 	newClient := &Client{
 		ID:        c.Param("patientID"),
-		Role:      PATIENT,
+		Role:      Patient,
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
 	}
@@ -117,7 +117,7 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	defer conn.Close()
 	newClient := &Client{
 		ID:        c.Param("doctorID"),
-		Role:      DOCTOR,
+		Role:      Doctor,
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
 	}
@@ -203,7 +203,7 @@ type Message struct {
 }
 
 //Process one message
-func (sender *Client) ProcessMessage(msgBytes []byte) {
+func (client *Client) ProcessMessage(msgBytes []byte) {
 	message := &Message{}
 	err := json.Unmarshal(msgBytes, message)
 	if err != nil {
@@ -211,44 +211,43 @@ func (sender *Client) ProcessMessage(msgBytes []byte) {
 	}
 	switch message.Type {
 	//client to server
-	case MSG_FROM_CLIENT:
-		sender.MsgFromClient(message)
-	case CLOSE_CHAT:
-		sender.CloseChat(message)
-	case REQUIRE_MEDICAL_RECORD:
-		sender.RequireMedicalRecord(message)
-	case REQUIRE_PRESCRIPTION:
-		sender.RequirePrescription(message)
-	case REQUIRE_QUESTIONS:
-		sender.RequireQuestions(message)
+	case Msg_From_Client:
+		client.MsgFromClient(message)
+	case Close_Chat:
+		client.CloseChat(message)
+	case Require_Medical_Record:
+		client.RequireMedicalRecord(message)
+	case Require_Prescription:
+		client.RequirePrescription(message)
+	case Require_Questions:
+		client.RequireQuestions(message)
 	default:
-		sender.WrongMsgType(message)
+		client.WrongMsgType(message)
 	}
 }
 
 //Process msgfromclient message
-func (sender *Client) MsgFromClient(message *Message) {
-	receiver := sender.FindReceiver(message)
+func (client *Client) MsgFromClient(message *Message) {
+	receiver := client.FindReceiver(message)
 	if receiver == nil {
-		sender.ReceiverNotConnected(message)
+		client.ReceiverNotConnected(message)
 	}
-	fmt.Println("in msgfromclient " + sender.ID + " *** " + message.Content)
+	fmt.Println("in msgfromclient " + client.ID + " *** " + message.Content)
 
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("ChatServer:$Error:" + err.Error())
 		return
 	}
-
 	receiver.MsgBuffer <- msgBytes //add the message to receiver buffer
 }
 
 //Process closechat message
-func (sender *Client) CloseChat(message *Message) {
+func (client *Client) CloseChat(message *Message) {
 }
 
 //Process requiremedicalrecord message
-func (sender *Client) RequireMedicalRecord(message *Message) {
+func (client *Client) RequireMedicalRecord(message *Message) {
 	msg := Message{
 		Type:      8,
 		PatientID: message.PatientID,
@@ -259,12 +258,11 @@ func (sender *Client) RequireMedicalRecord(message *Message) {
 		fmt.Println("ChatServer:$Error:" + err.Error())
 		return
 	}
-
-	sender.MsgBuffer <- msgBytes //add the message to sender buffer
+	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
 //Process requireprescription message
-func (sender *Client) RequirePrescription(message *Message) {
+func (client *Client) RequirePrescription(message *Message) {
 	msg := Message{
 		Type:      9,
 		PatientID: message.PatientID,
@@ -275,12 +273,11 @@ func (sender *Client) RequirePrescription(message *Message) {
 		fmt.Println("ChatServer:$Error:" + err.Error())
 		return
 	}
-
-	sender.MsgBuffer <- msgBytes //add the message to sender buffer
+	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
 //Process requirequestions message
-func (sender *Client) RequireQuestions(message *Message) {
+func (client *Client) RequireQuestions(message *Message) {
 	msg := Message{
 		Type:      10,
 		Questions: []string{"aaa", "bbb", "ccc"},
@@ -291,35 +288,34 @@ func (sender *Client) RequireQuestions(message *Message) {
 		fmt.Println("ChatServer:$Error:" + err.Error())
 		return
 	}
-
-	sender.MsgBuffer <- msgBytes //add the message to sender buffer
+	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
 //Process newpatient message
-func (sender *Client) NewPatient(message *Message) {
+func (client *Client) NewPatient(message *Message) {
 }
 
 //Process msgfromserver message
-func (sender *Client) MsgFromServer(message *Message) {
+func (client *Client) MsgFromServer(message *Message) {
 }
 
 //Process sendmedicalrecord message
-func (sender *Client) SendMedicalRecord(message *Message) {
+func (client *Client) SendMedicalRecord(message *Message) {
 }
 
 //Process sendprescription message
-func (sender *Client) SendPrescription(message *Message) {
+func (client *Client) SendPrescription(message *Message) {
 }
 
 //Process sendquestions message
-func (sender *Client) SendQuestions(message *Message) {
+func (client *Client) SendQuestions(message *Message) {
 }
 
 //Find the receiver of specific message
-func (sender *Client) FindReceiver(message *Message) *Client {
+func (client *Client) FindReceiver(message *Message) *Client {
 	var receiver *Client = nil
 	//look up sender in database
-	_, ok := Connections[sender]
+	_, ok := Connections[client]
 
 	if !ok { //map result doesn't exist
 		for client := range Clients { //search the connected clients for receiver
@@ -329,14 +325,14 @@ func (sender *Client) FindReceiver(message *Message) *Client {
 			}
 		}
 		if receiver == nil { //receiver not connected to server yet
-			sender.ReceiverNotConnected(message)
+			client.ReceiverNotConnected(message)
 			return nil
 		}
 		slice := make([]*Client, 5)
 		slice[0] = receiver
-		Connections[sender] = slice
+		Connections[client] = slice
 	} else { //map result exists
-		slice := Connections[sender]
+		slice := Connections[client]
 		for _, client := range slice { //search the map result for receiver
 			if client.ID == message.ReceiverID {
 				receiver = client
@@ -351,10 +347,10 @@ func (sender *Client) FindReceiver(message *Message) *Client {
 				}
 			}
 			if receiver == nil { //receiver not connected to server yet
-				sender.ReceiverNotConnected(message)
+				client.ReceiverNotConnected(message)
 				return nil
 			}
-			Connections[sender] = append(slice, receiver) //add receiver to map result
+			Connections[client] = append(slice, receiver) //add receiver to map result
 		}
 
 	}
@@ -362,11 +358,11 @@ func (sender *Client) FindReceiver(message *Message) *Client {
 }
 
 //Deal with unknown message type
-func (sender *Client) WrongMsgType(message *Message) {
+func (client *Client) WrongMsgType(message *Message) {
 
 }
 
 //Deal with the case when receiver of the message has't connected to the server
-func (sender *Client) ReceiverNotConnected(message *Message) {
+func (client *Client) ReceiverNotConnected(message *Message) {
 
 }
