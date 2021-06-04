@@ -58,12 +58,8 @@ func AddClient(client *Client) {
 
 //Delete a client from pool
 func DeleteClient(client *Client) {
-	if _, ok := Clients[client]; ok {
-		delete(Clients, client)
-	}
-	if _, yes := Connections[client]; yes {
-		delete(Connections, client)
-	}
+	delete(Clients, client)
+	delete(Connections, client)
 }
 
 type ChatHandler struct {
