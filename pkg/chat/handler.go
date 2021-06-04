@@ -22,7 +22,7 @@ type ClientMsgType = int
 
 const (
 	MsgFromClient        ClientMsgType = 1
-	Close_Chat           ClientMsgType = 2
+	CloseChat            ClientMsgType = 2
 	RequireMedicalRecord ClientMsgType = 3
 	RequirePrescription  ClientMsgType = 4
 	RequireQuestions     ClientMsgType = 5
@@ -58,7 +58,7 @@ func AddClient(client *Client) {
 
 //Delete a client from pool
 func DeleteClient(client *Client) {
-	var ok bool = false
+	var ok = false
 	_, ok = Clients[client]
 	if ok {
 		delete(Clients, client)
@@ -159,7 +159,6 @@ func (client *Client) Read() {
 	for {
 		_, message, err := client.Conn.ReadMessage()
 		if err != nil {
-			//fmt.Println("ChatServer:$Error:" + err.Error())
 			break
 		}
 		client.ProcessMessage(message)
@@ -210,7 +209,7 @@ func (client *Client) ProcessMessage(msgBytes []byte) {
 	//client to server
 	case MsgFromClient:
 		client.MsgFromClient(message)
-	case Close_Chat:
+	case CloseChat:
 		client.CloseChat(message)
 	case RequireMedicalRecord:
 		client.RequireMedicalRecord(message)
@@ -310,7 +309,7 @@ func (client *Client) SendQuestions(message *Message) {
 
 //Find the receiver of specific message
 func (client *Client) FindReceiver(message *Message) *Client {
-	var receiver *Client = nil
+	var receiver *Client //TODO
 	//look up sender in database
 	_, ok := Connections[client]
 
@@ -349,7 +348,6 @@ func (client *Client) FindReceiver(message *Message) *Client {
 			}
 			Connections[client] = append(slice, receiver) //add receiver to map result
 		}
-
 	}
 	return receiver
 }
