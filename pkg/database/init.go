@@ -7,13 +7,15 @@ import (
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/labstack/echo/v4"
 )
 
-var db *gorm.DB
-
-func InitDB() {
-	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
+func InitDB() *gorm.DB {
+	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	var db *gorm.DB
 	var err error
+
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
@@ -64,5 +66,15 @@ func InitDB() {
 
 	if err != nil {
 		panic(err)
+	}
+	return db
+}
+
+func ContextDB(db *gorm.DB) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set("db", db)
+			return next(c)
+		}
 	}
 }

@@ -11,12 +11,14 @@ import (
 
 func main() {
 	// initialize database
-	database.InitDB()
+	db := database.InitDB()
 
 	// create echo instance
 	app := echo.New()
 	app.Validator = &utils.CustomValidator{Validator: validator.New()}
 	app.Use(middleware.Logger())
+
+	app.Use(database.ContextDB(db))
 
 	err := router.RegisterRouters(app)
 	if err != nil {

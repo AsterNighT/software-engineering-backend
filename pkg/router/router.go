@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 	"github.com/AsterNighT/software-engineering-backend/pkg/process"
@@ -40,6 +41,14 @@ func RegisterRouters(app *echo.Echo) error {
 		router.GET("/ping", h.Ping)
 		{
 			// Use nested scopes and shadowing for subgroups
+			var h account.AccountHandler
+			router = router.Group("/account")
+			router.POST("/create", h.CreateAccount)
+			router.POST("/login", h.LoginAccount)
+			router.POST("/:ID/logout", h.LogoutAccount) //, account.Authoriszed)
+			router.POST("/:ID/modifypasswd", h.ModifyPasswd)
+		}
+		{
 			var h cases.CaseHandler
 			router.GET("/cases", h.GetAllCases)
 			router = router.Group("/patient")

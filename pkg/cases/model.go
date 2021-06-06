@@ -36,8 +36,8 @@ type Guideline struct {
 }
 
 type Medicine struct {
-	ID               uint `gorm:"primarykey"`
-	Name             string `validate:"required"`
+	ID               uint    `gorm:"primarykey"`
+	Name             string  `validate:"required"`
 	Price            float32 `validate:"required"`
-	Contraindication string `validate:"required"`
+	Contraindication string  `validate:"required"`
 }
