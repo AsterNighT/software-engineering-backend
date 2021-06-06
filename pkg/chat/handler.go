@@ -2,9 +2,9 @@ package chat
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 
 	"github.com/gorilla/websocket"
@@ -36,6 +36,7 @@ const (
 	SendMedicalRecord ServerMsgType = 8
 	SendPrescription  ServerMsgType = 9
 	SendQuestions     ServerMsgType = 10
+	ChatTerminated    ServerMsgType = 11
 )
 
 type Client struct {
@@ -89,10 +90,11 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 	}
 	//Add client to database
 	AddClient(newClient)
-	go newClient.Read()
-	go newClient.Send()
+	go newClient.Read(c)
+	go newClient.Send(c)
 
-	return c.JSON(200, api.Return("NewPatientConn", nil))
+	c.Logger().Debug("ChatServer$: NewPatientConn")
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary create a new connection for doctor
@@ -107,7 +109,6 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
-	defer conn.Close()
 	newClient := &Client{
 		ID:        c.Param("doctorID"),
 		Role:      Doctor,
@@ -116,10 +117,11 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	}
 	//Add client to database
 	AddClient(newClient)
-	go newClient.Read()
-	go newClient.Send()
+	go newClient.Read(c)
+	go newClient.Send(c)
 
-	return c.JSON(200, api.Return("NewDoctorConn", nil))
+	c.Logger().Debug("ChatServer$: NewDoctorConn")
+	return c.JSON(200, api.Return("ok", nil))
 }
 
 // @Summary Get questions by department id
@@ -136,12 +138,12 @@ func (h *CategoryHandler) GetQuestionsByDepartmentID(c echo.Context) error {
 	var cate Category
 	db.Find(&cate)
 
-	c.Logger().Debug("GetQuestionsByDepartmentID")
+	c.Logger().Debug("ChatServer$: GetQuestionsByDepartmentID")
 	return c.JSON(200, api.Return("ok", cate.Questions))
 }
 
 //Read subroutine for client
-func (client *Client) Read() {
+func (client *Client) Read(c echo.Context) {
 	defer func() { //delete the client from pool
 		//delete client from database
 		DeleteClient(client)
@@ -152,26 +154,29 @@ func (client *Client) Read() {
 	for {
 		_, message, err := client.Conn.ReadMessage()
 		if err != nil {
+			c.Logger().Debug("ChatServer$: Read: " + err.Error())
 			break
 		}
-		client.ProcessMessage(message)
+		client.ProcessMessage(message, c)
 	}
 }
 
 //Send subroutine for client
-func (client *Client) Send() {
+func (client *Client) Send(c echo.Context) {
 	for {
 		message, ok := <-client.MsgBuffer
 		if !ok {
 			err := client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 			if err != nil {
-				return //TODO
+				c.Logger().Debug("ChatServer$: Send: " + err.Error())
+				return
 			}
 			break
 		}
 
 		err := client.Conn.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
+			c.Logger().Debug("ChatServer$: Send: " + err.Error())
 			return
 		}
 	}
@@ -187,122 +192,151 @@ type Message struct {
 	DoctorID   string   `json:"doctorid,omitempty"`
 	Content    string   `json:"content,omitempty"`
 	Time       string   `json:"time,omitempty"`
+	CaseID     string   `json:"caseid,omitempty"`
 	URL        string   `json:"url,omitempty"`
 	Questions  []string `json:"questions,omitempty"`
 }
 
 //Process one message
-func (client *Client) ProcessMessage(msgBytes []byte) {
+func (client *Client) ProcessMessage(msgBytes []byte, c echo.Context) {
 	message := &Message{}
 	err := json.Unmarshal(msgBytes, message)
 	if err != nil {
+		c.Logger().Debug("ChatServer$: ProcessMessage: " + err.Error())
 		return
 	}
 	switch message.Type {
-	//client to server
 	case MsgFromClient:
-		client.MsgFromClient(message)
+		client.MsgFromClient(message, c)
 	case CloseChat:
-		client.CloseChat(message)
+		client.CloseChat(message, c)
 	case RequireMedicalRecord:
-		client.RequireMedicalRecord(message)
+		client.RequireMedicalRecord(message, c)
 	case RequirePrescription:
-		client.RequirePrescription(message)
+		client.RequirePrescription(message, c)
 	case RequireQuestions:
-		client.RequireQuestions(message)
+		client.RequireQuestions(message, c)
 	default:
-		client.WrongMsgType(message)
+		client.WrongMsgType(message, c)
 	}
 }
 
 //Process msgfromclient message
-func (client *Client) MsgFromClient(message *Message) {
-	receiver := client.FindReceiver(message)
+func (client *Client) MsgFromClient(message *Message, c echo.Context) {
+	receiver := client.FindReceiver(message, c)
 	if receiver == nil {
-		client.ReceiverNotConnected(message)
+		client.ReceiverNotConnected(message, c)
 	}
-	fmt.Println("in msgfromclient " + client.ID + " *** " + message.Content)
 
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
-		fmt.Println("ChatServer:$Error:" + err.Error())
+		c.Logger().Debug("ChatServer$: MsgFromClient: " + err.Error())
 		return
 	}
 	receiver.MsgBuffer <- msgBytes //add the message to receiver buffer
 }
 
 //Process closechat message
-func (client *Client) CloseChat(message *Message) {
+func (client *Client) CloseChat(message *Message, c echo.Context) {
+	receiver := client.FindReceiver(message, c)
+	if receiver == nil {
+		client.ReceiverNotConnected(message, c)
+	}
+
+	msg := Message{
+		Type: int(ChatTerminated),
+	}
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		c.Logger().Debug("ChatServer$: CloseChat: " + err.Error())
+		return
+	}
+	client.MsgBuffer <- msgBytes //add the message to sender buffer
+	receiver.MsgBuffer <- msgBytes
+
+	//terminate the connection of receiver
 }
 
+//TODO no medicalrecord
 //Process requiremedicalrecord message
-func (client *Client) RequireMedicalRecord(message *Message) {
+func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 	msg := Message{
-		Type:      8,
+		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
-		URL:       "url", // get from database?
+		URL:       "url", // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		fmt.Println("ChatServer:$Error:" + err.Error())
+		c.Logger().Debug("ChatServer$: RequireMedicalRecord: " + err.Error())
 		return
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
 //Process requireprescription message
-func (client *Client) RequirePrescription(message *Message) {
+func (client *Client) RequirePrescription(message *Message, c echo.Context) {
+	db := utils.GetDB()
+	var pres []cases.Prescription
+	db.Where("CaseID = ?", message.CaseID).Find(&pres)
+
 	msg := Message{
-		Type:      9,
+		Type:      int(SendPrescription),
 		PatientID: message.PatientID,
-		URL:       "url", // get from database?
+		URL:       "pres url", //TODO how to convert
 	}
+
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		fmt.Println("ChatServer:$Error:" + err.Error())
+		c.Logger().Debug("ChatServer$: RequirePrescription: " + err.Error())
 		return
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
 //Process requirequestions message
-func (client *Client) RequireQuestions(message *Message) {
+func (client *Client) RequireQuestions(message *Message, c echo.Context) {
+	db := utils.GetDB()
+
+	var cate Category
+	db.Where("DepartmentID = ?", db.Select("DepartmentID").Where("DoctorID = ?")).Find(&cate)
+
 	msg := Message{
-		Type:      10,
-		Questions: []string{"aaa", "bbb", "ccc"},
-		// get from database based on message.DoctorID?
+		Type:      int(SendQuestions),
+		Questions: cate.Questions,
 	}
+
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		fmt.Println("ChatServer:$Error:" + err.Error())
+		c.Logger().Debug("ChatServer$: RequireQuestions: " + err.Error())
 		return
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
 
-//Process newpatient message
-func (client *Client) NewPatient(message *Message) {
-}
+// //Process newpatient message
+// func (client *Client) NewPatient(message *Message) {
+// }
 
-//Process msgfromserver message
-func (client *Client) MsgFromServer(message *Message) {
-}
+// //Process msgfromserver message
+// func (client *Client) MsgFromServer(message *Message) {
+// }
 
-//Process sendmedicalrecord message
-func (client *Client) SendMedicalRecord(message *Message) {
-}
+// //Process sendmedicalrecord message
+// func (client *Client) SendMedicalRecord(message *Message) {
+// }
 
-//Process sendprescription message
-func (client *Client) SendPrescription(message *Message) {
-}
+// //Process sendprescription message
+// func (client *Client) SendPrescription(message *Message) {
+// }
 
-//Process sendquestions message
-func (client *Client) SendQuestions(message *Message) {
-}
+// //Process sendquestions message
+// func (client *Client) SendQuestions(message *Message) {
+// }
 
 //Find the receiver of specific message
-func (client *Client) FindReceiver(message *Message) *Client {
-	var receiver *Client //TODO
+func (client *Client) FindReceiver(message *Message, c echo.Context) *Client {
+	var receiver *Client
 	//look up sender in database
 	_, ok := Connections[client]
 
@@ -314,7 +348,7 @@ func (client *Client) FindReceiver(message *Message) *Client {
 			}
 		}
 		if receiver == nil { //receiver not connected to server yet
-			client.ReceiverNotConnected(message)
+			client.ReceiverNotConnected(message, c)
 			return nil
 		}
 		slice := make([]*Client, 5)
@@ -336,7 +370,7 @@ func (client *Client) FindReceiver(message *Message) *Client {
 				}
 			}
 			if receiver == nil { //receiver not connected to server yet
-				client.ReceiverNotConnected(message)
+				client.ReceiverNotConnected(message, c)
 				return nil
 			}
 			Connections[client] = append(slice, receiver) //add receiver to map result
@@ -346,11 +380,11 @@ func (client *Client) FindReceiver(message *Message) *Client {
 }
 
 //Deal with unknown message type
-func (client *Client) WrongMsgType(message *Message) {
-
+func (client *Client) WrongMsgType(message *Message, c echo.Context) {
+	c.Logger().Debug("ChatServer$: WrongMsgType")
 }
 
 //Deal with the case when receiver of the message has't connected to the server
-func (client *Client) ReceiverNotConnected(message *Message) {
-
+func (client *Client) ReceiverNotConnected(message *Message, c echo.Context) {
+	c.Logger().Debug("ChatServer$: ReceiverNotConnected")
 }
