@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -216,13 +217,13 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 func GetAccountID(c echo.Context) (string, error) {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
-		return "", c.JSON(http.StatusBadRequest, api.Return("Not Logged in", nil))
+		return "", fmt.Errorf("Not logged in")
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
-		return "", c.JSON(http.StatusBadRequest, api.Return("Invalid token", nil))
+		return "", fmt.Errorf("Not logged in")
 	}
 	return account.ID, nil
 }
