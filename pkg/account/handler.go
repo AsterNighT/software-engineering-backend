@@ -44,7 +44,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
-	if body.Type != patient && body.Type != doctor && body.Type != admin {
+	if body.Type != PatientType && body.Type != DoctorType && body.Type != AdminType {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Account Type", nil))
 	}
 	if len(body.Passwd) < accountPasswdLen {
