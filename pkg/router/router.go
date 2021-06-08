@@ -48,6 +48,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/:ID/logout", h.LogoutAccount) //, account.Authoriszed)
 			router.POST("/:ID/modifypasswd", h.ModifyPasswd)
 		}
+		router = app.Group("/api")
 		router.Use(account.CheckAccountID)
 		{
 			var h cases.CaseHandler
