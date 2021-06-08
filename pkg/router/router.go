@@ -48,6 +48,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/:ID/logout", h.LogoutAccount) //, account.Authoriszed)
 			router.POST("/:ID/modifypasswd", h.ModifyPasswd)
 		}
+		router.Use(account.CheckAccountID)
 		{
 			var h cases.CaseHandler
 			router.GET("/cases", h.GetAllCases)
@@ -71,10 +72,10 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
-			router = router.Group("/patient")
-			router.POST("/:patientID/chat", h.NewPatientConn)
-			router = router.Group("/doctor")
-			router.POST("/:doctorID/chat", h.NewDoctorConn)
+			routerPatient := router.Group("/patient")
+			routerPatient.POST("/:patientID/chat", h.NewPatientConn)
+			routerDoctor := router.Group("/doctor")
+			routerDoctor.POST("/:doctorID/chat", h.NewDoctorConn)
 		}
 		{
 			var h chat.CategoryHandler
