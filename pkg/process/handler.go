@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 )
@@ -20,12 +21,17 @@ type ProcessHandler struct{}
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
 func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
+	_, err := account.GetAccountID(c)
+	if err != nil {
+		return err
+	}
+	c.Logger().Error("it should not reach here without login")
 	db := utils.GetDB()
 
-	var Departments []Department
-	db.Find(&Departments)
+	var departments []Department
+	db.Find(&departments)
 
-	return c.JSON(http.StatusOK, api.Return("ok", Departments))
+	return c.JSON(http.StatusOK, api.Return("ok", departments))
 }
 
 // GetDepartmentByID

@@ -9,11 +9,11 @@ import (
 // Department
 //department table (e.g. orthopedics department, x-ray department)
 type Department struct {
-	ID        uint                 `gorm:"primaryKey"`
-	Name      string               // name of this department
-	Detail    string               // detailed introduction of this department
-	Doctors   []account.Doctor     // foreign key of all the doctors who belongs to this department
-	Schedules []DepartmentSchedule // time schedule for a whole department
+	ID        uint                 `json:"id" gorm:"primaryKey"`
+	Name      string               `json:"name"`                   // name of this department
+	Detail    string               `json:"detail"`                 // detailed introduction of this department
+	Doctors   []account.Doctor     `json:"-" swaggerignore:"true"` // foreign key of all the doctors who belongs to this department
+	Schedules []DepartmentSchedule `json:"-" swaggerignore:"true"` // time schedule for a whole department
 }
 
 // Registration

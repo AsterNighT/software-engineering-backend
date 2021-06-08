@@ -213,7 +213,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 /**
  * @brief public method for getting current logged-in account's ID.
  */
-func getAccountID(c echo.Context) (string, error) {
+func GetAccountID(c echo.Context) (string, error) {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
 		return "", c.JSON(http.StatusBadRequest, api.Return("Not Logged in", nil))
@@ -232,7 +232,7 @@ func getAccountID(c echo.Context) (string, error) {
  */
 func CheckAccountID(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, err := getAccountID(c)
+		id, err := GetAccountID(c)
 		if err != nil {
 			return c.JSON(403, api.Return("unauthorised", err))
 		}
