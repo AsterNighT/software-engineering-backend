@@ -1,6 +1,8 @@
 package cases
 
 import (
+	"fmt"
+
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
@@ -25,6 +27,11 @@ type MedicineHandler struct {
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
+
+	if !FromDoctor(c) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
+
 	db := utils.GetDB()
 
 	if c.QueryParam(("patientID")) != "" {
@@ -52,6 +59,11 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Case}
 // @Router /patient/{patientID}/case [GET]
 func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
+
+	if !FromPatient(c, c.Param("patientID")) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
+
 	db := utils.GetDB()
 	db = db.Where("patient_id = ?", c.Param("patientID"))
 
@@ -75,6 +87,11 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
+
+	if !FromPatient(c, c.Param("patientID")) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
+
 	db := utils.GetDB()
 	db = db.Where("patient_id = ?", c.Param("patientID"))
 
@@ -93,6 +110,11 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
+
+	if !FromPatient(c, c.Param("patientID")) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
+
 	db := utils.GetDB()
 	var cas Case
 	err := utils.ExtractDataWithValidating(c, &cas)
@@ -116,7 +138,11 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 // @Router /patient/{patientID}/case/{caseID} [DELETE]
 func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	db := utils.GetDB()
-
+	var caseD Case
+	db.Where(c.Param("caseID")).First(&caseD)
+	if !FromPatient(c, fmt.Sprintf("%d", caseD.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	db.Delete(&Case{}, c.Param("caseID"))
 	c.Logger().Debug("DeleteCaseByCaseID")
 	return c.JSON(200, api.Return("ok", nil))
@@ -134,6 +160,9 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	var case1 Case
 	var cases []Case
 	db.First(&case1, c.Param("caseID"))
+	if !FromPatient(c, fmt.Sprintf("%d", case1.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	for case1.PreviousCaseID != nil {
 		case1.ID = *case1.PreviousCaseID
 		db.First(case1, *case1.PreviousCaseID)
@@ -153,9 +182,14 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	db := utils.GetDB()
 	var cas Case
+	var oldCase Case
 	err := utils.ExtractDataWithValidating(c, &cas)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
+	}
+	db.First(&oldCase, cas.ID)
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
 	}
 	result := db.Model(&cas).Updates(cas)
 	if result.Error != nil {
@@ -179,7 +213,11 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
-
+	var oldCase Case
+	db.First(&oldCase, pre.CaseID)
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	result := db.Create(&pre)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error))
@@ -197,6 +235,13 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [DELETE]
 func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 	db := utils.GetDB()
+	var oldCase Case
+	var pre Prescription
+	db.First(&pre, c.Param("prescriptionID"))
+	db.First(&oldCase, pre.CaseID)
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	db.Delete(&Prescription{}, c.Param("prescriptionID"))
 	c.Logger().Debug("DeletePrescription")
 	return c.JSON(200, api.Return("ok", nil))
@@ -215,6 +260,13 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
+	}
+	var oldPre Prescription
+	var oldCase Case
+	db.First(&oldPre, c.Param("prescriptionID"))
+	db.First(&oldCase, oldPre.CaseID)
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
 	}
 	result := db.Model(&pre).Updates(pre)
 	if result.Error != nil {
@@ -235,7 +287,11 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	db := utils.GetDB()
 	var pre Prescription
 	db.Preload("Guidelines").Preload("Guidelines.Medicine").First(&pre, c.Param("prescriptionID"))
-
+	var oldCase Case
+	db.First(&oldCase, pre.CaseID)
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	// var jsonStu []byte
 	// jsonStu, _ = json.Marshal(pre)
 	// fmt.Println(string(jsonStu))
@@ -254,6 +310,11 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	db := utils.GetDB()
 	var pres []Prescription
+	var oldCase Case
+	db.First(&oldCase, c.Param("caseID"))
+	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
 	db.Where("CaseID = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
 	c.Logger().Debug("GetPrescriptionByCaseID")
 	return c.JSON(200, api.Return("ok", pres))
