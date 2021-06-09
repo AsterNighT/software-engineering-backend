@@ -20,9 +20,6 @@ type ProcessHandler struct{}
 // @Success 200 {object} api.ReturnedData{data=[]Department}
 // @Router /departments [GET]
 func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
-	// auth
-	//c.Get("id")
-
 	db := utils.GetDB()
 
 	// get all departments
