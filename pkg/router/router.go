@@ -70,18 +70,21 @@ func RegisterRouters(app *echo.Echo) error {
 			var h cases.MedicineHandler
 			router.GET("/medicine", h.GetMedicines)
 		}
+
+		router = app.Group("/api")
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
 			routerPatient := router.Group("/patient")
-			routerPatient.POST("/:patientID/chat", h.NewPatientConn)
+			routerPatient.GET("/:patientID/chat", h.NewPatientConn)
 			routerDoctor := router.Group("/doctor")
-			routerDoctor.POST("/:doctorID/chat", h.NewDoctorConn)
+			routerDoctor.GET("/:doctorID/chat", h.NewDoctorConn)
 		}
-		{
-			var h chat.CategoryHandler
-			router.GET("/category/:categoryID", h.GetQuestionsByDepartmentID)
-		}
+
+		// {
+		// 	var h chat.CategoryHandler
+		// 	router.GET("/category/:categoryID", h.GetQuestionsByDepartmentID)
+		// }
 		{
 			// Use nested scopes and shadowing for subgroups
 			// G4-Process's router
