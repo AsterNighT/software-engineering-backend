@@ -170,21 +170,21 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	return c.JSON(200, api.Return("ok", nil))
 }
 
-func (sender *Client) FindReceiver(message *Message, c echo.Context) *Client {
+func (client *Client) FindReceiver(message *Message, c echo.Context) *Client {
 
 	var receiver *Client
-	receiverMap, ok := Connections[sender.ID]
+	receiverMap, ok := Connections[client.ID]
 	if !ok {
-		sender.ReceiverInvalid(message, c)
+		client.ReceiverInvalid(message, c)
 	}
 
 	if _, ok = receiverMap[message.ReceiverID]; !ok {
-		sender.ReceiverInvalid(message, c)
+		client.ReceiverInvalid(message, c)
 	}
 
 	receiver, ok = Clients[message.ReceiverID]
 	if !ok {
-		sender.ReceiverNotConnected(message, c)
+		client.ReceiverNotConnected(message, c)
 	}
 
 	return receiver
