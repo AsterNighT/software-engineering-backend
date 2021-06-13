@@ -192,19 +192,20 @@ func (client *Client) FindReceiver(message *Message, c echo.Context) *Client {
 }
 
 func StartNewChat(doctorID int, patientID int, c echo.Context) error {
-	var doctor *Client = nil
-	var patient *Client = nil
 
 	//Find doctor and patient in Clients[]
-	var ok bool
-	if doctor, ok = Clients[doctorID]; !ok {
+	if _, ok := Clients[doctorID]; !ok {
 		ClientNotConnected(doctorID, Doctor, c)
 		return c.JSON(400, api.Return("client not connected", nil))
 	}
-	if patient, ok = Clients[patientID]; !ok {
+
+	if _, ok := Clients[patientID]; !ok {
 		ClientNotConnected(patientID, Patient, c)
 		return c.JSON(400, api.Return("client not connected", nil))
 	}
+
+	var doctor = Clients[doctorID]
+	var patient = Clients[patientID]
 
 	//look up doctor in Connections
 	if _, ok := Connections[doctor.ID]; !ok { //map result doesn't exist
