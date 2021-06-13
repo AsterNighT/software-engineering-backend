@@ -76,8 +76,7 @@ func DeleteClient(client *Client, c echo.Context) {
 	client.Conn.Close()
 	close(client.MsgBuffer)
 	delete(Clients, client.ID)
-	_, ok := Connections[client.ID]
-	if ok {
+	if _, ok := Connections[client.ID]; ok {
 		connMap := Connections[client.ID]
 		for senderID := range connMap { //search the map result for receiver
 			receiverMap := Connections[senderID]
