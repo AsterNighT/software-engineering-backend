@@ -251,7 +251,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Param checked body boolean true "milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone/{MileStoneID} [PUT]
+// @Router /milestone/{mileStoneID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	db := utils.GetDB()
 
@@ -279,7 +279,7 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Param mileStoneID path uint true "milestone's ID"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone/{MileStoneID} [DELETE]
+// @Router /milestone/{mileStoneID} [DELETE]
 func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	// TODO verify identity
 	db := utils.GetDB()
