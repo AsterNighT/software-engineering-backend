@@ -90,16 +90,16 @@ func RegisterRouters(app *echo.Echo) error {
 			// G4-Process's router
 			var h process.ProcessHandler
 			router.GET("/departments", h.GetAllDepartments)
-			router.GET("/department/:DepartmentID", h.GetDepartmentByID)
+			router.GET("/department/:departmentID", h.GetDepartmentByID)
 			router.POST("/registration", h.CreateRegistration)
 			router.GET("/patient/registrations", h.GetRegistrationsByPatient)
 			router.GET("/doctor/registrations", h.GetRegistrationByDoctor)
-			router.GET("/doctor/registration/:RegistrationID", h.GetRegistrationByDoctor)
-			router.GET("/patient/registration/:RegistrationID", h.GetRegistrationByPatient)
-			router.PUT("/registration/:RegistrationID", h.UpdateRegistrationStatus)
+			router.GET("/doctor/registration/:registrationID", h.GetRegistrationByDoctor)
+			router.GET("/patient/registration/:registrationID", h.GetRegistrationByPatient)
+			router.PUT("/registration/:registrationID", h.UpdateRegistrationStatus)
 			router.POST("/milestone", h.CreateMileStoneByDoctor)
-			router.PUT("/milestone/:MileStoneID", h.UpdateMileStoneByDoctor)
-			router.DELETE("/milestone/:MileStoneID", h.DeleteMileStoneByDoctor)
+			router.PUT("/milestone/:mileStoneID", h.UpdateMileStoneByDoctor)
+			router.DELETE("/milestone/:mileStoneID", h.DeleteMileStoneByDoctor)
 		}
 	}
 	return nil

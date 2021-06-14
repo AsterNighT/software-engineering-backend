@@ -38,13 +38,16 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Department}
 // @Router /department/{DepartmentID} [GET]
 func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
-
 	db := utils.GetDB()
 	var department Department
-	db.First(&department, c.Param("departmentID"))
+
+	err := db.First(&department, c.Param("departmentID")).Error
+	if err != nil {
+		return c.JSON(http.StatusNoContent, api.Return("ok", department))
+	}
+
 	c.Logger().Debug("GetDepartmentByID")
 	return c.JSON(http.StatusOK, api.Return("ok", department))
-
 }
 
 // CreateRegistration
