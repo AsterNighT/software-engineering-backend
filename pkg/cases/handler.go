@@ -315,7 +315,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	db.Where("CaseID = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
+	db.Where("case_id = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
 	c.Logger().Debug("GetPrescriptionByCaseID")
 	return c.JSON(200, api.Return("ok", pres))
 }
