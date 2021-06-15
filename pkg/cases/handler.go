@@ -6,6 +6,7 @@ import (
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type CaseHandler struct {
@@ -143,7 +144,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", caseD.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	db.Delete(&Case{}, c.Param("caseID"))
+	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Delete(&Case{}, c.Param("caseID"))
 	c.Logger().Debug("DeleteCaseByCaseID")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -191,7 +192,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	result := db.Model(&cas).Updates(cas)
+	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Model(&cas).Updates(cas)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error))
 	}
@@ -242,7 +243,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	db.Delete(&Prescription{}, c.Param("prescriptionID"))
+	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Delete(&Prescription{}, c.Param("prescriptionID"))
 	c.Logger().Debug("DeletePrescription")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -268,7 +269,7 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	result := db.Model(&pre).Updates(pre)
+	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error))
 	}
@@ -315,7 +316,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
-	db.Where("CaseID = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
+	db.Where("case_id = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
 	c.Logger().Debug("GetPrescriptionByCaseID")
 	return c.JSON(200, api.Return("ok", pres))
 }

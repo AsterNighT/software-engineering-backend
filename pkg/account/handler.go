@@ -76,7 +76,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		Name:    "token",
 		Value:   account.Token,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api/account",
+		Path:    "/api",
 	}
 	c.SetCookie(&cookie)
 
@@ -131,7 +131,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		Name:    "token",
 		Value:   token,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api/account",
+		Path:    "/api",
 	}
 	c.SetCookie(&cookie)
 
@@ -156,7 +156,7 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 	cookie.Value = ""
 	cookie.Expires = time.Unix(0, 0)
 	// cookie.Expires = time.Now().Add(7 * 24 * time.Hour)
-	cookie.Path = "/api/account"
+	cookie.Path = "/api"
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, api.Return("Account logged out", nil))
