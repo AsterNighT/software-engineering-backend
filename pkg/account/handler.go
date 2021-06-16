@@ -114,7 +114,7 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	} else {
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": true}))
+		return c.JSON(http.StatusOK, api.Return("E-Mail", echo.Map{"emailok": true}))
 	}
 }
 
