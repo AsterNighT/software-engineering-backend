@@ -33,9 +33,10 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		ID    string `json:"id" validate:"required"`
 		Email string `json:"email" validate:"required"`
 
-		Type   AcountType `json:"type" validate:"required"`
-		Name   string     `json:"name" validate:"required"`
-		Passwd string     `json:"passwd" validate:"required"`
+		Type      AcountType `json:"type" validate:"required"`
+		FirstName string     `json:"firstname" validate:"required"`
+		LastName  string     `json:"lastname" validate:"required"`
+		Passwd    string     `json:"passwd" validate:"required"`
 	}
 
 	var body RequestBody
@@ -61,9 +62,10 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		ID:    body.ID,
 		Email: body.Email,
 
-		Type:   body.Type,
-		Name:   body.Name,
-		Passwd: body.Passwd,
+		Type:      body.Type,
+		FirstName: body.FirstName,
+		LastName:  body.LastName,
+		Passwd:    body.Passwd,
 	}
 	account.Token, _ = account.GenerateToken()
 

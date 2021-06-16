@@ -9,9 +9,11 @@ type Account struct {
 	ID    string `gorm:"primarykey;"`
 	Email string
 
-	Type   AcountType
-	Name   string
-	Passwd string // Wait for encryption
+	Type AcountType
+	// Name   string
+	FirstName string
+	LastName  string
+	Passwd    string // Wait for encryption
 
 	Token string
 }
