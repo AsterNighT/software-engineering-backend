@@ -22,9 +22,10 @@ func main() {
 	app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"Cookies", "authorization", "Content-Type"},
-		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
 		AllowCredentials: true,
 	}))
+	app.Pre(middleware.AddTrailingSlash())
 	app.Use(database.ContextDB(db))
 
 	err := router.RegisterRouters(app)
