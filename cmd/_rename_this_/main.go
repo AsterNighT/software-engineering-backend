@@ -25,7 +25,6 @@ func main() {
 		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
 		AllowCredentials: true,
 	}))
-	app.Pre(middleware.AddTrailingSlash())
 	app.Use(database.ContextDB(db))
 
 	err := router.RegisterRouters(app)
