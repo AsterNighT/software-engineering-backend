@@ -118,5 +118,6 @@ func (h *BasicHandler) Ping(c echo.Context) error {
 
 func (h *BasicHandler) RedirectToSwagger(c echo.Context) error {
 	c.Response().Header().Set("Location", "swagger/index.html")
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
 	return c.NoContent(http.StatusMovedPermanently)
 }
