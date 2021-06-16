@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -44,7 +45,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
-	if body.Type != patient && body.Type != doctor && body.Type != admin {
+	if body.Type != PatientType && body.Type != DoctorType && body.Type != AdminType {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Account Type", nil))
 	}
 	if len(body.Passwd) < accountPasswdLen {
@@ -75,7 +76,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		Name:    "token",
 		Value:   account.Token,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api/account",
+		Path:    "/api",
 	}
 	c.SetCookie(&cookie)
 
@@ -130,7 +131,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		Name:    "token",
 		Value:   token,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api/account",
+		Path:    "/api",
 	}
 	c.SetCookie(&cookie)
 
@@ -155,7 +156,7 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 	cookie.Value = ""
 	cookie.Expires = time.Unix(0, 0)
 	// cookie.Expires = time.Now().Add(7 * 24 * time.Hour)
-	cookie.Path = "/api/account"
+	cookie.Path = "/api"
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, api.Return("Account logged out", nil))
@@ -216,13 +217,13 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 func getAccountID(c echo.Context) (string, error) {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
-		return "", c.JSON(http.StatusBadRequest, api.Return("Not Logged in", nil))
+		return "", fmt.Errorf("Not logged in")
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
-		return "", c.JSON(http.StatusBadRequest, api.Return("Invalid token", nil))
+		return "", fmt.Errorf("Not logged in")
 	}
 	return account.ID, nil
 }

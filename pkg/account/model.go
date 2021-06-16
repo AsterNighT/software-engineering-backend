@@ -19,9 +19,9 @@ type Account struct {
 type AcountType string
 
 const (
-	patient AcountType = "patient"
-	doctor  AcountType = "doctor"
-	admin   AcountType = "admin"
+	PatientType AcountType = "patient"
+	DoctorType  AcountType = "doctor"
+	AdminType   AcountType = "admin"
 )
 
 type Doctor struct {
