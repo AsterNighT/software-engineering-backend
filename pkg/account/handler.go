@@ -128,9 +128,6 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/login [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
-	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
-	c.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	c.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	type RequestBody struct {
 		Email  string `json:"email" validate:"required"`
 		Passwd string `json:"passwd" validate:"required"`
@@ -248,13 +245,13 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 func getAccountID(c echo.Context) (string, error) {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
-		return "", fmt.Errorf("Not logged in")
+		return "", fmt.Errorf("not logged in")
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
-		return "", fmt.Errorf("Not logged in")
+		return "", fmt.Errorf("not logged in")
 	}
 	return account.ID, nil
 }
