@@ -86,9 +86,37 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}))
 }
 
-/**
- * @todo cookie not implemented, jwt
- */
+// @Summary check email's existense
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param Passwd path string true "user password"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/checkemail [POST]
+func (h *AccountHandler) CheckEmail(c echo.Context) error {
+	type RequestBody struct {
+		Email string `json:"email" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	} else {
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": true}))
+	}
+}
 
 // @Summary login using email and passwd
 // @Description
