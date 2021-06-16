@@ -2,6 +2,7 @@ package cases
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
@@ -22,9 +23,8 @@ type MedicineHandler struct {
 // @Param department query string false "department name" nil
 // @Param patientID query uint false "patient ID" nil
 // @Param doctorID query uint false "doctor ID" nil
-// @Param before query uint false "a timestamp marking end time" nil
-// @Param after query uint false "a timestamp marking start time" nil
-// @Param q query string false "full-text search" nil
+// @Param before query uint false "a timestamp marking end time without timezone" nil
+// @Param after query uint false "a timestamp marking start time without timezone" nil
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
@@ -43,6 +43,12 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 	}
 	if c.QueryParam("department") != "" {
 		db = db.Where("department LIKE ?", "%"+c.QueryParam("department")+"%")
+	}
+	if c.QueryParam("before") != "" {
+		db = db.Where("date <= ?", c.QueryParam("before"))
+	}
+	if c.QueryParam("after") != "" {
+		db = db.Where("date >= ?", c.QueryParam("after"))
 	}
 
 	var cases []Case
@@ -81,10 +87,9 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param department query string false "department name" nil
-// @Param doctor query string false "doctor name" nil
+// @Param doctorID query string false "doctor name" nil
 // @Param before query uint false "a timestamp marking end time" nil
 // @Param after query uint false "a timestamp marking start time" nil
-// @Param q query string false "full-text search" nil
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
@@ -95,6 +100,18 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 
 	db := utils.GetDB()
 	db = db.Where("patient_id = ?", c.Param("patientID"))
+	if c.QueryParam(("doctorID")) != "" {
+		db = db.Where("doctor_id = ?", c.QueryParam("doctorID"))
+	}
+	if c.QueryParam("department") != "" {
+		db = db.Where("department LIKE ?", "%"+c.QueryParam("department")+"%")
+	}
+	if c.QueryParam("before") != "" {
+		db = db.Where("date <= ?", c.QueryParam("before"))
+	}
+	if c.QueryParam("after") != "" {
+		db = db.Where("date >= ?", c.QueryParam("after"))
+	}
 
 	var cases []Case
 	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
@@ -122,12 +139,13 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
+	cas.Date = time.Now()
 	result := db.Create(&cas)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error))
 	}
 	c.Logger().Debug("NewCase")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", cas.ID))
 }
 
 // @Summary Delete a case
@@ -224,7 +242,7 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 		return c.JSON(400, api.Return("error", result.Error))
 	}
 	c.Logger().Debug("NewPrescription")
-	return c.JSON(200, api.Return("ok", nil))
+	return c.JSON(200, api.Return("ok", pre.ID))
 }
 
 // @Summary Delete a prescrition
