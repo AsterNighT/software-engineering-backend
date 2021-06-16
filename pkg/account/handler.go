@@ -30,7 +30,6 @@ type AccountHandler struct{}
 // @Router /account/create [POST]
 func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	type RequestBody struct {
-		ID    string `json:"id" validate:"required"`
 		Email string `json:"email" validate:"required"`
 
 		Type      AcountType `json:"type" validate:"required"`
@@ -54,12 +53,11 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
-	if err := db.Where("id = ? OR email = ?", body.ID, body.Email).First(&Account{}).Error; err == nil {
+	if err := db.Where("email = ?", body.Email).First(&Account{}).Error; err == nil {
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail or AccountID occupied", nil))
 	}
 
 	account := Account{
-		ID:    body.ID,
 		Email: body.Email,
 
 		Type:      body.Type,
@@ -244,16 +242,16 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 /**
  * @brief public method for getting current logged-in account's ID.
  */
-func getAccountID(c echo.Context) (string, error) {
+func getAccountID(c echo.Context) (uint, error) {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
-		return "", fmt.Errorf("not logged in")
+		return 0, fmt.Errorf("not logged in")
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
-		return "", fmt.Errorf("not logged in")
+		return 0, fmt.Errorf("not logged in")
 	}
 	return account.ID, nil
 }

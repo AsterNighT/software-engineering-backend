@@ -6,7 +6,7 @@ package account
 const accountPasswdLen = 8
 
 type Account struct {
-	ID    string `gorm:"primarykey;"`
+	ID    uint `gorm:"primarykey;autoIncrement;"`
 	Email string
 
 	Type AcountType
