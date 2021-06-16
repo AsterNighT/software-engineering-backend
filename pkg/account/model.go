@@ -13,7 +13,7 @@ type Account struct {
 	// Name   string
 	FirstName string
 	LastName  string
-	Passwd    string // Wait for encryption
+	Passwd    string // Considered as plaintext, but can be encrypted by frontend
 
 	Token string
 }
@@ -49,6 +49,6 @@ type Patient struct {
 }
 
 var (
-	jwtKey = []byte("ECHOGORMEXAMPLEJWTKEY") // For test only
+	jwtKey = []byte("SOFTWAREENGINEERINGBACKEND") // For test only
 	// jwtKey = os.Getenv("JWT_KEY")
 )

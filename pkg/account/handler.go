@@ -175,7 +175,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/{id}/logout [POST]
+// @Router /account/logout [POST]
 func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 	cookie, err := c.Cookie("token")
 	if err != nil || cookie.Value == "" {
