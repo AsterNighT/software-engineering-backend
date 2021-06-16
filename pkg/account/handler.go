@@ -120,7 +120,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
 	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(body.Passwd)) != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
@@ -191,7 +191,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail not found", nil))
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
 	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(body.Passwd)) != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
