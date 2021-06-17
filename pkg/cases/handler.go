@@ -23,8 +23,8 @@ type MedicineHandler struct {
 // @Param department query string false "department name" nil
 // @Param patientID query uint false "patient ID" nil
 // @Param doctorID query uint false "doctor ID" nil
-// @Param before query uint false "a timestamp marking end time without timezone" nil
-// @Param after query uint false "a timestamp marking start time without timezone" nil
+// @Param before query string false "a timestamp marking end time without timezone" nil
+// @Param after query string false "a timestamp marking start time without timezone" nil
 // @Success 200 {object} api.ReturnedData{data=[]Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
@@ -75,7 +75,7 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 	db = db.Where("patient_id = ?", c.Param("patientID"))
 
 	var case1 Case
-	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Last(&case1)
+	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Order("date DESC").Limit(1).First(&case1)
 
 	c.Logger().Debug("GetLastCase")
 	return c.JSON(200, api.Return("ok", case1))
@@ -129,7 +129,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
 
-	if !FromPatient(c, c.Param("patientID")) {
+	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
 
@@ -159,7 +159,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	db := utils.GetDB()
 	var caseD Case
 	db.Where(c.Param("caseID")).First(&caseD)
-	if !FromPatient(c, fmt.Sprintf("%d", caseD.PatientID)) {
+	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
 	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Delete(&Case{}, c.Param("caseID"))
@@ -184,7 +184,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	}
 	for case1.PreviousCaseID != nil {
 		case1.ID = *case1.PreviousCaseID
-		db.First(case1, *case1.PreviousCaseID)
+		db.First(&case1, *case1.PreviousCaseID)
 		cases = append(cases, case1)
 	}
 	c.Logger().Debug("GetPreviousCases")
@@ -234,7 +234,7 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	}
 	var oldCase Case
 	db.First(&oldCase, pre.CaseID)
-	if !FromPatient(c, fmt.Sprintf("%d", oldCase.PatientID)) {
+	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("unauthorized", nil))
 	}
 	result := db.Create(&pre)
