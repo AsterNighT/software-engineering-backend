@@ -44,8 +44,10 @@ func RegisterRouters(app *echo.Echo) error {
 			var h account.AccountHandler
 			router := router.Group("/account")
 			router.POST("/create", h.CreateAccount)
+			router.POST("/checkemail", h.CheckEmail)
 			router.POST("/login", h.LoginAccount)
-			router.POST("/:ID/logout", h.LogoutAccount) //, account.Authoriszed)
+			// router.OPTIONS("/login", h.LoginAccount)
+			router.POST("/logout", h.LogoutAccount) //, account.Authoriszed)
 			router.POST("/:ID/modifypasswd", h.ModifyPasswd)
 		}
 		router = app.Group("/api")
