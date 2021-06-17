@@ -2,7 +2,9 @@ package account
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"net/smtp"
 	"regexp"
 	"time"
 
@@ -191,7 +193,7 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 }
 
 // @Summary the interface of modifying password
-// @Description can only be called during logged-in status since there is no password check
+// @Description
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
@@ -237,6 +239,63 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
+}
+
+// @Summary the interface of sending email to reset password
+// @Description can only be called during logged-in status since there is no password check
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"authCode": authCode}}
+// @Router /account/sendemail [POST]
+func (h *AccountHandler) SendEmail(c echo.Context) error {
+	type RequestBody struct {
+		Email string `json:"email" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check old passwd
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
+	authCode := ""
+	for i := 0; i < 6; i++ {
+		authCode += string("0123456789"[rand.Intn(10)])
+	}
+
+	emailServerHost := "smtp.163.com"
+	emailServerPort := "25"
+	emailUser := "13606900243@163.com"
+	emailPasswd := "IAXPDCMBTUCJMXOC"
+
+	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
+	to := body.Email
+	msg := []byte("From: \"MediConnect\" noreply@mediconnect.com\n" +
+		"To: " + to + "\n" +
+		"Subject: MediConnect Account Reset\n" +
+		"\n" +
+		"Your verification code is " + authCode + "\n")
+	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
+		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
+	}
+
+	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", echo.Map{"authCode": authCode}))
 }
 
 /**
