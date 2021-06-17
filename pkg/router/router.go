@@ -90,7 +90,7 @@ func RegisterRouters(app *echo.Echo) error {
 			// G4-Process's router
 			var h process.ProcessHandler
 			router.GET("/departments", h.GetAllDepartments)
-			router.GET("/department/:DepartmentID", h.GetDepartmentByID)
+			router.GET("/department/:departmentID", h.GetDepartmentByID)
 			router.POST("/registration", h.CreateRegistration)
 			router.GET("/patient/registrations/:PatientID", h.GetRegistrationsByPatient)
 			router.GET("/doctor/registrations/:DoctorID", h.GetRegistrationByDoctor)
@@ -100,6 +100,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/milestone", h.CreateMileStoneByDoctor)
 			router.PUT("/milestone/:MileStoneID/:DoctorID", h.UpdateMileStoneByDoctor)
 			router.DELETE("/milestone/:MileStoneID/:DoctorID", h.DeleteMileStoneByDoctor)
+
 		}
 	}
 	return nil
