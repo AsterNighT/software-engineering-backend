@@ -6,14 +6,17 @@ package account
 const accountPasswdLen = 8
 
 type Account struct {
-	ID    string `gorm:"primarykey;"`
+	ID    uint `gorm:"primarykey;autoIncrement;"`
 	Email string
 
-	Type   AcountType
-	Name   string
-	Passwd string // Wait for encryption
+	Type AcountType
+	// Name   string
+	FirstName string
+	LastName  string
+	Passwd    string // Considered as plaintext, but can be encrypted by frontend
 
-	Token string
+	Token    string
+	AuthCode string
 }
 
 type AcountType string
@@ -47,6 +50,6 @@ type Patient struct {
 }
 
 var (
-	jwtKey = []byte("ECHOGORMEXAMPLEJWTKEY") // For test only
+	jwtKey = []byte("SOFTWAREENGINEERINGBACKEND") // For test only
 	// jwtKey = os.Getenv("JWT_KEY")
 )

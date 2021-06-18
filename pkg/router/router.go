@@ -44,9 +44,13 @@ func RegisterRouters(app *echo.Echo) error {
 			var h account.AccountHandler
 			router := router.Group("/account")
 			router.POST("/create", h.CreateAccount)
+			router.POST("/checkemail", h.CheckEmail)
 			router.POST("/login", h.LoginAccount)
-			router.POST("/:ID/logout", h.LogoutAccount) //, account.Authoriszed)
-			router.POST("/:ID/modifypasswd", h.ModifyPasswd)
+			router.POST("/logout", h.LogoutAccount)
+			router.POST("/modifypasswd", h.ModifyPasswd)
+			router.POST("/sendemail", h.SendEmail)
+			router.POST("/checkauthcode", h.CheckAuthCode)
+			router.POST("/resetpasswd", h.ResetPasswd)
 		}
 		router = app.Group("/api")
 		router.Use(account.CheckAccountID)
@@ -71,7 +75,6 @@ func RegisterRouters(app *echo.Echo) error {
 			router.GET("/medicine", h.GetMedicines)
 		}
 
-		router = app.Group("/api")
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
