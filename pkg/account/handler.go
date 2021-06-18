@@ -166,6 +166,10 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	}
 	c.SetCookie(&cookie)
 
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("token", account.Token); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
 	return c.JSON(http.StatusOK, api.Return("Logged in", echo.Map{
 		"account":      account,
 		"cookie_token": account.Token,
