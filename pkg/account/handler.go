@@ -286,9 +286,10 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 
 	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
 	to := body.Email
-	msg := []byte("From: \"MediConnect\" noreply@mediconnect.com\n" +
+	msg := []byte("From: \"MediConnect\" <noreply@mediconnect.com>\n" +
 		"To: " + to + "\n" +
 		"Subject: MediConnect Account Reset\n" +
+		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
 		"\n" +
 		"Your verification code is " + authCode + "\n")
 	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
