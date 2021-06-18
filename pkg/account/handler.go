@@ -200,7 +200,7 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 // @Param Passwd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/{id}/modifypasswd [POST]
+// @Router /account/modifypasswd [POST]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	type RequestBody struct {
 		Email     string `json:"email" validate:"required"`
@@ -399,8 +399,6 @@ func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id": u.ID,
 	})
-	// print(token)
 	tokenString, err := token.SignedString(jwtKey)
-	// print(err.Error())
 	return tokenString, err
 }
