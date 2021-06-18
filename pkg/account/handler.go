@@ -157,10 +157,10 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
-	token, _ := account.GenerateToken()
+	account.Token, _ = account.GenerateToken()
 	cookie := http.Cookie{
 		Name:    "token",
-		Value:   token,
+		Value:   account.Token,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
 		Path:    "/api",
 	}
@@ -168,7 +168,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, api.Return("Logged in", echo.Map{
 		"account":      account,
-		"cookie_token": token,
+		"cookie_token": account.Token,
 	}))
 }
 
