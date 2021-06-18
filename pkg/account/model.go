@@ -15,7 +15,8 @@ type Account struct {
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
 
-	Token string
+	Token    string
+	AuthCode string
 }
 
 type AcountType string

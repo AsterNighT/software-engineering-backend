@@ -279,6 +279,10 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		authCode += string("0123456789"[rand.Intn(10)])
 	}
 
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
 	emailServerHost := "smtp.163.com"
 	emailServerPort := "25"
 	emailUser := "13606900243@163.com"
@@ -297,6 +301,56 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", echo.Map{"authCode": authCode}))
+}
+
+// @Summary the interface of reset password
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param AuthCode path string true "given auth code"
+// @Param Passwd path string true "user password (the new one)"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/resetpasswd [POST]
+func (h *AccountHandler) ResetPasswd(c echo.Context) error {
+	type RequestBody struct {
+		Email     string `json:"email" validate:"required"`
+		AuthCode  string `json:"authcode" validate:"required"`
+		NewPasswd string `json:"newpasswd" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check old passwd
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+	if account.AuthCode != body.AuthCode {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong authcode", nil))
+	}
+
+	if len(body.NewPasswd) < accountPasswdLen {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
+	}
+
+	account.Passwd = body.NewPasswd
+	account.HashPassword()
+
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
+	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 }
 
 /**
