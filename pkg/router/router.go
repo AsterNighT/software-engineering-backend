@@ -49,6 +49,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/logout", h.LogoutAccount)
 			router.POST("/modifypasswd", h.ModifyPasswd)
 			router.POST("/sendemail", h.SendEmail)
+			router.POST("/checkauthcode", h.CheckAuthCode)
 			router.POST("/resetpasswd", h.ResetPasswd)
 		}
 		router = app.Group("/api")

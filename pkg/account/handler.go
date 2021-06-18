@@ -1,8 +1,9 @@
 package account
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"net/smtp"
 	"regexp"
@@ -276,8 +277,10 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 
 	authCode := ""
 	for i := 0; i < 6; i++ {
-		authCode += string("0123456789"[rand.Intn(10)])
+		nBig, _ := rand.Int(rand.Reader, big.NewInt(10))
+		authCode += string("0123456789"[nBig.Int64()])
 	}
+	c.Logger().Debug(authCode)
 
 	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
@@ -300,7 +303,44 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
 	}
 
-	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", echo.Map{"authCode": authCode}))
+	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", nil))
+}
+
+// @Summary check email's existense
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param AuthCode path string true "given auth code"
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"authcodeok": false}}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"authcodeok": true}}
+// @Router /account/checkauthcode [POST]
+func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
+	type RequestBody struct {
+		Email    string `json:"email" validate:"required"`
+		AuthCode string `json:"authcode" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check authcode
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+	if account.AuthCode != body.AuthCode {
+		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
+	} else {
+		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
+	}
 }
 
 // @Summary the interface of reset password
@@ -329,7 +369,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
 
-	// Check old passwd
+	// Check authcode
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
