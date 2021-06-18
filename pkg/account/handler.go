@@ -1,8 +1,11 @@
 package account
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"net/http"
+	"net/smtp"
 	"regexp"
 	"time"
 
@@ -191,14 +194,14 @@ func (h *AccountHandler) LogoutAccount(c echo.Context) error {
 }
 
 // @Summary the interface of modifying password
-// @Description can only be called during logged-in status since there is no password check
+// @Description
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Passwd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/{id}/modifypasswd [POST]
+// @Router /account/modifypasswd [POST]
 func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	type RequestBody struct {
 		Email     string `json:"email" validate:"required"`
@@ -223,6 +226,157 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	}
 	if bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(body.Passwd)) != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
+	}
+
+	if len(body.NewPasswd) < accountPasswdLen {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
+	}
+
+	account.Passwd = body.NewPasswd
+	account.HashPassword()
+
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
+	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
+}
+
+// @Summary the interface of sending email to reset password
+// @Description can only be called during logged-in status since there is no password check
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"authCode": authCode}}
+// @Router /account/sendemail [POST]
+func (h *AccountHandler) SendEmail(c echo.Context) error {
+	type RequestBody struct {
+		Email string `json:"email" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check old passwd
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
+	authCode := ""
+	for i := 0; i < 6; i++ {
+		nBig, _ := rand.Int(rand.Reader, big.NewInt(10))
+		authCode += string("0123456789"[nBig.Int64()])
+	}
+	c.Logger().Debug(authCode)
+
+	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	}
+
+	emailServerHost := "smtp.163.com"
+	emailServerPort := "25"
+	emailUser := "13606900243@163.com"
+	emailPasswd := "IAXPDCMBTUCJMXOC"
+
+	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
+	to := body.Email
+	msg := []byte("From: \"MediConnect\" <noreply@mediconnect.com>\n" +
+		"To: " + to + "\n" +
+		"Subject: MediConnect Account Reset\n" +
+		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
+		"\n" +
+		"Your verification code is " + authCode + "\n")
+	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
+		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
+	}
+
+	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", nil))
+}
+
+// @Summary check email's existense
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param AuthCode path string true "given auth code"
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"authcodeok": false}}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"authcodeok": true}}
+// @Router /account/checkauthcode [POST]
+func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
+	type RequestBody struct {
+		Email    string `json:"email" validate:"required"`
+		AuthCode string `json:"authcode" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check authcode
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+	if account.AuthCode != body.AuthCode {
+		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
+	} else {
+		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
+	}
+}
+
+// @Summary the interface of reset password
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param AuthCode path string true "given auth code"
+// @Param Passwd path string true "user password (the new one)"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/resetpasswd [POST]
+func (h *AccountHandler) ResetPasswd(c echo.Context) error {
+	type RequestBody struct {
+		Email     string `json:"email" validate:"required"`
+		AuthCode  string `json:"authcode" validate:"required"`
+		NewPasswd string `json:"newpasswd" validate:"required"`
+	}
+	var body RequestBody
+
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	}
+
+	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
+	}
+
+	// Check authcode
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
+	if account.AuthCode != body.AuthCode {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong authcode", nil))
 	}
 
 	if len(body.NewPasswd) < accountPasswdLen {
@@ -285,8 +439,6 @@ func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id": u.ID,
 	})
-	// print(token)
 	tokenString, err := token.SignedString(jwtKey)
-	// print(err.Error())
 	return tokenString, err
 }
