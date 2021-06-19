@@ -22,7 +22,6 @@ func FromDoctor(c echo.Context) bool {
 	}
 	db, _ := c.Get("db").(*gorm.DB)
 	id := c.Get("id").(string)
-	print(id)
 	var user account.Account
 	if err := db.Where("id = ?", id).First(&user).Error; err == nil { // not found
 		return user.Type == account.DoctorType
