@@ -1,7 +1,6 @@
 package account
 
-// "github.com/AsterNighT/software-engineering-backend/pkg/cases"
-// "github.com/AsterNighT/software-engineering-backend/pkg/chat"
+import "time"
 
 const accountPasswdLen = 8
 
@@ -9,14 +8,14 @@ type Account struct {
 	ID    uint `gorm:"primarykey;autoIncrement;"`
 	Email string
 
-	Type AcountType
-	// Name   string
+	Type      AcountType
 	FirstName string
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
 
-	Token    string
-	AuthCode string
+	Token           string
+	AuthCode        string
+	AuthCodeExpires time.Time
 }
 
 type AcountType string
@@ -51,5 +50,11 @@ type Patient struct {
 
 var (
 	jwtKey = []byte("SOFTWAREENGINEERINGBACKEND") // For test only
-	// jwtKey = os.Getenv("JWT_KEY")
+
+	emailServerHost = "smtp.163.com"
+	emailServerPort = "25"
+	emailUser       = "13606900243@163.com"
+	emailPasswd     = "IAXPDCMBTUCJMXOC"
+
+	expireMin = 10
 )
