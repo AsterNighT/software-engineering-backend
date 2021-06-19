@@ -87,10 +87,10 @@ const (
 	DoctorNotFound           ProcessError = "doctor not found"
 	MileStoneNotFound        ProcessError = "找不到该 MileStone"
 	MileStoneUnauthorized    ProcessError = "你无权操作该 MileStone"
-	DuplicateRegistration    ProcessError = "duplicate registration is not allowed"
 	InvalidSchedule          ProcessError = "this schedule is invalid"
 	NotEnoughCapacity        ProcessError = "not enough capacity"
-	CreateRegistrationFailed ProcessError = "create registration failed"
+	CreateRegistrationFailed ProcessError = "挂号失败，请检查科室是否有余量或者时间冲突"
+	CreateMileStoneFailed    ProcessError = "创建 MileStone 失败"
 	CannotAssignDoctor       ProcessError = ""
 	InvalidRegistration      ProcessError = ""
 )

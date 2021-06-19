@@ -88,7 +88,7 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Param day body int true "Day"
 // @Param halfday body int true "HalfDay"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=RegistrationDetailJSON}
+// @Success 200 {object} api.ReturnedData{data=int}
 // @Router /registration [POST]
 func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
@@ -145,7 +145,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		}).Find(&possibleDuplicates).RowsAffected > 0 {
 			for i := range possibleDuplicates {
 				if possibleDuplicates[i].Status != terminated {
-					//return c.JSON(http.StatusBadRequest, api.Return("error", DuplicateRegistration))
 					return echo.ErrBadRequest
 				}
 			}
@@ -233,7 +232,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	} else {
 		return c.JSON(http.StatusOK, api.Return("ok", res))
 	}
-
 }
 
 // GetRegistrationsByPatient
@@ -441,7 +439,7 @@ func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 // @Param terminatedCause body string false "if registration is shutdown, a cause is required"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
-// @Router /registration/{RegistrationID} [PUT]
+// @Router /registration/{registrationID} [PUT]
 func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	db := utils.GetDB()
 	registrationID, err := strconv.ParseUint(c.QueryParam("registrationID"), 10, 64)
@@ -474,26 +472,52 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Summary create milestone
 // @Tags Process
 // @Description the doctor create milestone (type: array)
-// @Param registrationID body uint true "registration's ID"
+// @Param registration_id body uint true "registration's ID"
 // @Param activity body string true "milestone's activity"
 // @Produce json
 // @Success 204 {string} api.ReturnedData{}
 // @Router /milestone [POST]
 func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
+	type UpdateMileStoneSubmitJSON struct {
+		RegistrationID uint   `json:"registration_id"`
+		Activity       string `json:"activity"`
+	}
+
+	// extract submit data
+	var submit UpdateMileStoneSubmitJSON
+	if err := c.Bind(&submit); err != nil {
+		c.Logger().Debug("JSON format failed when trying to create a registration ...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+	}
+
 	db := utils.GetDB()
-	registrationID, err := strconv.ParseUint(c.QueryParam("registrationID"), 10, 64)
+
+	// get doctor
+	var doctor account.Doctor
+	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
 	}
-	milestone := MileStone{
-		RegistrationID: uint(registrationID),
-		Activity:       c.QueryParam("activity"),
+
+	var registration Registration
+	err = db.First(&registration, submit.RegistrationID).Error
+	if err != nil{
+		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+	} else if registration.Status == terminated{
+		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
 	}
-	result := db.Create(&milestone)
-	if result.Error != nil {
-		return c.JSON(http.StatusUnprocessableEntity, api.Return("error", result.Error))
+
+	mileStone := MileStone{
+		RegistrationID: submit.RegistrationID,
+		Activity:       submit.Activity,
 	}
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+
+	err = db.Create(&mileStone).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", CreateRegistrationFailed))
+	}
+
+	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // UpdateMileStoneByDoctor
@@ -507,20 +531,54 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{mileStoneID}/{DoctorID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
-	db := utils.GetDB()
-	var milestone MileStone
-	var err error
-	var checked bool
-
-	db.First(&milestone, c.QueryParam("mileStoneID"))
-	checked, err = strconv.ParseBool(c.Param("checked"))
-	if err != nil {
-		c.Logger().Error("UpdateMileStoneByDoctor failed due to", err)
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	type UpdateMileStoneSubmitJSON struct {
+		Activity string `json:"activity,omitempty"`
+		Checked  bool   `json:"checked"`
 	}
-	milestone.Checked = checked
-	milestone.Activity = c.QueryParam("activity")
+
+	db := utils.GetDB()
+
+	// get doctor
+	var doctor account.Doctor
+	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+	}
+
+	// get mileStone
+	var mileStone MileStone
+	err = db.First(&mileStone, c.Param("mileStoneID")).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneNotFound))
+	}
+	var registration Registration
+	err = db.First(&registration, mileStone.RegistrationID).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+	}
+
+	// check milestone authority
+	if registration.Status == terminated || registration.DoctorID != doctor.ID {
+		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
+	}
+
+	db.Delete(&mileStone)
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
+
+	//db := utils.GetDB()
+	//var milestone MileStone
+	//var err error
+	//var checked bool
+	//
+	//db.First(&milestone, c.QueryParam("mileStoneID"))
+	//checked, err = strconv.ParseBool(c.Param("checked"))
+	//if err != nil {
+	//	c.Logger().Error("UpdateMileStoneByDoctor failed due to", err)
+	//	return c.JSON(http.StatusBadRequest, api.Return("error", err))
+	//}
+	//milestone.Checked = checked
+	//milestone.Activity = c.QueryParam("activity")
+	//return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // DeleteMileStoneByDoctor
