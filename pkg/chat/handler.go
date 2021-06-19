@@ -3,10 +3,10 @@ package chat
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
-	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 
 	"github.com/gorilla/websocket"
@@ -33,8 +33,8 @@ const (
 type ServerMsgType int
 
 const (
-	MsgFromServer     ServerMsgType = 6
-	NewChat           ServerMsgType = 7
+	NewChat           ServerMsgType = 6
+	MsgFromServer     ServerMsgType = 7
 	SendMedicalRecord ServerMsgType = 8
 	SendPrescription  ServerMsgType = 9
 	SendQuestions     ServerMsgType = 10
@@ -54,8 +54,15 @@ type InfoClient struct {
 }
 
 var (
-	upgrader = websocket.Upgrader{}
-	Clients  = make(map[int]*Client)
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		// deal with cross field problem
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+	Clients = make(map[int]*Client)
 	//Clients  = make(map[*Client]bool)
 	Connections = make(map[int](map[int]bool))
 	//Connections = make(map[*Client][]*Client)
@@ -68,6 +75,13 @@ func AddClient(client *Client, c echo.Context) {
 	c.Logger().Debug("ChatServer$: New client connected")
 	Clients[client.ID] = client
 	fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
+
+	if len(Clients) == 2 {
+		StartNewChat(111, 222, c)
+	}
+	if len(Clients) == 3 {
+		StartNewChat(111, 333, c)
+	}
 }
 
 //Delete a client from pool
@@ -108,11 +122,14 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 	c.Logger().Debug("ChatServer$: NewPatientConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
+		fmt.Println(err)
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	patientID, err := strconv.Atoi(c.Param("patientID"))
 	if err != nil {
+		fmt.Println(err)
+
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -128,6 +145,8 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 
 	go newClient.Read(c)
 	go newClient.Send(c)
+	//fmt.Println("ChatServer$: Before Add clinet()")
+
 	AddClient(newClient, c)
 
 	return c.JSON(200, api.Return("ok", nil))
@@ -142,13 +161,17 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 // @Router /doctor/{doctorID}/chat [POST]
 func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 
+	fmt.Println("ChatServer$: NewDoctorConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
+		fmt.Println(err)
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	doctorID, err := strconv.Atoi(c.Param("doctorID"))
 	if err != nil {
+		fmt.Println(err)
+
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -163,7 +186,7 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	//c.Logger().Debug("ChatServer$: NewDoctorConn")
 	go newClient.Read(c)
 	go newClient.Send(c)
-
+	//fmt.Println("ChatServer$: Before Add clinet()")
 	AddClient(newClient, c)
 
 	return c.JSON(200, api.Return("ok", nil))
@@ -190,19 +213,41 @@ func (client *Client) FindReceiver(message *Message, c echo.Context) *Client {
 
 }
 
+func (client *Client) FindPatient(message *Message, c echo.Context) *Client {
+
+	var receiver *Client
+	receiverMap, ok := Connections[client.ID]
+	if !ok {
+		client.ReceiverInvalid(message, c)
+	}
+
+	if _, ok = receiverMap[message.PatientID]; !ok {
+		client.ReceiverInvalid(message, c)
+	}
+
+	receiver, ok = Clients[message.PatientID]
+	if !ok {
+		client.ReceiverNotConnected(message, c)
+	}
+
+	return receiver
+
+}
+
 func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
-	if _, ok := Clients[doctorID]; !ok {
-		ClientNotConnected(doctorID, Doctor, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
+	/*
+		if _, ok := Clients[doctorID]; !ok {
+			ClientNotConnected(doctorID, Doctor, c)
+			return c.JSON(400, api.Return("client not connected", nil))
+		}
 
-	if _, ok := Clients[patientID]; !ok {
-		ClientNotConnected(patientID, Patient, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
-
+		if _, ok := Clients[patientID]; !ok {
+			ClientNotConnected(patientID, Patient, c)
+			return c.JSON(400, api.Return("client not connected", nil))
+		}
+	*/
 	var doctor = Clients[doctorID]
 	var patient = Clients[patientID]
 
@@ -230,9 +275,11 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//send NewChat pkg to both doctor and patient
 	msg := Message{
-		Type:      int(NewChat),
-		PatientID: patient.ID,
-		DoctorID:  doctor.ID,
+		Type:        int(NewChat),
+		PatientID:   patient.ID,
+		DoctorID:    doctor.ID,
+		DoctorName:  "doctor A",  //doctor.Name,
+		PatientName: "patient B", //patient.Name,
 	}
 
 	msgBytes, err := json.Marshal(msg)
@@ -244,36 +291,6 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 	patient.MsgBuffer <- msgBytes
 
 	return c.JSON(200, api.Return("StartNewChat ok", nil))
-}
-
-func (h *ChatHandler) Hello(c echo.Context) error {
-	fmt.Println("blablabla")
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return err
-	}
-	defer ws.Close()
-
-	for {
-		// Write
-		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
-		if err != nil {
-			fmt.Println(err)
-			//log.Fatal(err)
-		}
-
-		// Read
-		_, msg, err := ws.ReadMessage()
-		if err != nil {
-			fmt.Println(err)
-			//log.Fatal(err)
-		}
-		fmt.Printf("%s\n", msg)
-	}
-}
-
-func (h *ChatHandler) Echo(c echo.Context) error {
-	return c.JSON(400, api.Return("Echo", nil))
 }
 
 // @Summary Get questions by department id
@@ -309,6 +326,7 @@ func (client *Client) Read(c echo.Context) {
 			c.Logger().Debug("ChatServer$: Read():" + err.Error())
 			break
 		}
+		fmt.Println("ChatServer$: " + string(message))
 		client.ProcessMessage(message, c)
 	}
 }
@@ -335,18 +353,19 @@ func (client *Client) Send(c echo.Context) {
 }
 
 type Message struct {
-	Type       int      `json:"type"`
-	Role       int      `json:"role,omitempty"`
-	Name       string   `json:"name,omitempty"`
-	SenderID   int      `json:"senderid,omitempty"`
-	ReceiverID int      `json:"receiverid,omitempty"`
-	PatientID  int      `json:"patientid,omitempty"`
-	DoctorID   int      `json:"doctorid,omitempty"`
-	Content    string   `json:"content,omitempty"`
-	Time       string   `json:"time,omitempty"`
-	CaseID     string   `json:"caseid,omitempty"`
-	URL        string   `json:"url,omitempty"`
-	Questions  []string `json:"questions,omitempty"`
+	Type        int    `json:"Type"`
+	Role        int    `json:"Role,omitempty"`
+	PatientName string `json:"PatientName,omitempty"`
+	DoctorName  string `json:"DoctorName,omitempty"`
+	SenderID    int    `json:"SenderID,omitempty"`
+	ReceiverID  int    `json:"ReceiverID,omitempty"`
+	PatientID   int    `json:"PatientID,omitempty"`
+	DoctorID    int    `json:"DoctorID,omitempty"`
+	Content     string `json:"Content,omitempty"`
+	Time        string `json:"Time,omitempty"`
+	CaseID      string `json:"CaseID,omitempty"`
+	URL         string `json:"Url,omitempty"`
+	Questions   string `json:"Questions,omitempty"`
 }
 
 //Process one message
@@ -380,8 +399,16 @@ func (client *Client) MsgFromClient(message *Message, c echo.Context) {
 		client.ReceiverNotConnected(message, c)
 		return
 	}
+	fmt.Printf("ChatServer:$ ReceiverID: %d\n", receiver.ID)
 
-	msgBytes, err := json.Marshal(message)
+	msg := Message{
+		Type:       int(MsgFromServer),
+		SenderID:   message.SenderID,
+		ReceiverID: message.ReceiverID,
+		Content:    message.Content,
+		Time:       message.Time,
+	}
+	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		c.Logger().Debug("ChatServer$: MsgFromClient: " + err.Error())
 		return
@@ -411,16 +438,22 @@ func (client *Client) CloseChat(message *Message, c echo.Context) {
 
 	//terminate the connection of receiver
 	//Bug here, receiver not deleted from connections[sender]
-	DeleteClient(receiver, c)
+	//DeleteClient(receiver, c)
 }
 
 //TODO no medicalrecord
 //Process requiremedicalrecord message
 func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
+	receiver := client.FindPatient(message, c)
+	if receiver == nil {
+		client.ReceiverNotConnected(message, c)
+		return
+	}
 	msg := Message{
 		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
-		URL:       "url", // get from database
+		DoctorID:  message.DoctorID,
+		URL:       "MEDICAL RECORD url", // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
@@ -428,18 +461,24 @@ func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 		return
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
+	receiver.MsgBuffer <- msgBytes
 }
 
 //Process requireprescription message
 func (client *Client) RequirePrescription(message *Message, c echo.Context) {
-	db := utils.GetDB()
-	var pres []cases.Prescription
-	db.Where("CaseID = ?", message.CaseID).Find(&pres)
-
+	//db := utils.GetDB()
+	//var pres []cases.Prescription
+	//db.Where("CaseID = ?", message.CaseID).Find(&pres)
+	receiver := client.FindPatient(message, c)
+	if receiver == nil {
+		client.ReceiverNotConnected(message, c)
+		return
+	}
 	msg := Message{
 		Type:      int(SendPrescription),
 		PatientID: message.PatientID,
-		URL:       "pres url", //TODO how to convert
+		DoctorID:  message.DoctorID,
+		URL:       "PRESCRIPTION url", //TODO how to convert
 	}
 
 	msgBytes, err := json.Marshal(msg)
@@ -448,6 +487,7 @@ func (client *Client) RequirePrescription(message *Message, c echo.Context) {
 		return
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
+	receiver.MsgBuffer <- msgBytes
 }
 
 //Process requirequestions message
@@ -455,7 +495,7 @@ func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	db := utils.GetDB()
 
 	var cate Category
-	db.Where("DepartmentID = ?", db.Select("DepartmentID").Where("DoctorID = ?")).Find(&cate)
+	db.Where("department_id = ?", message.DoctorID).Find(&cate)
 
 	msg := Message{
 		Type:      int(SendQuestions),
@@ -469,28 +509,6 @@ func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	}
 	client.MsgBuffer <- msgBytes //add the message to sender buffer
 }
-
-// //Process newpatient message
-// func (client *Client) NewPatient(message *Message) {
-// }
-
-// //Process msgfromserver message
-// func (client *Client) MsgFromServer(message *Message) {
-// }
-
-// //Process sendmedicalrecord message
-// func (client *Client) SendMedicalRecord(message *Message) {
-// }
-
-// //Process sendprescription message
-// func (client *Client) SendPrescription(message *Message) {
-// }
-
-// //Process sendquestions message
-// func (client *Client) SendQuestions(message *Message) {
-// }
-
-//Find the receiver of specific message
 
 //Deal with unknown message type
 func (client *Client) WrongMsgType(message *Message, c echo.Context) {
