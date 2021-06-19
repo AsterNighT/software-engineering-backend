@@ -478,13 +478,13 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Success 204 {string} api.ReturnedData{}
 // @Router /milestone [POST]
 func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
-	type UpdateMileStoneSubmitJSON struct {
+	type MileStoneSubmitJSON struct {
 		RegistrationID uint   `json:"registration_id"`
 		Activity       string `json:"activity"`
 	}
 
 	// extract submit data
-	var submit UpdateMileStoneSubmitJSON
+	var submit MileStoneSubmitJSON
 	if err := c.Bind(&submit); err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
@@ -501,9 +501,9 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 
 	var registration Registration
 	err = db.First(&registration, submit.RegistrationID).Error
-	if err != nil{
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
-	} else if registration.Status == terminated{
+	} else if registration.Status == terminated {
 		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
 	}
 
@@ -514,7 +514,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 
 	err = db.Create(&mileStone).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", CreateRegistrationFailed))
+		return c.JSON(http.StatusBadRequest, api.Return("error", CreateMileStoneFailed))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
@@ -529,11 +529,18 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Param checked body boolean true "milestone is checked or not"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone/{mileStoneID}/{DoctorID} [PUT]
+// @Router /milestone/{mileStoneID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
-	type UpdateMileStoneSubmitJSON struct {
-		Activity string `json:"activity,omitempty"`
+	type MileStoneSubmitJSON struct {
+		Activity string `json:"activity"`
 		Checked  bool   `json:"checked"`
+	}
+
+	// extract submit data
+	var submit MileStoneSubmitJSON
+	if err := c.Bind(&submit); err != nil {
+		c.Logger().Debug("JSON format failed when trying to create a registration ...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
 	}
 
 	db := utils.GetDB()
@@ -562,7 +569,10 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
 	}
 
-	db.Delete(&mileStone)
+	mileStone.Activity = submit.Activity
+	mileStone.Checked = submit.Checked
+
+	db.Save(&mileStone)
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 
 	//db := utils.GetDB()
