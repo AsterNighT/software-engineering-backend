@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"regexp"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -286,14 +287,13 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	}
 	c.Logger().Debug(authCode)
 
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); tmp.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
-	emailServerHost := "smtp.163.com"
-	emailServerPort := "25"
-	emailUser := "13606900243@163.com"
-	emailPasswd := "IAXPDCMBTUCJMXOC"
+	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code_expires", time.Now().Add(time.Duration(expireMin)*time.Minute)); tmp.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
+	}
 
 	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
 	to := body.Email
@@ -302,7 +302,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		"Subject: MediConnect Account Reset\n" +
 		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
 		"\n" +
-		"Your verification code is " + authCode + "\n")
+		"Your verification code is " + authCode + " (Only valid in " + strconv.Itoa(expireMin) + " minutes)\n")
 	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
 		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
 	}
@@ -340,10 +340,10 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
-	if account.AuthCode != body.AuthCode {
-		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
-	} else {
+	if account.AuthCode == body.AuthCode && time.Now().Before(account.AuthCodeExpires) {
 		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
+	} else {
+		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
 }
 
@@ -379,8 +379,9 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
-	if account.AuthCode != body.AuthCode {
-		return c.JSON(http.StatusBadRequest, api.Return("Wrong authcode", nil))
+
+	if account.AuthCode != body.AuthCode || time.Now().After(account.AuthCodeExpires) {
+		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
 
 	if len(body.NewPasswd) < accountPasswdLen {
