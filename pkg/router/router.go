@@ -102,7 +102,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.PUT("/registration/:RegistrationID", h.UpdateRegistrationStatus)
 			router.POST("/milestone", h.CreateMileStoneByDoctor)
 			router.PUT("/milestone/:MileStoneID/:DoctorID", h.UpdateMileStoneByDoctor)
-			router.DELETE("/milestone/:MileStoneID/:DoctorID", h.DeleteMileStoneByDoctor)
+			router.DELETE("/milestone/:mileStoneID", h.DeleteMileStoneByDoctor)
 		}
 	}
 	return nil

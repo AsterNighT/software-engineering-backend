@@ -241,7 +241,6 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", success))
 }
 
-
 func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
 		DepartmentID uint        `json:"department_id"`
@@ -375,7 +374,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		db.First(&doctorAccount, doctor.AccountID)
 
 		res = int(registration.ID)
-		
+
 		return nil
 	})
 
@@ -387,8 +386,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	}
 
 }
-
-
 
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
@@ -517,11 +514,11 @@ func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
 
 	// get milestones
 	var milestones []MileStone
-	db.Where("department_id = ?", registration.DepartmentID).Find(&milestones)
+	db.Where("registration_id = ?", registration.ID).Find(&milestones)
 	registrationJSON.MileStone = milestones
 
 	c.Logger().Debug("GetRegistrationByDoctor")
-	return c.JSON(http.StatusCreated, api.Return("ok", registrationJSON))
+	return c.JSON(http.StatusOK, api.Return("ok", registrationJSON))
 }
 
 // GetRegistrationByDoctor
@@ -547,7 +544,7 @@ func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 	var doctor account.Doctor
 	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
 	}
 
 	var registration Registration
@@ -577,14 +574,13 @@ func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
 		TerminatedCause: registration.TerminatedCause,
 	}
 
-
 	// get milestones
 	var milestones []MileStone
-	db.Where("department_id = ?", registration.DepartmentID).Find(&milestones)
+	db.Where("registration_id = ?", registration.ID).Find(&milestones)
 	registrationJSON.MileStone = milestones
 
 	c.Logger().Debug("GetRegistrationByDoctor")
-	return c.JSON(http.StatusCreated, api.Return("ok", registrationJSON))
+	return c.JSON(http.StatusOK, api.Return("ok", registrationJSON))
 }
 
 // UpdateRegistrationStatus
@@ -666,9 +662,7 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	var milestone MileStone
 	var err error
 	var checked bool
-	if DoctorAccessToMileStone(c) {
-		return c.JSON(http.StatusForbidden, api.Return("unauthorized", nil))
-	}
+
 	db.First(&milestone, c.QueryParam("mileStoneID"))
 	checked, err = strconv.ParseBool(c.Param("checked"))
 	if err != nil {
@@ -687,52 +681,34 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Param mileStoneID path uint true "milestone's ID"
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
-// @Router /milestone/{mileStoneID}/{DoctorID} [DELETE]
+// @Router /milestone/{mileStoneID} [DELETE]
 func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	db := utils.GetDB()
-	if DoctorAccessToMileStone(c) {
-		return c.JSON(http.StatusForbidden, api.Return("unauthorized", nil))
-	}
-	db.Delete(&MileStone{}, c.Param("mileStoneID"))
-	return c.JSON(http.StatusOK, api.Return("ok", nil))
-}
 
-func DoctorAccessToMileStone(c echo.Context) bool {
-	db := utils.GetDB()
+	// get doctor
+	var doctor account.Doctor
+	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+	}
+
+	// get mileStone
 	var mileStone MileStone
-	db.First(&mileStone, c.Param("mileStoneID"))
-	var registrations Registration
-	db.First(&registrations, mileStone.RegistrationID)
-	if StrToUInt(c.Param("DoctorID")) == registrations.DoctorID {
-		return true
+	err = db.First(&mileStone, c.Param("mileStoneID")).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneNotFound))
 	}
-	return false
-}
+	var registration Registration
+	err = db.First(&registration, mileStone.RegistrationID).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+	}
 
-func DoctorAccessToRegistration(c echo.Context) bool {
-	db := utils.GetDB()
-	var registrations Registration
-	db.First(&registrations, c.Param("registrationID"))
-	if StrToUInt(c.Param("DoctorID")) == registrations.DoctorID {
-		return true
+	// check milestone authority
+	if registration.Status == terminated || registration.DoctorID != doctor.ID {
+		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
 	}
-	return false
-}
 
-func PatientAccessToRegistration(c echo.Context) bool {
-	db := utils.GetDB()
-	var registrations Registration
-	db.First(&registrations, c.Param("registrationID"))
-	if StrToUInt(c.Param("PatientID")) == registrations.PatientID {
-		return true
-	}
-	return false
-}
-
-func StrToUInt(str string) uint {
-	i, e := strconv.Atoi(str)
-	if e != nil {
-		return 0
-	}
-	return uint(i)
+	db.Delete(&mileStone)
+	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }

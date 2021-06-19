@@ -40,7 +40,7 @@ type MileStone struct {
 	RegistrationID uint         `json:"-" swaggerignore:"true"`
 	Registration   Registration `json:"-" swaggerignore:"true"`
 	Activity       string       `json:"activity,omitempty" gorm:"default:''"`
-	Checked        bool         `json:"checked,omitempty" gorm:"default:false"`
+	Checked        bool         `json:"checked" gorm:"default:false"`
 }
 
 // DepartmentSchedule
@@ -80,17 +80,19 @@ const (
 type ProcessError string
 
 const (
-	InvalidSubmitFormat   	ProcessError = "invalid submit format"
-	DepartmentNotFound    	ProcessError = "department not found"
-	PatientNotFound       	ProcessError = "patient not found"
-	RegistrationNotFound  	ProcessError = "registration not found"
-	DoctorNotFound        	ProcessError = "doctor not found"
-	DuplicateRegistration 	ProcessError = "duplicate registration is not allowed"
-	InvalidSchedule       	ProcessError = "this schedule is invalid"
-	NotEnoughCapacity     	ProcessError = "not enough capacity"
+	InvalidSubmitFormat      ProcessError = "invalid submit format"
+	DepartmentNotFound       ProcessError = "department not found"
+	PatientNotFound          ProcessError = "patient not found"
+	RegistrationNotFound     ProcessError = "registration not found"
+	DoctorNotFound           ProcessError = "doctor not found"
+	MileStoneNotFound        ProcessError = "找不到该 MileStone"
+	MileStoneUnauthorized    ProcessError = "你无权操作该 MileStone"
+	DuplicateRegistration    ProcessError = "duplicate registration is not allowed"
+	InvalidSchedule          ProcessError = "this schedule is invalid"
+	NotEnoughCapacity        ProcessError = "not enough capacity"
 	CreateRegistrationFailed ProcessError = "create registration failed"
-	CannotAssignDoctor    	ProcessError = ""
-	InvalidRegistration   	ProcessError = ""
+	CannotAssignDoctor       ProcessError = ""
+	InvalidRegistration      ProcessError = ""
 )
 
 // DepartmentDetailJSON defines the return json to frontend
