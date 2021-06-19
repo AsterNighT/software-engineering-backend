@@ -76,12 +76,16 @@ func AddClient(client *Client, c echo.Context) {
 	Clients[client.ID] = client
 	fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
 
-	if len(Clients) == 2 {
-		StartNewChat(111, 222, c)
-	}
-	if len(Clients) == 3 {
-		StartNewChat(111, 333, c)
-	}
+	/*
+		for test
+
+		if len(Clients) == 2 {
+			StartNewChat(111, 222, c)
+		}
+		if len(Clients) == 3 {
+			StartNewChat(111, 333, c)
+		}
+	*/
 }
 
 //Delete a client from pool
@@ -122,14 +126,13 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 	c.Logger().Debug("ChatServer$: NewPatientConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		fmt.Println(err)
+		c.Logger().Debug(err)
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	patientID, err := strconv.Atoi(c.Param("patientID"))
 	if err != nil {
-		fmt.Println(err)
-
+		c.Logger().Debug(err)
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -138,14 +141,8 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
 	}
-
-	//defer DeleteClient(newClient)
-	//Add client to database
-	//c.Logger().Debug("ChatServer$: NewPatientConn")
-
 	go newClient.Read(c)
 	go newClient.Send(c)
-	//fmt.Println("ChatServer$: Before Add clinet()")
 
 	AddClient(newClient, c)
 
@@ -164,14 +161,13 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 	fmt.Println("ChatServer$: NewDoctorConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		fmt.Println(err)
+		c.Logger().Debug(err)
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	doctorID, err := strconv.Atoi(c.Param("doctorID"))
 	if err != nil {
-		fmt.Println(err)
-
+		c.Logger().Debug(err)
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -181,12 +177,9 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 		MsgBuffer: make(chan []byte),
 	}
 	//Add client to database
-	//defer DeleteClient(newClient)
-
-	//c.Logger().Debug("ChatServer$: NewDoctorConn")
 	go newClient.Read(c)
 	go newClient.Send(c)
-	//fmt.Println("ChatServer$: Before Add clinet()")
+
 	AddClient(newClient, c)
 
 	return c.JSON(200, api.Return("ok", nil))
@@ -237,17 +230,16 @@ func (client *Client) FindPatient(message *Message, c echo.Context) *Client {
 func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
-	/*
-		if _, ok := Clients[doctorID]; !ok {
-			ClientNotConnected(doctorID, Doctor, c)
-			return c.JSON(400, api.Return("client not connected", nil))
-		}
 
-		if _, ok := Clients[patientID]; !ok {
-			ClientNotConnected(patientID, Patient, c)
-			return c.JSON(400, api.Return("client not connected", nil))
-		}
-	*/
+	if _, ok := Clients[doctorID]; !ok {
+		ClientNotConnected(doctorID, Doctor, c)
+		return c.JSON(400, api.Return("client not connected", nil))
+	}
+	if _, ok := Clients[patientID]; !ok {
+		ClientNotConnected(patientID, Patient, c)
+		return c.JSON(400, api.Return("client not connected", nil))
+	}
+
 	var doctor = Clients[doctorID]
 	var patient = Clients[patientID]
 
@@ -433,12 +425,8 @@ func (client *Client) CloseChat(message *Message, c echo.Context) {
 		c.Logger().Debug("ChatServer$: CloseChat: " + err.Error())
 		return
 	}
-	//client.MsgBuffer <- msgBytes
-	receiver.MsgBuffer <- msgBytes
 
-	//terminate the connection of receiver
-	//Bug here, receiver not deleted from connections[sender]
-	//DeleteClient(receiver, c)
+	receiver.MsgBuffer <- msgBytes
 }
 
 //TODO no medicalrecord
