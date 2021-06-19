@@ -1,19 +1,19 @@
 package process
 
 import (
+	"math"
+	"net/http"
+	"strconv"
+
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	_ "github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"math"
-	"net/http"
-	"strconv"
 )
 
 type ProcessHandler struct{}
-
 
 // GetAllDepartments
 // @Summary get all departments
