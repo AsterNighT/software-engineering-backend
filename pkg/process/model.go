@@ -92,6 +92,8 @@ const (
 	CreateRegistrationFailed ProcessError = "挂号失败，请检查科室是否有余量或者时间冲突"
 	CreateMileStoneFailed    ProcessError = "创建 MileStone 失败"
 	CannotAssignDoctor       ProcessError = "无法为该挂号分配医生"
+	AccountNotFound          ProcessError = "找不到用户"
+	RegistrationUpdateFailed ProcessError = "挂号状态更新失败"
 )
 
 // DepartmentDetailJSON defines the return json to frontend

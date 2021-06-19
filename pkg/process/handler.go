@@ -3,11 +3,9 @@ package process
 import (
 	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
-	_ "github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -224,9 +222,8 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	if err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", CreateRegistrationFailed))
-	} else {
-		return c.JSON(http.StatusOK, api.Return("ok", res))
 	}
+	return c.JSON(http.StatusOK, api.Return("ok", res))
 }
 
 // GetRegistrations
@@ -380,31 +377,70 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{registrationID} [PUT]
 func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
+
+	type RegistrationSubmitJSON struct {
+		RegistrationStatus string `json:"status"`
+		TerminatedCause    string `json:"terminatedCause"`
+	}
+
+	// extract submit data
+	var submit RegistrationSubmitJSON
+	if err := c.Bind(&submit); err != nil {
+		c.Logger().Debug("JSON format failed when trying to create a registration ...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+	}
+
 	db := utils.GetDB()
-	registrationID, err := strconv.ParseUint(c.QueryParam("registrationID"), 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
-	}
 	// validation for status: select in frontend
-	status := RegistrationStatusEnum(c.QueryParam("status"))
-	terminatedCause := c.QueryParam("terminatedCause")
+	status := RegistrationStatusEnum(submit.RegistrationStatus)
+	terminatedCause := submit.TerminatedCause
 	var registration Registration
-	err = db.First(&registration, registrationID).Error
+	err := db.First(&registration, c.Param("registrationID")).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err))
 	}
+	currentStatus := registration.Status
 	registration.Status = status
-	if status == terminated {
-		if terminatedCause != "" {
-			registration.Status = status
-			registration.TerminatedCause = terminatedCause
-		} else {
-			return c.JSON(http.StatusBadRequest, api.Return("ok", "Missing terminated causes"))
-		}
-	} else {
-		registration.Status = status
+	var acc account.Account
+	err = db.Where("id = ?", c.Get("id").(uint)).First(&acc).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", AccountNotFound))
 	}
-	return c.JSON(http.StatusCreated, api.Return("ok", nil))
+	if currentStatus == committed {
+		if acc.Type == account.PatientType {
+			if status == terminated {
+				registration.Status = status
+				db.Save(&registration)
+				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+			}
+		}
+		if acc.Type == account.DoctorType {
+			if status == accepted {
+				registration.Status = status
+				db.Save(&registration)
+				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+			}
+			if status == terminated {
+				if terminatedCause != "" {
+					registration.Status = status
+					registration.TerminatedCause = terminatedCause
+					db.Save(&registration)
+					return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+				}
+				return c.JSON(http.StatusBadRequest, api.Return("failed", "Missing terminated causes"))
+			}
+		}
+	}
+	if currentStatus == accepted {
+		if acc.Type == "doctor" {
+			if status == terminated {
+				registration.Status = status
+				db.Save(&registration)
+				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+			}
+		}
+	}
+	return c.JSON(http.StatusBadRequest, api.Return("failed", RegistrationUpdateFailed))
 }
 
 // CreateMileStoneByDoctor
@@ -483,7 +519,6 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-
 	// get doctor
 	var doctor account.Doctor
 	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
@@ -513,6 +548,7 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 
 	db.Save(&mileStone)
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
+
 }
 
 // DeleteMileStoneByDoctor
