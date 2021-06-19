@@ -94,7 +94,7 @@ func RegisterRouters(app *echo.Echo) error {
 			var h process.ProcessHandler
 			router.GET("/departments", h.GetAllDepartments)
 			router.GET("/department/:departmentID", h.GetDepartmentByID)
-			router.POST("/registration", h.CreateRegistration)
+			router.POST("/registration", h.CreateRegistrationTX)
 			router.GET("/patient/registrations", h.GetRegistrationsByPatient)
 			router.GET("/doctor/registrations", h.GetRegistrationsByDoctor)
 			router.GET("/doctor/registration/:registrationID", h.GetRegistrationByDoctor)
