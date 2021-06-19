@@ -74,7 +74,6 @@ func RegisterRouters(app *echo.Echo) error {
 			var h cases.MedicineHandler
 			router.GET("/medicine", h.GetMedicines)
 		}
-
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
