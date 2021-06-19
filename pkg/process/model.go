@@ -7,13 +7,11 @@ import (
 )
 
 // Department
-//department table (e.g. orthopedics department, x-ray department)
+// department table (e.g. orthopedics department, x-ray department)
 type Department struct {
-	ID        uint                 `json:"id" gorm:"primaryKey"`
-	Name      string               `json:"name"`                   // name of this department
-	Detail    string               `json:"detail"`                 // detailed introduction of this department
-	Doctors   []account.Doctor     `json:"-" swaggerignore:"true"` // foreign key of all the doctors who belongs to this department
-	Schedules []DepartmentSchedule `json:"-" swaggerignore:"true"` // time schedule for a whole department
+	ID     uint   `json:"id" gorm:"primaryKey"`
+	Name   string `json:"name"`   // name of this department
+	Detail string `json:"detail"` // detailed introduction of this department
 }
 
 // Registration
@@ -48,13 +46,15 @@ type MileStone struct {
 // schedule table for a whole department
 // each object represents a minimal schedule duration
 type DepartmentSchedule struct {
-	ID           uint       `gorm:"primaryKey" swaggerignore:"true"`
-	DepartmentID uint       `swaggerignore:"true"`
-	Department   Department `swaggerignore:"true"`
-	Date         time.Time
-	HalfDay      HalfDayEnum // TODO: a validator for department, only half day is allowed
-	Capacity     int
-	Current      int // current number of registrations of this schedule duration
+	ID           uint        `json:"-" gorm:"primaryKey" swaggerignore:"true"`
+	DepartmentID uint        `json:"-" swaggerignore:"true"`
+	Department   Department  `json:"-" swaggerignore:"true"`
+	Year         int         `json:"year"`
+	Month        int         `json:"month"`
+	Day          int         `json:"day"`
+	HalfDay      HalfDayEnum `json:"halfday"` // TODO: a validator for department, only half day is allowed
+	Capacity     int         `json:"capacity"`
+	Current      int         `json:"current"` // current number of registrations of this schedule duration
 }
 
 // RegistrationStatusEnum

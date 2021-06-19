@@ -1,10 +1,11 @@
 package process
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	_ "github.com/AsterNighT/software-engineering-backend/pkg/cases"
@@ -37,19 +38,56 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Description return a department's details by its ID
 // @Param departmentID path uint true "department ID"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=Department}
+// @Success 200 {object} api.ReturnedData{data=DepartmentDetail}
 // @Router /department/{DepartmentID} [GET]
 func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 	db := utils.GetDB()
-	var department Department
+	var department Department                  // department basic information
+	var schedules []DepartmentSchedule         // schedules
+	var doctorsAll = make([]account.Doctor, 0) // doctor total information
+	var doctors = make([]string, 0)            // doctor's name
 
 	err := db.First(&department, c.Param("departmentID")).Error
 	if err != nil {
-		return c.JSON(http.StatusNoContent, api.Return("ok", department))
+		return c.JSON(http.StatusNotFound, api.Return("error", nil))
+	}
+	err = db.Where("department_id = ?", department.ID).Find(&schedules).Error
+	if err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("error", nil))
+	}
+	err = db.Where("department_id = ?", department.ID).Find(&doctorsAll).Error
+	if err != nil {
+		return c.JSON(http.StatusNotFound, api.Return("error", nil))
+	}
+	for _, doctor := range doctorsAll {
+		var a account.Account
+		err = db.First(&a, doctor.AccountID).Error
+		if err != nil {
+			return c.JSON(http.StatusNotFound, api.Return("error", nil))
+		}
+		doctors = append(doctors, a.LastName+a.FirstName)
+	}
+
+	// define the return json
+	type DepartmentDetail struct {
+		ID        uint                 `json:"id"`
+		Name      string               `json:"name"`
+		Detail    string               `json:"detail"`
+		Doctors   []string             `json:"doctors"`
+		Schedules []DepartmentSchedule `json:"schedules"`
+	}
+
+	// wrap the return data
+	returnDepartment := DepartmentDetail{
+		ID:        department.ID,
+		Name:      department.Name,
+		Detail:    department.Detail,
+		Doctors:   doctors,
+		Schedules: schedules,
 	}
 
 	c.Logger().Debug("GetDepartmentByID")
-	return c.JSON(http.StatusOK, api.Return("ok", department))
+	return c.JSON(http.StatusOK, api.Return("ok", returnDepartment))
 }
 
 // CreateRegistration
@@ -70,10 +108,13 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 		DepartmentID: uint(c.Get("departmentID").(int)),
 		Date:         time.Now(),
 	}
+
 	db := utils.GetDB()
 	if err := db.Create(registration).Error; err != nil {
 		c.Logger().Error("Registration insert failed!")
+		return c.JSON(http.StatusNotAcceptable, api.Return("error", nil))
 	}
+
 	c.Logger().Debug("CreateRegistration")
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
@@ -291,8 +332,7 @@ func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
-
-func DoctorAccessToMileStone(c echo.Context) bool{
+func DoctorAccessToMileStone(c echo.Context) bool {
 	db := utils.GetDB()
 	var mileStone MileStone
 	db.First(&mileStone, c.Param("mileStoneID"))
@@ -304,7 +344,7 @@ func DoctorAccessToMileStone(c echo.Context) bool{
 	return false
 }
 
-func DoctorAccessToRegistration(c echo.Context) bool{
+func DoctorAccessToRegistration(c echo.Context) bool {
 	db := utils.GetDB()
 	var registrations Registration
 	db.First(&registrations, c.Param("registrationID"))
@@ -314,7 +354,7 @@ func DoctorAccessToRegistration(c echo.Context) bool{
 	return false
 }
 
-func PatientAccessToRegistration(c echo.Context) bool{
+func PatientAccessToRegistration(c echo.Context) bool {
 	db := utils.GetDB()
 	var registrations Registration
 	db.First(&registrations, c.Param("registrationID"))
@@ -324,7 +364,6 @@ func PatientAccessToRegistration(c echo.Context) bool{
 	return false
 }
 
-
 func StrToUInt(str string) uint {
 	i, e := strconv.Atoi(str)
 	if e != nil {
@@ -332,4 +371,3 @@ func StrToUInt(str string) uint {
 	}
 	return uint(i)
 }
-
