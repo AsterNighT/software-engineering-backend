@@ -81,18 +81,17 @@ type ProcessError string
 
 const (
 	InvalidSubmitFormat      ProcessError = "参数格式错误"
-	DepartmentNotFound       ProcessError = "department not found"
-	PatientNotFound          ProcessError = "patient not found"
+	DepartmentNotFound       ProcessError = "无法找到该科室"
+	PatientNotFound          ProcessError = "无法找到该患者"
 	RegistrationNotFound     ProcessError = "找不到该挂号"
-	DoctorNotFound           ProcessError = "doctor not found"
+	DoctorNotFound           ProcessError = "无法找到该医生"
 	MileStoneNotFound        ProcessError = "找不到该 MileStone"
 	MileStoneUnauthorized    ProcessError = "你无权操作该 MileStone"
-	InvalidSchedule          ProcessError = "this schedule is invalid"
-	NotEnoughCapacity        ProcessError = "not enough capacity"
+	InvalidSchedule          ProcessError = "该时段不可用"
+	NotEnoughCapacity        ProcessError = "该时段已经没有足够的挂号余量"
 	CreateRegistrationFailed ProcessError = "挂号失败，请检查科室是否有余量或者时间冲突"
 	CreateMileStoneFailed    ProcessError = "创建 MileStone 失败"
-	CannotAssignDoctor       ProcessError = ""
-	InvalidRegistration      ProcessError = ""
+	CannotAssignDoctor       ProcessError = "无法为该挂号分配医生"
 )
 
 // DepartmentDetailJSON defines the return json to frontend

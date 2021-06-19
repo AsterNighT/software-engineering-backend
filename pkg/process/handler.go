@@ -159,7 +159,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 		// invalid schedule return and unlock
 		if err != nil || !validateSchedule(&schedule) {
-			c.Logger().Error(InvalidRegistration)
 			return err
 		} else if schedule.Current >= schedule.Capacity {
 			c.Logger().Error(NotEnoughCapacity)
@@ -200,7 +199,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		registration.DoctorID = doctors[minIndex].ID
 
 		if err := db.Create(&registration).Error; err != nil {
-			c.Logger().Error(InvalidRegistration)
 			return err
 		}
 
