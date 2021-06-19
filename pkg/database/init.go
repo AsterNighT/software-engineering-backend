@@ -12,7 +12,7 @@ import (
 )
 
 func InitDB() *gorm.DB {
-	dsn := "host=ecs.ziyuepan.tech user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	var db *gorm.DB
 	var err error
 
