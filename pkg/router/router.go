@@ -74,13 +74,13 @@ func RegisterRouters(app *echo.Echo) error {
 			var h cases.MedicineHandler
 			router.GET("/medicine", h.GetMedicines)
 		}
-		router = app.Group("/api")
+
 		{
 			// Use nested scopes and shadowing for subgroups
 			var h chat.ChatHandler
-			routerPatient := router.Group("/patient")
+			routerPatient := app.Group("/patient")
 			routerPatient.GET("/:patientID/chat", h.NewPatientConn)
-			routerDoctor := router.Group("/doctor")
+			routerDoctor := app.Group("/doctor")
 			routerDoctor.GET("/:doctorID/chat", h.NewDoctorConn)
 		}
 
