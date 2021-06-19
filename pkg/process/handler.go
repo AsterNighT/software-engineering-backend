@@ -82,11 +82,13 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Summary create registration
 // @Tags Process
 // @Description return registration state
-// @Param patientID body uint true "patient's ID"
-// @Param departmentID body uint true "department ID"
-// @Param registrationTime body string true "registration's time, basic format 'YYYY-MM-DD-<half-day>'"
+// @Param department_id body uint true "department ID"
+// @Param year body int true "Year"
+// @Param month body int true "Month"
+// @Param day body int true "Day"
+// @Param halfday body int true "HalfDay"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{}
+// @Success 200 {object} api.ReturnedData{data=RegistrationDetailJSON}
 // @Router /registration [POST]
 func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
@@ -212,17 +214,6 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSchedule))
 	}
 
-	type RegistrationSuccessJSON struct {
-		ID         uint        `json:"id"`
-		Department string      `json:"department"`
-		Doctor     string      `json:"doctor"`
-		Patient    string      `json:"patient"`
-		Year       int         `json:"year"`
-		Month      int         `json:"month"`
-		Day        int         `json:"day"`
-		HalfDay    HalfDayEnum `json:"halfday"`
-	}
-
 	// get name
 	var patientAccount account.Account
 	var doctor account.Doctor
@@ -231,7 +222,7 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 	db.First(&doctor, registration.DoctorID)
 	db.First(&doctorAccount, doctor.AccountID)
 
-	success := RegistrationSuccessJSON{
+	success := RegistrationDetailJSON{
 		ID:         registration.ID,
 		Department: department.Name,
 		Patient:    patientAccount.LastName + patientAccount.FirstName,
@@ -240,6 +231,7 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 		Month:      registration.Month,
 		Day:        registration.Day,
 		HalfDay:    registration.HalfDay,
+		Status:     registration.Status,
 	}
 
 	c.Logger().Debug("CreateRegistration")
@@ -247,38 +239,43 @@ func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", success))
 }
 
-// NOTE: we assume a doctor may help the patient commit registration
-
 // GetRegistrationsByPatient
 // @Summary get all registrations (patient view)
 // @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]Registration}
-// @Router /patient/registrations/{PatientID} [GET]
+// @Success 200 {object} api.ReturnedData{data=[]RegistrationDetailJSON}
+// @Router /patient/registrations [GET]
 func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 	db := utils.GetDB()
 	var registrations []Registration
-	db.Where("patient_id = ?", c.Param("PatientID")).Find(&registrations)
+
+	// get patient
+	var patient account.Patient
+	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+	}
+
+	db.Where("patient_id = ?", patient.ID).Find(&registrations)
+	var registrationJSONs = make([]RegistrationJSON, len(registrations))
+
 	for i := range registrations {
-		var doctor account.Doctor
-		db.First(&doctor, registrations[i].DoctorID)
-		var patient account.Patient
-		db.First(&patient, registrations[i].PatientID)
 		var department Department
 		db.First(&department, registrations[i].DepartmentID)
-		var mileStones []MileStone
-		db.Where("registration_id = ?", registrations[i].ID).Find(&mileStones)
-		registrations[i].Doctor = doctor
-		registrations[i].Patient = patient
-		registrations[i].Department = department
-		// registrations[i].MileStones = mileStones
+		registrationJSONs[i] = RegistrationJSON{
+			ID:         registrations[i].ID,
+			Department: department.Name,
+			Status:     registrations[i].Status,
+			Year:       registrations[i].Year,
+			Month:      registrations[i].Month,
+			Day:        registrations[i].Day,
+			HalfDay:    registrations[i].HalfDay,
+		}
 	}
 	c.Logger().Debug("GetRegistrationsByPatient")
-	return c.JSON(http.StatusOK, api.Return("ok", registrations))
+	return c.JSON(http.StatusOK, api.Return("ok", registrationJSONs))
 }
-
-// NOTE: use cookie for identification
 
 // GetRegistrationsByDoctor
 // @Summary get all registrations (doctor view)
@@ -286,27 +283,36 @@ func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Description display all registrations of a patient
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]Registration}
-// @Router /doctor/registrations/{DoctorID} [GET]
+// @Router /doctor/registrations [GET]
 func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 	db := utils.GetDB()
 	var registrations []Registration
-	db.Where("doctor_id = ?", c.Param("DoctorID")).Find(&registrations)
+
+	// get patient
+	var doctor account.Doctor
+	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+	}
+
+	db.Where("doctor_id = ?", doctor.ID).Find(&registrations)
+	var registrationJSONs = make([]RegistrationJSON, len(registrations))
+
 	for i := range registrations {
-		var doctor account.Doctor
-		db.First(&doctor, registrations[i].DoctorID)
-		var patient account.Patient
-		db.First(&patient, registrations[i].PatientID)
 		var department Department
 		db.First(&department, registrations[i].DepartmentID)
-		var mileStones []MileStone
-		db.Where("registration_id = ?", registrations[i].ID).Find(&mileStones)
-		registrations[i].Doctor = doctor
-		registrations[i].Patient = patient
-		registrations[i].Department = department
-		// registrations[i].MileStones = mileStones
+		registrationJSONs[i] = RegistrationJSON{
+			ID:         registrations[i].ID,
+			Department: department.Name,
+			Status:     registrations[i].Status,
+			Year:       registrations[i].Year,
+			Month:      registrations[i].Month,
+			Day:        registrations[i].Day,
+			HalfDay:    registrations[i].HalfDay,
+		}
 	}
-	c.Logger().Debug("GetRegistrationsByPatient")
-	return c.JSON(http.StatusOK, api.Return("ok", registrations))
+	c.Logger().Debug("GetRegistrationsByDoctor")
+	return c.JSON(http.StatusOK, api.Return("ok", registrationJSONs))
 }
 
 // NOTE: use cookie for identification

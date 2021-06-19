@@ -36,11 +36,11 @@ type Registration struct {
 // MileStone
 // milestone that represent a small step during the process
 type MileStone struct {
-	ID             uint         `gorm:"primaryKey" swaggerignore:"true"`
-	RegistrationID uint         `swaggerignore:"true"`
-	Registration   Registration `swaggerignore:"true"`
-	Activity       string       `gorm:"default:''"`
-	Checked        bool         `gorm:"default:false"`
+	ID             uint         `json:"id,omitempty" gorm:"primaryKey" swaggerignore:"true"`
+	RegistrationID uint         `json:"-" swaggerignore:"true"`
+	Registration   Registration `json:"-" swaggerignore:"true"`
+	Activity       string       `json:"activity,omitempty" gorm:"default:''"`
+	Checked        bool         `json:"checked,omitempty" gorm:"default:false"`
 }
 
 // DepartmentSchedule
@@ -83,6 +83,7 @@ const (
 	InvalidSubmitFormat   ProcessError = "invalid submit format"
 	DepartmentNotFound    ProcessError = "department not found"
 	PatientNotFound       ProcessError = "patient not found"
+	DoctorNotFound        ProcessError = "doctor not found"
 	DuplicateRegistration ProcessError = "duplicate registration is not allowed"
 	InvalidSchedule       ProcessError = "this schedule is invalid"
 	NotEnoughCapacity     ProcessError = "not enough capacity"
@@ -97,4 +98,27 @@ type DepartmentDetailJSON struct {
 	Detail    string               `json:"detail"`
 	Doctors   []string             `json:"doctors"`
 	Schedules []DepartmentSchedule `json:"schedules"`
+}
+
+type RegistrationJSON struct {
+	ID         uint                   `json:"id"`
+	Department string                 `json:"department"`
+	Status     RegistrationStatusEnum `json:"status"`
+	Year       int                    `json:"year"`
+	Month      int                    `json:"month"`
+	Day        int                    `json:"day"`
+	HalfDay    HalfDayEnum            `json:"halfday"`
+}
+
+type RegistrationDetailJSON struct {
+	ID         uint                   `json:"id"`
+	Department string                 `json:"department"`
+	Doctor     string                 `json:"doctor"`
+	Patient    string                 `json:"patient"`
+	Year       int                    `json:"year"`
+	Month      int                    `json:"month"`
+	Day        int                    `json:"day"`
+	HalfDay    HalfDayEnum            `json:"halfday"`
+	Status     RegistrationStatusEnum `json:"status"`
+	MileStone  MileStone              `json:"milestone,omitempty"`
 }
