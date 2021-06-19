@@ -83,6 +83,7 @@ const (
 	InvalidSubmitFormat   ProcessError = "invalid submit format"
 	DepartmentNotFound    ProcessError = "department not found"
 	PatientNotFound       ProcessError = "patient not found"
+	RegistrationNotFound  ProcessError = "registration not found"
 	DoctorNotFound        ProcessError = "doctor not found"
 	DuplicateRegistration ProcessError = "duplicate registration is not allowed"
 	InvalidSchedule       ProcessError = "this schedule is invalid"
@@ -111,14 +112,15 @@ type RegistrationJSON struct {
 }
 
 type RegistrationDetailJSON struct {
-	ID         uint                   `json:"id"`
-	Department string                 `json:"department"`
-	Doctor     string                 `json:"doctor"`
-	Patient    string                 `json:"patient"`
-	Year       int                    `json:"year"`
-	Month      int                    `json:"month"`
-	Day        int                    `json:"day"`
-	HalfDay    HalfDayEnum            `json:"halfday"`
-	Status     RegistrationStatusEnum `json:"status"`
-	MileStone  MileStone              `json:"milestone,omitempty"`
+	ID              uint                   `json:"id"`
+	Department      string                 `json:"department"`
+	Doctor          string                 `json:"doctor"`
+	Patient         string                 `json:"patient"`
+	Year            int                    `json:"year"`
+	Month           int                    `json:"month"`
+	Day             int                    `json:"day"`
+	HalfDay         HalfDayEnum            `json:"halfday"`
+	Status          RegistrationStatusEnum `json:"status"`
+	MileStone       []MileStone            `json:"milestone,omitempty"`
+	TerminatedCause string                 `json:"terminated_cause"`
 }
