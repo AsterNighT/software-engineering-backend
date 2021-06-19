@@ -1,19 +1,22 @@
 package process
 
 import (
+	"math"
 	"net/http"
 	"strconv"
-	"time"
-
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
+	"sync"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	_ "github.com/AsterNighT/software-engineering-backend/pkg/cases"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 )
 
 type ProcessHandler struct{}
+
+// prevent
+var registrationMutex sync.Mutex
 
 // GetAllDepartments
 // @Summary get all departments
@@ -38,47 +41,32 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Description return a department's details by its ID
 // @Param departmentID path uint true "department ID"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=DepartmentDetail}
+// @Success 200 {object} api.ReturnedData{data=DepartmentDetailJSON}
 // @Router /department/{DepartmentID} [GET]
 func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 	db := utils.GetDB()
 	var department Department                  // department basic information
 	var schedules []DepartmentSchedule         // schedules
 	var doctorsAll = make([]account.Doctor, 0) // doctor total information
-	var doctors = make([]string, 0)            // doctor's name
+	var doctors = make([]string, 0)            // doctor's name (show to frontend)
 
 	err := db.First(&department, c.Param("departmentID")).Error
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("error", nil))
+		return c.JSON(http.StatusNotFound, api.Return("error", DepartmentNotFound))
 	}
-	err = db.Where("department_id = ?", department.ID).Find(&schedules).Error
-	if err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("error", nil))
-	}
-	err = db.Where("department_id = ?", department.ID).Find(&doctorsAll).Error
-	if err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("error", nil))
-	}
+	db.Where("department_id = ?", department.ID).Find(&schedules)
+	db.Where("department_id = ?", department.ID).Find(&doctorsAll)
+
 	for _, doctor := range doctorsAll {
 		var a account.Account
 		err = db.First(&a, doctor.AccountID).Error
-		if err != nil {
-			return c.JSON(http.StatusNotFound, api.Return("error", nil))
+		if err == nil {
+			doctors = append(doctors, a.LastName+a.FirstName)
 		}
-		doctors = append(doctors, a.LastName+a.FirstName)
-	}
-
-	// define the return json
-	type DepartmentDetail struct {
-		ID        uint                 `json:"id"`
-		Name      string               `json:"name"`
-		Detail    string               `json:"detail"`
-		Doctors   []string             `json:"doctors"`
-		Schedules []DepartmentSchedule `json:"schedules"`
 	}
 
 	// wrap the return data
-	returnDepartment := DepartmentDetail{
+	returnDepartment := DepartmentDetailJSON{
 		ID:        department.ID,
 		Name:      department.Name,
 		Detail:    department.Detail,
@@ -101,22 +89,162 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration [POST]
 func (h *ProcessHandler) CreateRegistration(c echo.Context) error {
-	registration := Registration{
-		//TODO: need to allocate an doctor for patient by algorithm
-		DoctorID:     uint(c.Get("doctorID").(int)),
-		PatientID:    uint(c.Get("patientID").(int)),
-		DepartmentID: uint(c.Get("departmentID").(int)),
-		Date:         time.Now(),
+	type RegistrationSubmitJSON struct {
+		DepartmentID uint        `json:"department_id"`
+		Year         int         `json:"year"`
+		Month        int         `json:"month"`
+		Day          int         `json:"day"`
+		HalfDay      HalfDayEnum `json:"halfday" validate:"halfday"`
+	}
+
+	// extract submit data
+	var submit RegistrationSubmitJSON
+	if err := c.Bind(&submit); err != nil {
+		c.Logger().Debug("JSON format failed when trying to create a registration ...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+	}
+
+	// validate halfday enum
+	err := validate.Struct(submit)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
 	}
 
 	db := utils.GetDB()
-	if err := db.Create(registration).Error; err != nil {
+
+	// get department
+	var department Department
+	err = db.First(&department, submit.DepartmentID).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", DepartmentNotFound))
+	}
+
+	// get patient
+	var patient account.Patient
+	err = db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+	}
+
+	var possibleDuplicates []Registration
+
+	// check duplicate registration
+	if db.Where(&Registration{
+		DepartmentID: department.ID,
+		PatientID:    patient.ID,
+		Year:         submit.Year,
+		Month:        submit.Month,
+		Day:          submit.Day,
+		HalfDay:      submit.HalfDay,
+	}).Find(&possibleDuplicates).RowsAffected > 0 {
+		for i := range possibleDuplicates {
+			if possibleDuplicates[i].Status != terminated {
+				return c.JSON(http.StatusBadRequest, api.Return("error", DuplicateRegistration))
+			}
+		}
+	}
+
+	// use mutex to prevent conflict
+	registrationMutex.Lock()
+
+	// check schedule
+	var schedule DepartmentSchedule
+	err = db.Where(&DepartmentSchedule{
+		DepartmentID: department.ID,
+		Year:         submit.Year,
+		Month:        submit.Month,
+		Day:          submit.Day,
+		HalfDay:      submit.HalfDay,
+	}).First(&schedule).Error
+
+	// invalid schedule return and unlock
+	if err != nil || !validateSchedule(&schedule) {
+		registrationMutex.Unlock()
+		// registration on past days are not allowed
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSchedule))
+	} else if schedule.Current >= schedule.Capacity {
+		registrationMutex.Unlock()
+		return c.JSON(http.StatusBadRequest, api.Return("error", NotEnoughCapacity))
+	}
+
+	// assign the doctor with the minimal registrations
+	var doctors []account.Doctor
+	db.Where("department_id = ?", department.ID).Find(&doctors)
+	var doctorRegistrationCount = make([]int64, len(doctors))
+
+	registration := Registration{
+		DepartmentID: department.ID,
+		Year:         submit.Year,
+		Month:        submit.Month,
+		Day:          submit.Day,
+		HalfDay:      submit.HalfDay,
+	}
+
+	// find min count of registrations
+	minCount, minIndex := int64(math.MaxInt64), -1
+	for i := range doctors {
+		db.Model(&Registration{}).Where(&registration).Count(&doctorRegistrationCount[i])
+		if minCount > doctorRegistrationCount[i] {
+			minCount = doctorRegistrationCount[i]
+			minIndex = i
+		}
+	}
+
+	// cannot find a doctor
+	if minIndex == -1 {
+		registrationMutex.Unlock()
+		return c.JSON(http.StatusBadRequest, api.Return("error", CannotAssignDoctor))
+	}
+
+	// process schedule
+	registration.PatientID = patient.ID
+	registration.DoctorID = doctors[minIndex].ID
+
+	if err := db.Create(&registration).Error; err != nil {
 		c.Logger().Error("Registration insert failed!")
-		return c.JSON(http.StatusNotAcceptable, api.Return("error", nil))
+		registrationMutex.Unlock()
+		return c.JSON(http.StatusNotAcceptable, api.Return("error", InvalidRegistration))
+	}
+
+	schedule.Current = schedule.Current + 1
+	if err := db.Save(&schedule).Error; err != nil {
+		registrationMutex.Unlock()
+		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSchedule))
+	}
+
+	type RegistrationSuccessJSON struct {
+		ID         uint        `json:"id"`
+		Department string      `json:"department"`
+		Doctor     string      `json:"doctor"`
+		Patient    string      `json:"patient"`
+		Year       int         `json:"year"`
+		Month      int         `json:"month"`
+		Day        int         `json:"day"`
+		HalfDay    HalfDayEnum `json:"halfday"`
+	}
+
+	// get name
+	var patientAccount account.Account
+	var doctor account.Doctor
+	var doctorAccount account.Account
+	db.First(&patientAccount, registration.PatientID)
+	db.First(&doctor, registration.DoctorID)
+	db.First(&doctorAccount, doctor.AccountID)
+
+	success := RegistrationSuccessJSON{
+		ID:         registration.ID,
+		Department: department.Name,
+		Patient:    patientAccount.LastName + patientAccount.FirstName,
+		Doctor:     doctorAccount.LastName + doctorAccount.FirstName,
+		Year:       registration.Year,
+		Month:      registration.Month,
+		Day:        registration.Day,
+		HalfDay:    registration.HalfDay,
 	}
 
 	c.Logger().Debug("CreateRegistration")
-	return c.JSON(http.StatusOK, api.Return("ok", nil))
+	registrationMutex.Unlock()
+	return c.JSON(http.StatusOK, api.Return("ok", success))
 }
 
 // NOTE: we assume a doctor may help the patient commit registration
@@ -144,7 +272,7 @@ func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 		registrations[i].Doctor = doctor
 		registrations[i].Patient = patient
 		registrations[i].Department = department
-		registrations[i].MileStones = mileStones
+		// registrations[i].MileStones = mileStones
 	}
 	c.Logger().Debug("GetRegistrationsByPatient")
 	return c.JSON(http.StatusOK, api.Return("ok", registrations))
@@ -175,7 +303,7 @@ func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 		registrations[i].Doctor = doctor
 		registrations[i].Patient = patient
 		registrations[i].Department = department
-		registrations[i].MileStones = mileStones
+		// registrations[i].MileStones = mileStones
 	}
 	c.Logger().Debug("GetRegistrationsByPatient")
 	return c.JSON(http.StatusOK, api.Return("ok", registrations))
@@ -192,7 +320,7 @@ func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /patient/registration/{RegistrationID}/{PatientID} [GET]
 func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
-	//Must make sure RegistrationID in patientID's registration list.
+	// Must make sure RegistrationID in patientID's registration list.
 	if PatientAccessToRegistration(c) {
 		return c.JSON(http.StatusForbidden, api.Return("unauthorized", nil))
 	}
@@ -211,7 +339,7 @@ func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
 // @Success 200 {object} api.ReturnedData{data=Registration}
 // @Router /doctor/registration/{RegistrationID}/{DoctorID} [GET]
 func (h *ProcessHandler) GetRegistrationByDoctor(c echo.Context) error {
-	//Must make sure RegistrationID in patientID's registration list.
+	// Must make sure RegistrationID in patientID's registration list.
 	if DoctorAccessToRegistration(c) {
 		return c.JSON(http.StatusForbidden, api.Return("unauthorized", nil))
 	}

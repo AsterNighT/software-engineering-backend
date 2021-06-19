@@ -1,8 +1,6 @@
 package process
 
 import (
-	"time"
-
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 )
 
@@ -18,18 +16,21 @@ type Department struct {
 // registration table
 // every registration will eventually be terminated, and therefore needs a cause
 type Registration struct {
-	ID              uint            `gorm:"primaryKey"`
-	DoctorID        uint            `swaggerignore:"true"`
-	Doctor          account.Doctor  `swaggerignore:"true"`
-	PatientID       uint            `swaggerignore:"true"`
-	Patient         account.Patient `swaggerignore:"true"`
-	DepartmentID    uint            `swaggerignore:"true"`
-	Department      Department      `swaggerignore:"true"`
-	Date            time.Time
-	HalfDay         HalfDayEnum            // TODO: a validator for registration, only half day is allowed
+	ID           uint            `gorm:"primaryKey"`
+	DoctorID     uint            `swaggerignore:"true"`
+	Doctor       account.Doctor  `swaggerignore:"true"`
+	PatientID    uint            `swaggerignore:"true"`
+	Patient      account.Patient `swaggerignore:"true"`
+	DepartmentID uint            `swaggerignore:"true"`
+	Department   Department      `swaggerignore:"true"`
+
+	Year    int         `json:"year"`
+	Month   int         `json:"month"`
+	Day     int         `json:"day"`
+	HalfDay HalfDayEnum `json:"halfday"`
+
 	Status          RegistrationStatusEnum `gorm:"default:'committed'"`
 	TerminatedCause string                 `gorm:"default''"`
-	MileStones      []MileStone
 }
 
 // MileStone
@@ -52,7 +53,7 @@ type DepartmentSchedule struct {
 	Year         int         `json:"year"`
 	Month        int         `json:"month"`
 	Day          int         `json:"day"`
-	HalfDay      HalfDayEnum `json:"halfday"` // TODO: a validator for department, only half day is allowed
+	HalfDay      HalfDayEnum `json:"halfday"`
 	Capacity     int         `json:"capacity"`
 	Current      int         `json:"current"` // current number of registrations of this schedule duration
 }
@@ -74,5 +75,26 @@ type HalfDayEnum string
 const (
 	morning   HalfDayEnum = "morning"
 	afternoon HalfDayEnum = "afternoon"
-	whole     HalfDayEnum = "whole"
 )
+
+type ProcessError string
+
+const (
+	InvalidSubmitFormat   ProcessError = "invalid submit format"
+	DepartmentNotFound    ProcessError = "department not found"
+	PatientNotFound       ProcessError = "patient not found"
+	DuplicateRegistration ProcessError = "duplicate registration is not allowed"
+	InvalidSchedule       ProcessError = "this schedule is invalid"
+	NotEnoughCapacity     ProcessError = "not enough capacity"
+	CannotAssignDoctor    ProcessError = ""
+	InvalidRegistration   ProcessError = ""
+)
+
+// DepartmentDetailJSON defines the return json to frontend
+type DepartmentDetailJSON struct {
+	ID        uint                 `json:"id"`
+	Name      string               `json:"name"`
+	Detail    string               `json:"detail"`
+	Doctors   []string             `json:"doctors"`
+	Schedules []DepartmentSchedule `json:"schedules"`
+}
