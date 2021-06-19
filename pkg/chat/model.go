@@ -14,7 +14,7 @@ Questions
 According to the department of the doctor,we can find a set of questions.
 */
 type Category struct {
-	ID           uint `gorm:"primaryKey"`
-	DepartmentID uint
-	Questions    []string
+	ID           uint   `gorm:"primaryKey"`
+	DepartmentID uint   `validate:"required"`
+	Questions    string `validate:"required"`
 }
