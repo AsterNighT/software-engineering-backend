@@ -80,16 +80,17 @@ const (
 type ProcessError string
 
 const (
-	InvalidSubmitFormat   ProcessError = "invalid submit format"
-	DepartmentNotFound    ProcessError = "department not found"
-	PatientNotFound       ProcessError = "patient not found"
-	RegistrationNotFound  ProcessError = "registration not found"
-	DoctorNotFound        ProcessError = "doctor not found"
-	DuplicateRegistration ProcessError = "duplicate registration is not allowed"
-	InvalidSchedule       ProcessError = "this schedule is invalid"
-	NotEnoughCapacity     ProcessError = "not enough capacity"
-	CannotAssignDoctor    ProcessError = ""
-	InvalidRegistration   ProcessError = ""
+	InvalidSubmitFormat   	ProcessError = "invalid submit format"
+	DepartmentNotFound    	ProcessError = "department not found"
+	PatientNotFound       	ProcessError = "patient not found"
+	RegistrationNotFound  	ProcessError = "registration not found"
+	DoctorNotFound        	ProcessError = "doctor not found"
+	DuplicateRegistration 	ProcessError = "duplicate registration is not allowed"
+	InvalidSchedule       	ProcessError = "this schedule is invalid"
+	NotEnoughCapacity     	ProcessError = "not enough capacity"
+	CreateRegistrationFailed ProcessError = "create registration failed"
+	CannotAssignDoctor    	ProcessError = ""
+	InvalidRegistration   	ProcessError = ""
 )
 
 // DepartmentDetailJSON defines the return json to frontend
