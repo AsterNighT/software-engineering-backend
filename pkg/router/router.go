@@ -94,13 +94,11 @@ func RegisterRouters(app *echo.Echo) error {
 			var h process.ProcessHandler
 			router.GET("/departments", h.GetAllDepartments)
 			router.GET("/department/:departmentID", h.GetDepartmentByID)
-			router.POST("/registration", h.CreateRegistrationTX)
-			router.GET("/patient/registrations", h.GetRegistrationsByPatient)
-			router.GET("/doctor/registrations", h.GetRegistrationsByDoctor)
-			router.GET("/doctor/registration/:registrationID", h.GetRegistrationByDoctor)
-			router.GET("/patient/registration/:registrationID", h.GetRegistrationByPatient)
+			router.POST("/registrations", h.CreateRegistrationTX)
+			router.GET("/registrations", h.GetRegistrationsByDoctor)
+			router.GET("/registration/:registrationID", h.GetRegistrationByDoctor)
 			router.PUT("/registration/:RegistrationID", h.UpdateRegistrationStatus)
-			router.POST("/milestone", h.CreateMileStoneByDoctor)
+			router.POST("/milestones", h.CreateMileStoneByDoctor)
 			router.PUT("/milestone/:mileStoneID", h.UpdateMileStoneByDoctor)
 			router.DELETE("/milestone/:mileStoneID", h.DeleteMileStoneByDoctor)
 		}

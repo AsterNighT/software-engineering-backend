@@ -89,7 +89,7 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Param halfday body int true "HalfDay"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=int}
-// @Router /registration [POST]
+// @Router /registrations [POST]
 func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
 		DepartmentID uint        `json:"department_id"`
@@ -234,25 +234,46 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	}
 }
 
-// GetRegistrationsByPatient
-// @Summary get all registrations (patient view)
+// GetRegistrations
+// @Summary get all registrations
 // @Tags Process
-// @Description display all registrations of a patient
+// @Description display all registrations
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]RegistrationDetailJSON}
-// @Router /patient/registrations [GET]
-func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
+// @Success 200 {object} api.ReturnedData{data=[]RegistrationJSON}
+// @Router /registrations [GET]
+func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 	db := utils.GetDB()
 	var registrations []Registration
 
-	// get patient
-	var patient account.Patient
-	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
+	// get account type
+	var acc account.Account
+	err := db.First(&acc, c.Get("id")).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
-	db.Where("patient_id = ?", patient.ID).Find(&registrations)
+	if acc.Type == account.PatientType {
+		// get patient
+		var patient account.Patient
+		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+		}
+
+		db.Where("patient_id = ?", patient.ID).Find(&registrations)
+	} else if acc.Type == account.DoctorType {
+		// get doctor
+		var doctor account.Patient
+		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+		}
+
+		db.Where("doctor_id = ?", doctor.ID).Find(&registrations)
+	} else {
+		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
+	}
+
 	var registrationJSONs = make([]RegistrationJSON, len(registrations))
 
 	for i := range registrations {
@@ -277,7 +298,7 @@ func (h *ProcessHandler) GetRegistrationsByPatient(c echo.Context) error {
 // @Tags Process
 // @Description display all registrations of a patient
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]Registration}
+// @Success 200 {object} api.ReturnedData{data=[]RegistrationJSON}
 // @Router /doctor/registrations [GET]
 func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 	db := utils.GetDB()
@@ -310,8 +331,6 @@ func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", registrationJSONs))
 }
 
-// NOTE: use cookie for identification
-
 // GetRegistrationByPatient
 // @Summary get a registration by its ID (patient view)
 // @Tags Process
@@ -319,8 +338,8 @@ func (h *ProcessHandler) GetRegistrationsByDoctor(c echo.Context) error {
 // @Param registrationID path uint true "registration's ID"
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=Registration}
-// @Router /patient/registration/{registrationID} [GET]
-func (h *ProcessHandler) GetRegistrationByPatient(c echo.Context) error {
+// @Router /registration/{registrationID} [GET]
+func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 	db := utils.GetDB()
 
 	// get patient
@@ -476,7 +495,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Param activity body string true "milestone's activity"
 // @Produce json
 // @Success 204 {string} api.ReturnedData{}
-// @Router /milestone [POST]
+// @Router /milestones [POST]
 func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	type MileStoneSubmitJSON struct {
 		RegistrationID uint   `json:"registration_id"`
@@ -574,21 +593,6 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 
 	db.Save(&mileStone)
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
-
-	//db := utils.GetDB()
-	//var milestone MileStone
-	//var err error
-	//var checked bool
-	//
-	//db.First(&milestone, c.QueryParam("mileStoneID"))
-	//checked, err = strconv.ParseBool(c.Param("checked"))
-	//if err != nil {
-	//	c.Logger().Error("UpdateMileStoneByDoctor failed due to", err)
-	//	return c.JSON(http.StatusBadRequest, api.Return("error", err))
-	//}
-	//milestone.Checked = checked
-	//milestone.Activity = c.QueryParam("activity")
-	//return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
 // DeleteMileStoneByDoctor
