@@ -80,17 +80,18 @@ const (
 type ProcessError string
 
 const (
-	InvalidSubmitFormat      ProcessError = "invalid submit format"
+
+	InvalidSubmitFormat      ProcessError = "参数格式错误"
 	DepartmentNotFound       ProcessError = "department not found"
 	PatientNotFound          ProcessError = "patient not found"
-	RegistrationNotFound     ProcessError = "registration not found"
+	RegistrationNotFound     ProcessError = "找不到该挂号"
 	DoctorNotFound           ProcessError = "doctor not found"
 	MileStoneNotFound        ProcessError = "找不到该 MileStone"
 	MileStoneUnauthorized    ProcessError = "你无权操作该 MileStone"
-	DuplicateRegistration    ProcessError = "duplicate registration is not allowed"
 	InvalidSchedule          ProcessError = "this schedule is invalid"
 	NotEnoughCapacity        ProcessError = "not enough capacity"
-	CreateRegistrationFailed ProcessError = "create registration failed"
+	CreateRegistrationFailed ProcessError = "挂号失败，请检查科室是否有余量或者时间冲突"
+	CreateMileStoneFailed    ProcessError = "创建 MileStone 失败"
 	CannotAssignDoctor       ProcessError = ""
 	InvalidRegistration      ProcessError = ""
 	AccountNotFound			 ProcessError = "找不到用户"
