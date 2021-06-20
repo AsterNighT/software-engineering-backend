@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/smtp"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -117,9 +118,9 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	var account Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
-	} else {
-		return c.JSON(http.StatusOK, api.Return("E-Mail", echo.Map{"emailok": true}))
 	}
+	return c.JSON(http.StatusOK, api.Return("E-Mail", echo.Map{"emailok": true}))
+
 }
 
 // @Summary login using email and passwd
@@ -291,6 +292,12 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
+	emailServerHost := os.Getenv("EMAIL_SERVER_HOST")
+	emailServerPort := os.Getenv("EMAIL_SERVER_PORT")
+	emailUser := os.Getenv("EMAIL_USER")
+	emailPasswd := os.Getenv("EMAIL_PASSWD")
+	expireMin, _ := strconv.Atoi(os.Getenv("EMAIL_VALID_MIN"))
+
 	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code_expires", time.Now().Add(time.Duration(expireMin)*time.Minute)); tmp.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
@@ -342,9 +349,9 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 	}
 	if account.AuthCode == body.AuthCode && time.Now().Before(account.AuthCodeExpires) {
 		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
-	} else {
-		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
+	return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
+
 }
 
 // @Summary the interface of reset password
@@ -444,6 +451,8 @@ func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id": u.ID,
 	})
+
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
 	tokenString, err := token.SignedString(jwtKey)
 	return tokenString, err
 }
