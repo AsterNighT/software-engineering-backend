@@ -40,7 +40,10 @@ func InitDB() *gorm.DB {
 		&process.MileStone{},
 		&process.DepartmentSchedule{},
 	)
-
+	if err != nil {
+		panic(err)
+	}
+	err = process.InitProcessValidator()
 	if err != nil {
 		panic(err)
 	}
