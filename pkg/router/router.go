@@ -47,6 +47,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/checkemail", h.CheckEmail)
 			router.POST("/login", h.LoginAccount)
 			router.POST("/logout", h.LogoutAccount)
+			router.GET("/logout", h.LogoutAccount)
 			router.POST("/modifypasswd", h.ModifyPasswd)
 			router.POST("/sendemail", h.SendEmail)
 			router.POST("/checkauthcode", h.CheckAuthCode)
