@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -70,7 +71,6 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		LastName:  body.LastName,
 		Passwd:    body.Passwd,
 	}
-	account.Token, _ = account.GenerateToken()
 	account.HashPassword()
 
 	// if account.Type == "doctor" {
@@ -89,19 +89,15 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
 	}
 
-	cookie := http.Cookie{
-		Name:     "token",
-		Value:    account.Token,
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
-		Path:     "/api",
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+	token, err := account.GenerateToken()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err))
 	}
-	c.SetCookie(&cookie)
 
 	return c.JSON(http.StatusOK, api.Return("Created", echo.Map{
-		"account":      account,
-		"cookie_token": account.Token,
+		"account": account,
+		"token":   token,
 	}))
 }
 
@@ -173,46 +169,16 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
-	account.Token, _ = account.GenerateToken()
-	cookie := http.Cookie{
-		Name:     "token",
-		Value:    account.Token,
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
-		Path:     "/api",
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
-	}
-	c.SetCookie(&cookie)
+	token, err := account.GenerateToken()
 
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("token", account.Token); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Logged in", echo.Map{
-		"account":      account,
-		"cookie_token": account.Token,
+		"account": account,
+		"token":   token,
 	}))
-}
-
-// @Summary logout using cookie
-// @Description
-// @Tags Account
-// @Produce json
-// @Success 200 {string} api.ReturnedData{data=nil}
-// @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/logout [POST]
-func (h *AccountHandler) LogoutAccount(c echo.Context) error {
-	cookie, err := c.Cookie("token")
-	if err != nil || cookie.Value == "" {
-		return c.JSON(http.StatusBadRequest, api.Return("Not Logged in", nil))
-	}
-	cookie.Value = ""
-	cookie.Expires = time.Unix(0, 0)
-	// cookie.Expires = time.Now().Add(7 * 24 * time.Hour)
-	cookie.Path = "/api"
-	c.SetCookie(cookie)
-
-	return c.JSON(http.StatusOK, api.Return("Account logged out", nil))
 }
 
 // @Summary the interface of modifying password
@@ -421,7 +387,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
 }
 
-// @Summary the interface of getting current cookie's info
+// @Summary the interface of getting current token's info
 // @Description
 // @Tags Account
 // @Produce json
@@ -429,14 +395,11 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/getinfo [GET]
 func (h *AccountHandler) GetInfo(c echo.Context) error {
-	cookie, err := c.Cookie("token")
-	if err != nil || cookie.Value == "" {
-		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
-	}
+	id := c.Get("id")
 
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
-	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
+	if err := db.Where("id = ?", id).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
 	}
 	return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName}))
@@ -446,17 +409,13 @@ func (h *AccountHandler) GetInfo(c echo.Context) error {
  * @brief public method for getting current logged-in account's ID.
  */
 func getAccountID(c echo.Context) (uint, error) {
-	cookie, err := c.Cookie("token")
-	if err != nil || cookie.Value == "" {
-		return 0, fmt.Errorf("not logged in")
+	auth := c.Request().Header.Get("Authorization")
+	c.Logger().Debug("get token: ", auth)
+	id, err := ParseToken(auth)
+	if err != nil {
+		return 0, err
 	}
-
-	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
-	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
-		return 0, fmt.Errorf("not logged in")
-	}
-	return account.ID, nil
+	return id, nil
 }
 
 /**
@@ -466,7 +425,7 @@ func CheckAccountID(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := getAccountID(c)
 		if err != nil {
-			return c.JSON(403, api.Return("unauthorised", err))
+			return c.JSON(403, api.Return("fail to get id from token", err.Error()))
 		}
 		c.Set("id", id)
 		return next(c)
@@ -482,14 +441,30 @@ func (u *Account) HashPassword() {
 }
 
 /**
- * @brief private method for generateing cookie token
+ * @brief private method for generateing token
  */
 func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": u.Email,
+		"id":  u.ID,
+		"exp": time.Now().Add(7 * 24 * time.Hour),
 	})
 
 	jwtKey := []byte(os.Getenv("JWT_KEY"))
 	tokenString, err := token.SignedString(jwtKey)
 	return tokenString, err
+}
+
+func ParseToken(tokenString string) (uint, error) {
+	jwtString := strings.Split(tokenString, "Bearer ")[1]
+	token, err := jwt.ParseWithClaims(jwtString, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("JWT_KEY")), nil
+	})
+	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid {
+		fmt.Println(claims)
+		return uint((*claims)["id"].(float64)), nil
+	}
+	return 0, err
 }

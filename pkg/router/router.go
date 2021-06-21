@@ -46,12 +46,11 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/create", h.CreateAccount)
 			router.POST("/checkemail", h.CheckEmail)
 			router.POST("/login", h.LoginAccount)
-			router.POST("/logout", h.LogoutAccount)
 			router.POST("/modifypasswd", h.ModifyPasswd)
 			router.POST("/sendemail", h.SendEmail)
 			router.POST("/checkauthcode", h.CheckAuthCode)
 			router.POST("/resetpasswd", h.ResetPasswd)
-			router.GET("/getinfo", h.GetInfo)
+			router.GET("/getinfo", h.GetInfo, account.CheckAccountID)
 		}
 		router = app.Group("/api")
 		router.Use(account.CheckAccountID)
