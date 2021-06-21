@@ -62,6 +62,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/:patientID/case", h.NewCase)
 			router.GET("/:patientID/cases", h.GetCasesByPatientID)
 			router.GET("/:patientID/case/:caseID", h.GetPreviousCases)
+			router.GET("/:patientID/cases/:caseID", h.GetCaseByCaseID)
 			router.PUT("/:patientID/case/:caseID", h.UpdateCase)
 			router.DELETE("/:patientID/case/:caseID", h.DeleteCaseByCaseID)
 			router.GET("/:patientID/case/:caseID/prescription", h.GetPrescriptionByCaseID)
