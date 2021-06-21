@@ -71,8 +71,20 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		Passwd:    body.Passwd,
 	}
 	account.Token, _ = account.GenerateToken()
-
 	account.HashPassword()
+
+	// if account.Type == "doctor" {
+	// 	doctor := Doctor{AccountID: account.ID}
+	// 	if result := db.Create(&doctor); result.Error != nil {
+	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	// 	}
+	// } else if account.Type == "patient" {
+	// 	patient := Patient{AccountID: account.ID}
+	// 	if result := db.Create(&patient); result.Error != nil {
+	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	// 	}
+	// }
+
 	if result := db.Create(&account); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
 	}
@@ -403,6 +415,27 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
+}
+
+// @Summary the interface of getting current cookie's info
+// @Description
+// @Tags Account
+// @Produce json
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName}}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/getinfo [GET]
+func (h *AccountHandler) GetInfo(c echo.Context) error {
+	cookie, err := c.Cookie("token")
+	if err != nil || cookie.Value == "" {
+		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
+	}
+
+	db, _ := c.Get("db").(*gorm.DB)
+	var account Account
+	if err := db.Where("token = ?", cookie.Value).First(&account).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
+	}
+	return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName}))
 }
 
 /**

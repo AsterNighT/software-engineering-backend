@@ -286,7 +286,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 }
 
 // GetRegistrationByID
-// @Summary get a registration by its ID 
+// @Summary get a registration by its ID
 // @Tags Process
 // @Description return a registration details by its ID
 // @Param registrationID path uint true "registration's ID"

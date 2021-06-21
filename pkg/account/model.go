@@ -27,7 +27,7 @@ const (
 )
 
 type Doctor struct {
-	ID           uint `gorm:"primarykey"`
+	ID           uint `gorm:"primarykey;autoIncrement;"`
 	DepartmentID uint
 
 	AccountID uint
@@ -38,7 +38,7 @@ type Doctor struct {
 }
 
 type Patient struct {
-	ID uint `gorm:"primarykey"`
+	ID uint `gorm:"primarykey;autoIncrement;"`
 
 	AccountID uint
 	CaseID    uint
