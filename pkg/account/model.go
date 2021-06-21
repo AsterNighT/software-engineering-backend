@@ -18,7 +18,7 @@ type Account struct {
 	AuthCodeExpires time.Time
 }
 
-type AcountType string
+type AcountType string // Type of account
 
 const (
 	PatientType AcountType = "patient"
@@ -27,7 +27,7 @@ const (
 )
 
 type Doctor struct {
-	ID           uint `gorm:"primarykey"`
+	ID           uint `gorm:"primarykey;autoIncrement;"`
 	DepartmentID uint
 
 	AccountID uint
@@ -38,7 +38,7 @@ type Doctor struct {
 }
 
 type Patient struct {
-	ID uint `gorm:"primarykey"`
+	ID uint `gorm:"primarykey;autoIncrement;"`
 
 	AccountID uint
 	CaseID    uint
@@ -47,14 +47,3 @@ type Patient struct {
 	// Cases   []cases.Case `gorm:"foreignkey:ID"`
 	// Chats   []chat.Chat  `gorm:"foreignkey:ID"`
 }
-
-var (
-	jwtKey = []byte("SOFTWAREENGINEERINGBACKEND") // For test only
-
-	emailServerHost = "smtp.163.com"
-	emailServerPort = "25"
-	emailUser       = "13606900243@163.com"
-	emailPasswd     = "IAXPDCMBTUCJMXOC"
-
-	expireMin = 10
-)
