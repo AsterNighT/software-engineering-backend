@@ -449,7 +449,7 @@ func (u *Account) HashPassword() {
  */
 func (u *Account) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id": u.ID,
+		"email": u.Email,
 	})
 
 	jwtKey := []byte(os.Getenv("JWT_KEY"))
