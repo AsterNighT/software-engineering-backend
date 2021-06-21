@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -56,6 +57,30 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 
 	c.Logger().Debug("GetAllCases")
 	return c.JSON(200, api.Return("ok", cases))
+}
+
+// @Summary Get case by caseID
+// @Description
+// @Tags Case
+// @Produce json
+// @Param patientID path uint true "patient ID"
+// @Param caseID path uint true "case ID"
+// @Success 200 {object} api.ReturnedData{data=Case}
+// @Router /patient/{patientID}/cases/{caseID} [GET]
+func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
+
+	var patID int
+	patID, _ = strconv.Atoi(c.Param("patientID"))
+	if !FromPatient(c, uint(patID)) {
+		return c.JSON(403, api.Return("unauthorized", nil))
+	}
+
+	db := utils.GetDB()
+	var case1 Case
+	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").First(&case1, c.Param("caseID"))
+
+	c.Logger().Debug("GetCasebyCaseID")
+	return c.JSON(200, api.Return("ok", case1))
 }
 
 // @Summary Get the last case
@@ -143,6 +168,13 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("error", err))
 	}
+	var acc1, acc2 account.Account
+	db.First(&acc1, cas.DoctorID)
+	db.First(&acc2, cas.PatientID)
+	cas.DoctorName = acc1.LastName + " " + acc1.FirstName
+	cas.PatientName = acc2.LastName + " " + acc2.FirstName
+	cas.Age = 18
+	cas.Gender = "男"
 	cas.Date = time.Now()
 	result := db.Create(&cas)
 	if result.Error != nil {
