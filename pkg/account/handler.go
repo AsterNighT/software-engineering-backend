@@ -412,6 +412,8 @@ func getAccountID(c echo.Context) (uint, error) {
 	auth := c.Request().Header.Get("Authorization")
 	if auth == "" {
 		auth = c.QueryParam("token")
+	} else {
+		auth = strings.Split(auth, "Bearer ")[1]
 	}
 	c.Logger().Debug("get token: ", auth)
 	id, err := ParseToken(auth)
@@ -458,8 +460,7 @@ func (u *Account) GenerateToken() (string, error) {
 }
 
 func ParseToken(tokenString string) (uint, error) {
-	jwtString := strings.Split(tokenString, "Bearer ")[1]
-	token, err := jwt.ParseWithClaims(jwtString, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
