@@ -8,6 +8,10 @@ type Case struct {
 	ID             uint `gorm:"primaryKey"` // Every object should have ID
 	PatientID      uint // A has many relationship should be on this
 	DoctorID       uint
+	PatientName    string
+	DoctorName     string
+	Age            uint
+	Gender         string
 	Department     string `validate:"required"`
 	Complaint      string `validate:"required"` // Use urls to locate pictures
 	Diagnosis      string `validate:"required"`
