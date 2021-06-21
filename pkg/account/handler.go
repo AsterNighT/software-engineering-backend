@@ -95,6 +95,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		Path:     "/api",
 		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 	c.SetCookie(&cookie)
 
@@ -179,6 +180,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		Path:     "/api",
 		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	}
 	c.SetCookie(&cookie)
 
