@@ -90,10 +90,11 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 
 	cookie := http.Cookie{
-		Name:    "token",
-		Value:   account.Token,
-		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api",
+		Name:     "token",
+		Value:    account.Token,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		Path:     "/api",
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(&cookie)
 
@@ -173,10 +174,11 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 
 	account.Token, _ = account.GenerateToken()
 	cookie := http.Cookie{
-		Name:    "token",
-		Value:   account.Token,
-		Expires: time.Now().Add(7 * 24 * time.Hour),
-		Path:    "/api",
+		Name:     "token",
+		Value:    account.Token,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		Path:     "/api",
+		SameSite: http.SameSiteNoneMode,
 	}
 	c.SetCookie(&cookie)
 
