@@ -410,6 +410,9 @@ func (h *AccountHandler) GetInfo(c echo.Context) error {
  */
 func getAccountID(c echo.Context) (uint, error) {
 	auth := c.Request().Header.Get("Authorization")
+	if auth == "" {
+		auth = c.QueryParam("token")
+	}
 	c.Logger().Debug("get token: ", auth)
 	id, err := ParseToken(auth)
 	if err != nil {
