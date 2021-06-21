@@ -27,6 +27,7 @@ func main() {
 
 	// create echo instance
 	app := echo.New()
+	app.Debug = true
 	app.Validator = &utils.CustomValidator{Validator: validator.New()}
 	app.Use(middleware.Logger())
 	app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
