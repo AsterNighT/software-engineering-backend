@@ -31,7 +31,7 @@ type MedicineHandler struct {
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
 
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
@@ -72,7 +72,7 @@ func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 	var patID int
 	patID, _ = strconv.Atoi(c.Param("patientID"))
 	if !FromPatient(c, uint(patID)) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this case", nil))
 	}
 
 	db := utils.GetDB()
@@ -95,7 +95,7 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 	var patID int
 	patID, _ = strconv.Atoi(c.Param("patientID"))
 	if !FromPatient(c, uint(patID)) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this case", nil))
 	}
 
 	db := utils.GetDB()
@@ -124,7 +124,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 	var patID int
 	patID, _ = strconv.Atoi(c.Param("patientID"))
 	if !FromPatient(c, uint(patID)) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this case", nil))
 	}
 
 	db := utils.GetDB()
@@ -159,14 +159,14 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 func (h *CaseHandler) NewCase(c echo.Context) error {
 
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
 	var cas Case
 	err := utils.ExtractDataWithValidating(c, &cas)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(400, api.Return("error", err.Error()))
 	}
 	var acc1, acc2 account.Account
 	db.First(&acc1, cas.DoctorID)
@@ -194,7 +194,7 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
@@ -216,7 +216,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	var cases []Case
 	db.First(&case1, c.Param("caseID"))
 	if !FromPatient(c, case1.PatientID) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this case", nil))
 	}
 	for case1.PreviousCaseID != nil {
 		case1.ID = *case1.PreviousCaseID
@@ -236,14 +236,14 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
 	var cas Case
 	err := utils.ExtractDataWithValidating(c, &cas)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(400, api.Return("error", err.Error()))
 	}
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Model(&cas).Updates(cas)
 	if result.Error != nil {
@@ -265,12 +265,12 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	var pre Prescription
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(400, api.Return("error", err.Error()))
 	}
 	var oldCase Case
 	db.First(&oldCase, pre.CaseID)
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 	result := db.Create(&pre)
 	if result.Error != nil {
@@ -290,7 +290,7 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
@@ -309,14 +309,14 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 
 	if !FromDoctor(c) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
 	var pre Prescription
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err))
+		return c.JSON(400, api.Return("error", err.Error()))
 	}
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
@@ -340,7 +340,7 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	var oldCase Case
 	db.First(&oldCase, pre.CaseID)
 	if !FromPatient(c, oldCase.PatientID) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this prescription", nil))
 	}
 	// var jsonStu []byte
 	// jsonStu, _ = json.Marshal(pre)
@@ -363,7 +363,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	var oldCase Case
 	db.First(&oldCase, c.Param("caseID"))
 	if !FromPatient(c, oldCase.PatientID) {
-		return c.JSON(403, api.Return("unauthorized", nil))
+		return c.JSON(403, api.Return("you cannot access this prescription", nil))
 	}
 	db.Where("case_id = ?", c.Param("caseID")).Preload("Guidelines").Preload("Guidelines.Medicine").Find(&pres)
 	c.Logger().Debug("GetPrescriptionByCaseID")

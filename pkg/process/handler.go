@@ -396,7 +396,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	var registration Registration
 	err := db.First(&registration, c.Param("registrationID")).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 	currentStatus := registration.Status
 	registration.Status = status

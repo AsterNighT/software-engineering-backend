@@ -46,7 +46,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 
 	var body RequestBody
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
@@ -92,7 +92,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	token, err := account.GenerateToken()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err))
+		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err.Error()))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Created", echo.Map{
@@ -117,7 +117,7 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -150,7 +150,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -172,7 +172,7 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	token, err := account.GenerateToken()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err))
+		return c.JSON(http.StatusInternalServerError, api.Return("fail to generete token", err.Error()))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Logged in", echo.Map{
@@ -199,7 +199,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -245,7 +245,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -316,7 +316,7 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
@@ -355,7 +355,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	var body RequestBody
 
 	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
