@@ -1,17 +1,46 @@
 package process
 
 import (
-	"math"
-	"net/http"
-
+	"fmt"
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
+	//"github.com/deckarep/golang-set"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"math"
+	"net/http"
 )
 
 type ProcessHandler struct{}
+
+
+func (h *ProcessHandler) Search(c echo.Context) error {
+	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key=" + KevinKey + "&title=") + c.Param("KeyWord"))
+	if err != nil{
+		c.Logger().Debug("search failed...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", SearchFailed))
+	}
+	defer response.Body.Close()//在回复后必须关闭回复的主体
+
+	resMap := Transformation(response)
+	if v, ok := resMap["result"]; ok {
+		list := v.([]interface{})
+		for _, v := range list {
+			nodeMap := v.(map[string]interface{})
+			if verStr, ok := nodeMap["jzks"]; ok {
+				fmt.Println(verStr)
+			}
+		}
+	}
+
+	//db := utils.GetDB()
+	//var departments []Department
+	//db.Where("department = ?", ).Find(&departments)
+	//return c.JSON(http.StatusOK, api.Return("ok", departments))
+	return nil
+}
+
 
 // GetAllDepartments
 // @Summary get all departments
@@ -223,6 +252,8 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", CreateRegistrationFailed))
 	}
+
+
 	return c.JSON(http.StatusOK, api.Return("ok", res))
 }
 

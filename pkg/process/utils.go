@@ -1,6 +1,10 @@
 package process
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -35,3 +39,20 @@ func validateSchedule(schedule *DepartmentSchedule) bool {
 
 	return true
 }
+
+// Transformation json解析
+func Transformation(response *http.Response) map[string]interface{}{
+	var result map[string]interface{}
+	body, err := ioutil.ReadAll(response.Body)
+	if err == nil {
+		json.Unmarshal([]byte(string(body)), &result)
+	}
+	return result
+}
+
+// StrTransformation 汉字转译
+func StrTransformation(str1 string) string {
+	str2 := url.QueryEscape(str1)
+	return str2
+}
+

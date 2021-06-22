@@ -94,6 +94,13 @@ const (
 	CannotAssignDoctor       ProcessError = "无法为该挂号分配医生"
 	AccountNotFound          ProcessError = "找不到用户"
 	RegistrationUpdateFailed ProcessError = "挂号状态更新失败"
+	SearchFailed		     ProcessError = "查询失败"
+)
+
+type SearchKey string
+const (
+	KevinKey	SearchKey = "AO6VqIdnT4z+h5mO9Ig3QmvGMwTgsJeZ/pxz7Pw"
+	AlphaKey	SearchKey = "ALnHr9ZvSN7+hpON9YowQ27DOATgsJeZ/pxz7Pw"
 )
 
 // DepartmentDetailJSON defines the return json to frontend
