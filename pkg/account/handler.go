@@ -252,16 +252,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
 
-	// Check old passwd
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
-	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
-	}
-
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
-	}
 
 	authCode := ""
 	for i := 0; i < 6; i++ {
@@ -270,7 +261,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	}
 	c.Logger().Debug(authCode)
 
-	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); tmp.Error != nil {
+	if tmp := db.Model(&Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
@@ -280,11 +271,16 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	emailPasswd := os.Getenv("EMAIL_PASSWD")
 	expireMin, _ := strconv.Atoi(os.Getenv("EMAIL_VALID_MIN"))
 
-	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code_expires", time.Now().Add(time.Duration(expireMin)*time.Minute)); tmp.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
+	auth := Auth{
+		Email:           body.Email,
+		AuthCode:        authCode,
+		AuthCodeExpires: time.Now().Add(time.Duration(expireMin) * time.Minute),
+	}
+	if result := db.Create(&auth); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
-	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
+	emailAuth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
 	to := body.Email
 	msg := []byte("From: \"MediConnect\" <noreply@mediconnect.com>\n" +
 		"To: " + to + "\n" +
@@ -292,7 +288,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
 		"\n" +
 		"Your verification code is " + authCode + " (Only valid in " + strconv.Itoa(expireMin) + " minutes)\n")
-	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
+	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, emailAuth, emailUser, []string{to}, msg); err != nil {
 		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
 	}
 
@@ -325,11 +321,11 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 
 	// Check authcode
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
-	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+	var auth Auth
+	if err := db.Where("email = ?", body.Email).First(&auth).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
-	if account.AuthCode == body.AuthCode && time.Now().Before(account.AuthCodeExpires) {
+	if auth.AuthCode == body.AuthCode && time.Now().Before(auth.AuthCodeExpires) {
 		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
 	}
 	return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
@@ -365,11 +361,15 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	// Check authcode
 	db, _ := c.Get("db").(*gorm.DB)
 	var account Account
+	var auth Auth
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
+	if err := db.Where("email = ?", body.Email).First(&auth).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
 
-	if account.AuthCode != body.AuthCode || time.Now().After(account.AuthCodeExpires) {
+	if auth.AuthCode != body.AuthCode || time.Now().After(auth.AuthCodeExpires) {
 		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
 
