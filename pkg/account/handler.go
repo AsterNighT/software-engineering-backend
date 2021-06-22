@@ -76,17 +76,17 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	// if account.Type == "doctor" {
 	// 	doctor := Doctor{AccountID: account.ID}
 	// 	if result := db.Create(&doctor); result.Error != nil {
-	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	// 	}
 	// } else if account.Type == "patient" {
 	// 	patient := Patient{AccountID: account.ID}
 	// 	if result := db.Create(&patient); result.Error != nil {
-	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	// 	}
 	// }
 
 	if result := db.Create(&account); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
 	token, err := account.GenerateToken()
@@ -224,7 +224,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 	account.HashPassword()
 
 	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))
@@ -260,7 +260,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	}
 
 	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
 	authCode := ""
@@ -381,7 +381,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 	account.HashPassword()
 
 	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error))
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully modified", nil))

@@ -178,7 +178,7 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 	cas.Date = time.Now()
 	result := db.Create(&cas)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+		return c.JSON(400, api.Return("error", result.Error.Error()))
 	}
 	c.Logger().Debug("NewCase")
 	return c.JSON(200, api.Return("ok", cas.ID))
@@ -247,7 +247,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	}
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Model(&cas).Updates(cas)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+		return c.JSON(400, api.Return("error", result.Error.Error()))
 	}
 	c.Logger().Debug("UpdateCase")
 	return c.JSON(200, api.Return("ok", nil))
@@ -274,7 +274,7 @@ func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	}
 	result := db.Create(&pre)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+		return c.JSON(400, api.Return("error", result.Error.Error()))
 	}
 	c.Logger().Debug("NewPrescription")
 	return c.JSON(200, api.Return("ok", pre.ID))
@@ -320,7 +320,7 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	}
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error))
+		return c.JSON(400, api.Return("error", result.Error.Error()))
 	}
 	c.Logger().Debug("UpdatePrescription")
 	return c.JSON(200, api.Return("ok", nil))
