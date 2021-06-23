@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 	db := utils.GetDB()
 
 	// get all departments
-	var departments []Department
+	var departments []models.Department
 	db.Find(&departments)
 
 	return c.JSON(http.StatusOK, api.Return("ok", departments))
@@ -36,24 +36,24 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Description return a department's details by its ID
 // @Param departmentID path uint true "department ID"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=DepartmentDetailJSON}
+// @Success 200 {object} api.ReturnedData{data=models.DepartmentDetailJSON}
 // @Router /department/{DepartmentID} [GET]
 func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 	db := utils.GetDB()
-	var department Department                  // department basic information
-	var schedules []DepartmentSchedule         // schedules
-	var doctorsAll = make([]account.Doctor, 0) // doctor total information
-	var doctors = make([]string, 0)            // doctor's name (show to frontend)
+	var department models.Department          // department basic information
+	var schedules []models.DepartmentSchedule // schedules
+	var doctorsAll = make([]models.Doctor, 0) // doctor total information
+	var doctors = make([]string, 0)           // doctor's name (show to frontend)
 
 	err := db.First(&department, c.Param("departmentID")).Error
 	if err != nil {
-		return c.JSON(http.StatusNotFound, api.Return("error", DepartmentNotFound))
+		return c.JSON(http.StatusNotFound, api.Return("error", models.DepartmentNotFound))
 	}
 	db.Where("department_id = ?", department.ID).Find(&schedules)
 	db.Where("department_id = ?", department.ID).Find(&doctorsAll)
 
 	for _, doctor := range doctorsAll {
-		var a account.Account
+		var a models.Account
 		err = db.First(&a, doctor.AccountID).Error
 		if err == nil {
 			doctors = append(doctors, a.LastName+a.FirstName)
@@ -61,7 +61,7 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 	}
 
 	// wrap the return data
-	returnDepartment := DepartmentDetailJSON{
+	returnDepartment := models.DepartmentDetailJSON{
 		ID:        department.ID,
 		Name:      department.Name,
 		Detail:    department.Detail,
@@ -87,24 +87,24 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Router /registrations [POST]
 func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
-		DepartmentID uint        `json:"department_id"`
-		Year         int         `json:"year"`
-		Month        int         `json:"month"`
-		Day          int         `json:"day"`
-		HalfDay      HalfDayEnum `json:"halfday" validate:"halfday"`
+		DepartmentID uint               `json:"department_id"`
+		Year         int                `json:"year"`
+		Month        int                `json:"month"`
+		Day          int                `json:"day"`
+		HalfDay      models.HalfDayEnum `json:"halfday" validate:"halfday"`
 	}
 
 	// extract submit data
 	var submit RegistrationSubmitJSON
 	if err := c.Bind(&submit); err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
-		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.InvalidSubmitFormat))
 	}
 
 	// validate halfday enum
-	err := validate.Struct(submit)
+	err := models.Validate.Struct(submit)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.InvalidSubmitFormat))
 	}
 
 	var res = 1
@@ -112,25 +112,25 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 	db := utils.GetDB()
 	err = db.Transaction(func(tx *gorm.DB) error {
 		// get department
-		var department Department
+		var department models.Department
 		err = db.First(&department, submit.DepartmentID).Error
 		if err != nil {
-			c.Logger().Error(DepartmentNotFound)
+			c.Logger().Error(models.DepartmentNotFound)
 			return err
 		}
 
 		// get patient
-		var patient account.Patient
+		var patient models.Patient
 		err = db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
 		if err != nil {
-			c.Logger().Error(PatientNotFound)
+			c.Logger().Error(models.PatientNotFound)
 			return err
 		}
 
-		var possibleDuplicates []Registration
+		var possibleDuplicates []models.Registration
 
 		//check duplicate registration
-		if db.Where(&Registration{
+		if db.Where(&models.Registration{
 			DepartmentID: department.ID,
 			PatientID:    patient.ID,
 			Year:         submit.Year,
@@ -139,15 +139,15 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 			HalfDay:      submit.HalfDay,
 		}).Find(&possibleDuplicates).RowsAffected > 0 {
 			for i := range possibleDuplicates {
-				if possibleDuplicates[i].Status != terminated {
+				if possibleDuplicates[i].Status != models.Terminated {
 					return echo.ErrBadRequest
 				}
 			}
 		}
 
 		// check schedule
-		var schedule DepartmentSchedule
-		err = db.Where(&DepartmentSchedule{
+		var schedule models.DepartmentSchedule
+		err = db.Where(&models.DepartmentSchedule{
 			DepartmentID: department.ID,
 			Year:         submit.Year,
 			Month:        submit.Month,
@@ -156,19 +156,19 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		}).First(&schedule).Error
 
 		// invalid schedule return and unlock
-		if err != nil || !validateSchedule(&schedule) {
+		if err != nil || !models.ValidateSchedule(&schedule) {
 			return err
 		} else if schedule.Current >= schedule.Capacity {
-			c.Logger().Error(NotEnoughCapacity)
+			c.Logger().Error(models.NotEnoughCapacity)
 			return err
 		}
 
 		// assign the doctor with the minimal registrations
-		var doctors []account.Doctor
+		var doctors []models.Doctor
 		db.Where("department_id = ?", department.ID).Find(&doctors)
 		var doctorRegistrationCount = make([]int64, len(doctors))
 
-		registration := Registration{
+		registration := models.Registration{
 			DepartmentID: department.ID,
 			Year:         submit.Year,
 			Month:        submit.Month,
@@ -179,7 +179,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		// find min count of registrations
 		minCount, minIndex := int64(math.MaxInt64), -1
 		for i := range doctors {
-			db.Model(&Registration{}).Where(&registration).Count(&doctorRegistrationCount[i])
+			db.Model(&models.Registration{}).Where(&registration).Count(&doctorRegistrationCount[i])
 			if minCount > doctorRegistrationCount[i] {
 				minCount = doctorRegistrationCount[i]
 				minIndex = i
@@ -188,7 +188,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 		// cannot find a doctor
 		if minIndex == -1 {
-			c.Logger().Error(CannotAssignDoctor)
+			c.Logger().Error(models.CannotAssignDoctor)
 			return echo.ErrBadRequest
 		}
 
@@ -200,16 +200,31 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 			return err
 		}
 
+		var correspondingCase models.Case
+		var preCase models.Case
+
+		correspondingCase.Registration = registration
+		correspondingCase.DoctorID = doctors[minIndex].ID
+		correspondingCase.PatientID = patient.ID
+		correspondingCase.Department = department.Name
+
+		dbErr := db.Order("date DESC").Limit(1).First(&preCase)
+		if dbErr == nil {
+			correspondingCase.PreviousCase = &preCase
+		}
+
+		db.Create(&correspondingCase)
+
 		schedule.Current = schedule.Current + 1
 		if err := db.Save(&schedule).Error; err != nil {
-			c.Logger().Error(InvalidSchedule)
+			c.Logger().Error(models.InvalidSchedule)
 			return err
 		}
 
 		// get name
-		var patientAccount account.Account
-		var doctor account.Doctor
-		var doctorAccount account.Account
+		var patientAccount models.Account
+		var doctor models.Doctor
+		var doctorAccount models.Account
 		db.First(&patientAccount, registration.PatientID)
 		db.First(&doctor, registration.DoctorID)
 		db.First(&doctorAccount, doctor.AccountID)
@@ -221,7 +236,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 	if err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
-		return c.JSON(http.StatusBadRequest, api.Return("error", CreateRegistrationFailed))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateRegistrationFailed))
 	}
 	return c.JSON(http.StatusOK, api.Return("ok", res))
 }
@@ -235,30 +250,30 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 // @Router /registrations [GET]
 func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 	db := utils.GetDB()
-	var registrations []Registration
+	var registrations []models.Registration
 
 	// get account type
-	var acc account.Account
+	var acc models.Account
 	err := db.First(&acc, c.Get("id")).Error
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
-	if acc.Type == account.PatientType {
+	if acc.Type == models.PatientType {
 		// get patient
-		var patient account.Patient
+		var patient models.Patient
 		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.PatientNotFound))
 		}
 
 		db.Where("patient_id = ?", patient.ID).Find(&registrations)
-	} else if acc.Type == account.DoctorType {
+	} else if acc.Type == models.DoctorType {
 		// get doctor
-		var doctor account.Doctor
+		var doctor models.Doctor
 		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 		}
 
 		db.Where("doctor_id = ?", doctor.ID).Find(&registrations)
@@ -266,12 +281,12 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
-	var registrationJSONs = make([]RegistrationJSON, len(registrations))
+	var registrationJSONs = make([]models.RegistrationJSON, len(registrations))
 
 	for i := range registrations {
-		var department Department
+		var department models.Department
 		db.First(&department, registrations[i].DepartmentID)
-		registrationJSONs[i] = RegistrationJSON{
+		registrationJSONs[i] = models.RegistrationJSON{
 			ID:         registrations[i].ID,
 			Department: department.Name,
 			Status:     registrations[i].Status,
@@ -295,55 +310,55 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 // @Router /registration/{registrationID} [GET]
 func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 	db := utils.GetDB()
-	var registration Registration
+	var registration models.Registration
 
 	// get account type
-	var acc account.Account
+	var acc models.Account
 	err := db.First(&acc, c.Get("id")).Error
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
 	// judge account type
-	if acc.Type == account.PatientType {
+	if acc.Type == models.PatientType {
 		// get patient
-		var patient account.Patient
+		var patient models.Patient
 		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&patient).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", PatientNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.PatientNotFound))
 		}
 
 		err = db.Where("patient_id = ?", patient.ID).First(&registration, c.Param("registrationID")).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
-	} else if acc.Type == account.DoctorType {
+	} else if acc.Type == models.DoctorType {
 		// get doctor
-		var doctor account.Doctor
+		var doctor models.Doctor
 		err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 		}
 
 		err = db.Where("doctor_id = ?", doctor.ID).First(&registration, c.Param("registrationID")).Error
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
 	// get names
-	var department Department
-	var patientAccount account.Account
-	var doctor account.Doctor
-	var doctorAccount account.Account
+	var department models.Department
+	var patientAccount models.Account
+	var doctor models.Doctor
+	var doctorAccount models.Account
 	db.First(&department, registration.DepartmentID)
 	db.First(&patientAccount, registration.PatientID)
 	db.First(&doctor, registration.DoctorID)
 	db.First(&doctorAccount, doctor.AccountID)
 
-	registrationJSON := RegistrationDetailJSON{
+	registrationJSON := models.RegistrationDetailJSON{
 		ID:              registration.ID,
 		Department:      department.Name,
 		Patient:         patientAccount.LastName + patientAccount.FirstName,
@@ -357,7 +372,7 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 	}
 
 	// get milestones
-	var milestones []MileStone
+	var milestones []models.MileStone
 	db.Where("registration_id = ?", registration.ID).Find(&milestones)
 	registrationJSON.MileStone = milestones
 
@@ -386,40 +401,40 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	var submit RegistrationSubmitJSON
 	if err := c.Bind(&submit); err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
-		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.InvalidSubmitFormat))
 	}
 
 	db := utils.GetDB()
 	// validation for status: select in frontend
-	status := RegistrationStatusEnum(submit.RegistrationStatus)
+	status := models.RegistrationStatusEnum(submit.RegistrationStatus)
 	terminatedCause := submit.TerminatedCause
-	var registration Registration
+	var registration models.Registration
 	err := db.First(&registration, c.Param("registrationID")).Error
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 	currentStatus := registration.Status
 	registration.Status = status
-	var acc account.Account
+	var acc models.Account
 	err = db.Where("id = ?", c.Get("id").(uint)).First(&acc).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", AccountNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.AccountNotFound))
 	}
-	if currentStatus == committed {
-		if acc.Type == account.PatientType {
-			if status == terminated {
+	if currentStatus == models.Committed {
+		if acc.Type == models.PatientType {
+			if status == models.Terminated {
 				registration.Status = status
 				db.Save(&registration)
 				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 			}
 		}
-		if acc.Type == account.DoctorType {
-			if status == accepted {
+		if acc.Type == models.DoctorType {
+			if status == models.Accepted {
 				registration.Status = status
 				db.Save(&registration)
 				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 			}
-			if status == terminated {
+			if status == models.Terminated {
 				if terminatedCause != "" {
 					registration.Status = status
 					registration.TerminatedCause = terminatedCause
@@ -430,16 +445,16 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 			}
 		}
 	}
-	if currentStatus == accepted {
+	if currentStatus == models.Accepted {
 		if acc.Type == "doctor" {
-			if status == terminated {
+			if status == models.Terminated {
 				registration.Status = status
 				db.Save(&registration)
 				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 			}
 		}
 	}
-	return c.JSON(http.StatusBadRequest, api.Return("failed", RegistrationUpdateFailed))
+	return c.JSON(http.StatusBadRequest, api.Return("failed", models.RegistrationUpdateFailed))
 }
 
 // CreateMileStoneByDoctor
@@ -461,34 +476,34 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 	var submit MileStoneSubmitJSON
 	if err := c.Bind(&submit); err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
-		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.InvalidSubmitFormat))
 	}
 
 	db := utils.GetDB()
 
 	// get doctor
-	var doctor account.Doctor
+	var doctor models.Doctor
 	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 	}
 
-	var registration Registration
+	var registration models.Registration
 	err = db.First(&registration, submit.RegistrationID).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
-	} else if registration.Status == terminated {
-		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
+	} else if registration.Status == models.Terminated {
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneUnauthorized))
 	}
 
-	mileStone := MileStone{
+	mileStone := models.MileStone{
 		RegistrationID: submit.RegistrationID,
 		Activity:       submit.Activity,
 	}
 
 	err = db.Create(&mileStone).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", CreateMileStoneFailed))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateMileStoneFailed))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
@@ -514,32 +529,32 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	var submit MileStoneSubmitJSON
 	if err := c.Bind(&submit); err != nil {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
-		return c.JSON(http.StatusBadRequest, api.Return("error", InvalidSubmitFormat))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.InvalidSubmitFormat))
 	}
 
 	db := utils.GetDB()
 	// get doctor
-	var doctor account.Doctor
+	var doctor models.Doctor
 	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 	}
 
 	// get mileStone
-	var mileStone MileStone
+	var mileStone models.MileStone
 	err = db.First(&mileStone, c.Param("mileStoneID")).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneNotFound))
 	}
-	var registration Registration
+	var registration models.Registration
 	err = db.First(&registration, mileStone.RegistrationID).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 	}
 
 	// check milestone authority
-	if registration.Status == terminated || registration.DoctorID != doctor.ID {
-		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
+	if registration.Status == models.Terminated || registration.DoctorID != doctor.ID {
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneUnauthorized))
 	}
 
 	mileStone.Activity = submit.Activity
@@ -562,27 +577,27 @@ func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	db := utils.GetDB()
 
 	// get doctor
-	var doctor account.Doctor
+	var doctor models.Doctor
 	err := db.Where("account_id = ?", c.Get("id").(uint)).First(&doctor).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", DoctorNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 	}
 
 	// get mileStone
-	var mileStone MileStone
+	var mileStone models.MileStone
 	err = db.First(&mileStone, c.Param("mileStoneID")).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneNotFound))
 	}
-	var registration Registration
+	var registration models.Registration
 	err = db.First(&registration, mileStone.RegistrationID).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", RegistrationNotFound))
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 	}
 
 	// check milestone authority
-	if registration.Status == terminated || registration.DoctorID != doctor.ID {
-		return c.JSON(http.StatusBadRequest, api.Return("error", MileStoneUnauthorized))
+	if registration.Status == models.Terminated || registration.DoctorID != doctor.ID {
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneUnauthorized))
 	}
 
 	db.Delete(&mileStone)
