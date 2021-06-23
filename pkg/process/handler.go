@@ -317,7 +317,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 }
 
 // GetRegistrationByID
-// @Summary get a registration by its ID 
+// @Summary get a registration by its ID
 // @Tags Process
 // @Description return a registration details by its ID
 // @Param registrationID path uint true "registration's ID"
@@ -427,7 +427,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 	var registration Registration
 	err := db.First(&registration, c.Param("registrationID")).Error
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("error", err))
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 	currentStatus := registration.Status
 	registration.Status = status

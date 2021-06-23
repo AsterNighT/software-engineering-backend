@@ -1,15 +1,25 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/AsterNighT/software-engineering-backend/pkg/database"
 	"github.com/AsterNighT/software-engineering-backend/pkg/router"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/go-playground/validator"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
+
+func init() {
+	// load envs
+	err := godotenv.Load("configs/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 func main() {
 	// initialize database
@@ -17,6 +27,7 @@ func main() {
 
 	// create echo instance
 	app := echo.New()
+	app.Debug = true
 	app.Validator = &utils.CustomValidator{Validator: validator.New()}
 	app.Use(middleware.Logger())
 	app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
