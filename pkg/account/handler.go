@@ -260,11 +260,6 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		authCode += string("0123456789"[nBig.Int64()])
 	}
 	c.Logger().Debug(authCode)
-
-	if tmp := db.Model(&Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
-	}
-
 	emailServerHost := os.Getenv("EMAIL_SERVER_HOST")
 	emailServerPort := os.Getenv("EMAIL_SERVER_PORT")
 	emailUser := os.Getenv("EMAIL_USER")
@@ -276,6 +271,13 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		AuthCode:        authCode,
 		AuthCodeExpires: time.Now().Add(time.Duration(expireMin) * time.Minute),
 	}
+
+	db.Delete(&auth)
+
+	if tmp := db.Model(&Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
+	}
+
 	if result := db.Create(&auth); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
