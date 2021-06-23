@@ -3,7 +3,7 @@
 start: swag build run
 
 build:
-	go build -o build/main ./cmd/_rename_this_/main.go
+	go build -o build/main ./cmd/main/main.go
 
 run:
 	build/main
