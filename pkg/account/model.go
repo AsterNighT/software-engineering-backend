@@ -12,7 +12,10 @@ type Account struct {
 	FirstName string
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
+}
 
+type Auth struct {
+	Email           string `gorm:"primarykey;"` // Not a refer key !!!
 	AuthCode        string
 	AuthCodeExpires time.Time
 }

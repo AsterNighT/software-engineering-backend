@@ -63,6 +63,7 @@ func InitDB() *gorm.DB {
 	// auto migrate account
 	err = db.AutoMigrate(
 		&account.Account{},
+		&account.Auth{},
 		&account.Patient{},
 		&account.Doctor{},
 	)
