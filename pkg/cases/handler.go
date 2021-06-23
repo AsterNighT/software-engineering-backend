@@ -315,11 +315,11 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	var pre models.Prescription
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err.Error()))
+		return c.JSON(400, api.Return("validation fails", err.Error()))
 	}
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error.Error()))
+		return c.JSON(400, api.Return("error while quering db", result.Error.Error()))
 	}
 	c.Logger().Debug("UpdatePrescription")
 	return c.JSON(200, api.Return("ok", nil))

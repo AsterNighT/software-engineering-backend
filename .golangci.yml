@@ -12,7 +12,6 @@ linters:
     - varcheck
     - asciicheck
     - bodyclose
-    - dupl
     - durationcheck
     - errorlint
     - exhaustive
