@@ -273,6 +273,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 		db.First(&department, registrations[i].DepartmentID)
 		registrationJSONs[i] = RegistrationJSON{
 			ID:         registrations[i].ID,
+			PatientID:  registrations[i].PatientID,
 			Department: department.Name,
 			Status:     registrations[i].Status,
 			Year:       registrations[i].Year,

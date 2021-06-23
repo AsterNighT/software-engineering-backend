@@ -107,6 +107,7 @@ type DepartmentDetailJSON struct {
 
 type RegistrationJSON struct {
 	ID         uint                   `json:"id"`
+	PatientID  uint                   `json:"patient_id"`
 	Department string                 `json:"department"`
 	Status     RegistrationStatusEnum `json:"status"`
 	Year       int                    `json:"year"`
