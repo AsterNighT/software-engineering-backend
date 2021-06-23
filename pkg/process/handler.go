@@ -18,7 +18,7 @@ type ProcessHandler struct{}
 // @Tags Process
 // @Description display all departments of a hospital
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]Department}
+// @Success 200 {object} api.ReturnedData{data=[]models.Department}
 // @Router /departments [GET]
 func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 	db := utils.GetDB()
@@ -246,7 +246,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 // @Tags Process
 // @Description display all registrations
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=[]RegistrationJSON}
+// @Success 200 {object} api.ReturnedData{data=[]models.RegistrationJSON}
 // @Router /registrations [GET]
 func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 	db := utils.GetDB()
@@ -306,7 +306,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 // @Description return a registration details by its ID
 // @Param registrationID path uint true "registration's ID"
 // @Produce json
-// @Success 200 {object} api.ReturnedData{data=Registration}
+// @Success 200 {object} api.ReturnedData{data=models.Registration}
 // @Router /registration/{registrationID} [GET]
 func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 	db := utils.GetDB()

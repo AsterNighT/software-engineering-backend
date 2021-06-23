@@ -26,7 +26,7 @@ type MedicineHandler struct {
 // @Param doctorID query uint false "doctor ID" nil
 // @Param before query string false "a timestamp marking end time without timezone" nil
 // @Param after query string false "a timestamp marking start time without timezone" nil
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
 
@@ -65,7 +65,7 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param caseID path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{data=models.Case}
 // @Router /patient/{patientID}/cases/{caseID} [GET]
 func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 
@@ -88,7 +88,7 @@ func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param patientID path uint true "patient ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{data=models.Case}
 // @Router /patient/{patientID}/case [GET]
 func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 
@@ -117,7 +117,7 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 // @Param doctorID query string false "doctor name" nil
 // @Param before query uint false "a timestamp marking end time" nil
 // @Param after query uint false "a timestamp marking start time" nil
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 
@@ -153,7 +153,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param caseDetail body Case true "patient ID, doctor ID, department name and other case details"
+// @Param caseDetail body models.Case true "patient ID, doctor ID, department name and other case details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
@@ -208,7 +208,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseID path uint true "current case ID"
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /patient/{patientID}/case/{caseID} [GET]
 func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	db := utils.GetDB()
@@ -231,7 +231,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param caseDetail body Case true "case ID and updated details"
+// @Param caseDetail body models.Case true "case ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
@@ -257,7 +257,7 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetail body Prescription true "case ID and prescription details"
+// @Param prescriptionDetail body models.Prescription true "case ID and prescription details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
@@ -303,11 +303,10 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetails body Prescription true "prescription ID and updated details"
+// @Param prescriptionDetails body models.Prescription true "prescription ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [PUT]
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
-
 	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
@@ -331,7 +330,7 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param prescriptionID path uint true "prescription ID"
-// @Success 200 {object} api.ReturnedData{data=Prescription}
+// @Success 200 {object} api.ReturnedData{data=models.Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID}  [GET]
 func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	db := utils.GetDB()
@@ -355,7 +354,7 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseID path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=[]Prescription}
+// @Success 200 {object} api.ReturnedData{data=[]models.Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription  [GET]
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	db := utils.GetDB()
@@ -375,7 +374,7 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Tags Medicine
 // @Produce json
 // @Param q query string true "full-text search"
-// @Success 200 {object} api.ReturnedData{data=[]Medicine}
+// @Success 200 {object} api.ReturnedData{data=[]models.Medicine}
 // @Router /medicine [GET]
 func (h *MedicineHandler) GetMedicines(c echo.Context) error {
 	db := utils.GetDB()
