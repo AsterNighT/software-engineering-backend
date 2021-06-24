@@ -1,4 +1,4 @@
-package chat
+package models
 
 // type Chat struct {
 // 	ID        uint   `gorm:"primaryKey"`

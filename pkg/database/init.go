@@ -1,9 +1,7 @@
 package database
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
-	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	"github.com/AsterNighT/software-engineering-backend/pkg/process"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -20,11 +18,11 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Medicine{})
+	err = db.AutoMigrate(&models.Medicine{})
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Guideline{})
+	err = db.AutoMigrate(&models.Guideline{})
 	if err != nil {
 		panic(err)
 	}
@@ -35,25 +33,25 @@ func InitDB() *gorm.DB {
 
 	// auto migrate process's table
 	err = db.AutoMigrate(
-		&process.Department{},
-		&process.Registration{},
-		&process.MileStone{},
-		&process.DepartmentSchedule{},
+		&models.Department{},
+		&models.Registration{},
+		&models.MileStone{},
+		&models.DepartmentSchedule{},
 	)
 	if err != nil {
 		panic(err)
 	}
-	err = process.InitProcessValidator()
+	err = models.InitProcessValidator()
 	if err != nil {
 		panic(err)
 	}
 
 	// auto migrate cases
-	err = db.AutoMigrate(&cases.Prescription{})
+	err = db.AutoMigrate(&models.Prescription{})
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Case{})
+	err = db.AutoMigrate(&models.Case{})
 	if err != nil {
 		panic(err)
 	}
@@ -62,10 +60,10 @@ func InitDB() *gorm.DB {
 
 	// auto migrate account
 	err = db.AutoMigrate(
-		&account.Account{},
-		&account.Auth{},
-		&account.Patient{},
-		&account.Doctor{},
+		&models.Account{},
+		&models.Auth{},
+		&models.Patient{},
+		&models.Doctor{},
 	)
 
 	if err != nil {
