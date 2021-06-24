@@ -280,7 +280,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 
 	db.Delete(&auth)
 
-	if tmp := db.Model(&Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
+	if tmp := db.Model(&models.Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
