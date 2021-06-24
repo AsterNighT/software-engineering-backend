@@ -200,6 +200,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 			return err
 		}
 
+		// create corresponding case
 		var correspondingCase models.Case
 		var preCase models.Case
 
@@ -208,7 +209,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		correspondingCase.PatientID = patient.ID
 		correspondingCase.Department = department.Name
 
-		dbErr := db.Order("date DESC").Limit(1).First(&preCase)
+		dbErr := db.Where("department = ?", department.Name).Order("date DESC").Limit(1).First(&preCase)
 		if dbErr == nil {
 			correspondingCase.PreviousCase = &preCase
 		}
