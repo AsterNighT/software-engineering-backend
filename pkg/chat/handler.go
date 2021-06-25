@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 
 	"github.com/gorilla/websocket"
@@ -296,7 +297,7 @@ func (h *ChatHandler) GetQuestionsByDepartmentID(c echo.Context) error {
 	db := utils.GetDB()
 	db.Where("DepartmentID = ?", c.Param("DepartmentID"))
 
-	var cate Category
+	var cate models.Category
 	db.Find(&cate)
 
 	c.Logger().Debug("ChatServer$: GetQuestionsByDepartmentID")
@@ -482,7 +483,7 @@ func (client *Client) RequirePrescription(message *Message, c echo.Context) {
 func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	db := utils.GetDB()
 
-	var cate Category
+	var cate models.Category
 	db.Where("department_id = ?", message.DoctorID).Find(&cate)
 
 	msg := Message{

@@ -1,7 +1,7 @@
 package cases
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -9,9 +9,9 @@ import (
 func FromAdmin(c echo.Context) bool {
 	db, _ := c.Get("db").(*gorm.DB)
 	id := c.Get("id").(uint)
-	var user account.Account
+	var user models.Account
 	if err := db.Where("id = ?", id).First(&user).Error; err == nil { // not found
-		return user.Type == account.AdminType
+		return user.Type == models.AdminType
 	}
 	return false
 }
@@ -22,9 +22,9 @@ func FromDoctor(c echo.Context) bool {
 	}
 	db, _ := c.Get("db").(*gorm.DB)
 	id := c.Get("id").(uint)
-	var user account.Account
+	var user models.Account
 	if err := db.Where("id = ?", id).First(&user).Error; err == nil { // not found
-		return user.Type == account.DoctorType
+		return user.Type == models.DoctorType
 	}
 	return false
 }
