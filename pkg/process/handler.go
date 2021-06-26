@@ -1,15 +1,15 @@
 package process
 
 import (
-	"fmt"
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/account"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
-	//"github.com/deckarep/golang-set"
+	"github.com/deckarep/golang-set"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"math"
 	"net/http"
+	"strings"
 )
 
 type ProcessHandler struct{}
@@ -22,23 +22,32 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", SearchFailed))
 	}
 	defer response.Body.Close()//在回复后必须关闭回复的主体
-
+	set :=  mapset.NewSet()
 	resMap := Transformation(response)
 	if v, ok := resMap["result"]; ok {
 		list := v.([]interface{})
 		for _, v := range list {
 			nodeMap := v.(map[string]interface{})
 			if verStr, ok := nodeMap["jzks"]; ok {
-				fmt.Println(verStr)
+				strArray := strings.Fields(verStr.(string))
+				for i := range strArray {
+					if set.Contains(strArray[i]) == false {
+						set.Add(strArray[i])
+					}
+				}
 			}
 		}
 	}
-
-	//db := utils.GetDB()
-	//var departments []Department
-	//db.Where("department = ?", ).Find(&departments)
-	//return c.JSON(http.StatusOK, api.Return("ok", departments))
-	return nil
+	names := make([]string, 1)
+	it := set.Iterator()
+	for elem := range it.C {
+		names = append(names, elem.(string))
+	}
+	//fmt.Println(names)
+	db := utils.GetDB()
+	var departments []Department
+	db.Where("name in (?)", names).Find(&departments)
+	return c.JSON(http.StatusOK, api.Return("ok", departments))
 }
 
 

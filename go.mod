@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
