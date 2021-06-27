@@ -277,6 +277,13 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		AuthCode:        authCode,
 		AuthCodeExpires: time.Now().Add(time.Duration(expireMin) * time.Minute),
 	}
+
+	db.Delete(&auth)
+
+	if tmp := db.Model(&models.Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
+	}
+
 	if result := db.Create(&auth); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
