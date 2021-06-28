@@ -325,6 +325,21 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("validation fails", err.Error()))
 	}
+
+	var origPrescription models.Prescription
+	db.Where("id = ?", pre.ID).First(&origPrescription)
+
+	if origPrescription.CaseID != pre.CaseID {
+		return c.JSON(400, api.Return("cannot update caseID of prescription", nil))
+	}
+
+	var case1 models.Case
+	db.Preload("Registration").Where("id = ?", pre.CaseID).First(&case1)
+
+	if case1.Registration.Status != models.Accepted {
+		return c.JSON(400, api.Return("cannot update prescription of finished case", nil))
+	}
+
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error while quering db", result.Error.Error()))
