@@ -53,7 +53,7 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 	}
 
 	var cases []models.Case
-	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
+	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Order("date DESC").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
 
 	c.Logger().Debug("GetAllCases")
 	return c.JSON(200, api.Return("ok", cases))
@@ -245,6 +245,14 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("error", err.Error()))
 	}
+
+	var case1 models.Case
+	db.Preload("Registration").Where("id = ?", cas.ID).First(&case1)
+
+	if case1.Registration.Status != models.Accepted {
+		return c.JSON(400, api.Return("cannot update finished case", nil))
+	}
+
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Model(&cas).Updates(cas)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error.Error()))
@@ -317,6 +325,21 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("validation fails", err.Error()))
 	}
+
+	var origPrescription models.Prescription
+	db.Where("id = ?", pre.ID).First(&origPrescription)
+
+	if origPrescription.CaseID != pre.CaseID {
+		return c.JSON(400, api.Return("cannot update caseID of prescription", nil))
+	}
+
+	var case1 models.Case
+	db.Preload("Registration").Where("id = ?", pre.CaseID).First(&case1)
+
+	if case1.Registration.Status != models.Accepted {
+		return c.JSON(400, api.Return("cannot update prescription of finished case", nil))
+	}
+
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error while quering db", result.Error.Error()))
