@@ -33,25 +33,20 @@ const (
 )
 
 type Doctor struct {
-	ID           uint `gorm:"primarykey;autoIncrement;"`
-	DepartmentID uint
-
+	ID        uint `gorm:"primarykey;autoIncrement;"`
 	AccountID uint
-	CaseID    uint
-	ChatID    uint
-	// Cases     []cases.Case `gorm:"foreignkey:ID"`
-	// Chats     []chat.Chat  `gorm:"foreignkey:ID"`
+	Email     string
+
+	Department string
 }
 
 type Patient struct {
-	ID uint `gorm:"primarykey;autoIncrement;"`
-
+	ID        uint `gorm:"primarykey;autoIncrement;"`
 	AccountID uint
-	CaseID    uint
-	ChatID    uint
-	// Account Account      `gorm:"foreignkey:ID"`
-	// Cases   []cases.Case `gorm:"foreignkey:ID"`
-	// Chats   []chat.Chat  `gorm:"foreignkey:ID"`
+	Email     string
+
+	Contraindication string
+	Allergy          string
 }
 
 /**
