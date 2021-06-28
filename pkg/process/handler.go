@@ -8,6 +8,7 @@ import (
 	"github.com/deckarep/golang-set"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"io"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -23,7 +24,12 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 		c.Logger().Debug("search failed...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.SearchFailed))
 	}
-	defer response.Body.Close()//在回复后必须关闭回复的主体
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			c.Logger().Debug("search failed...")
+		}
+	}(response.Body) //在回复后必须关闭回复的主体
 	set :=  mapset.NewSet()
 	resMap := Transformation(response)
 	if v, ok := resMap["result"]; ok {
@@ -33,7 +39,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 			if verStr, ok := nodeMap["jzks"]; ok {
 				strArray := strings.Fields(verStr.(string))
 				for i := range strArray {
-					if set.Contains(strArray[i]) == false {
+					if !set.Contains(strArray[i]) {
 						set.Add(strArray[i])
 					}
 				}
@@ -651,7 +657,10 @@ func Transformation(response *http.Response) map[string]interface{}{
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(response.Body)
 	if err == nil {
-		json.Unmarshal([]byte(string(body)), &result)
+		err := json.Unmarshal(body, &result)
+		if err != nil {
+			return nil
+		}
 	}
 	return result
 }
