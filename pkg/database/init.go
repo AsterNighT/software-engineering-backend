@@ -11,8 +11,7 @@ import (
 )
 
 func InitDB() *gorm.DB {
-	//dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	dsn := "host=neon-cubes.xyz user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	var db *gorm.DB
 	var err error
 
@@ -115,11 +114,4 @@ func initDepartment() {
 
 	db := utils.GetDB()
 	db.Clauses(clause.OnConflict{DoNothing: true}).Create(&departments)
-
-	//for i := range departments {
-	//	db.Clauses(clause.OnConflict{DoNothing: true}).Create(&models.Department{
-	//		Name: departments[i].Name,
-	//		Detail: departments[i].Detail,
-	//	})
-	//}
 }
