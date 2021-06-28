@@ -1,28 +1,30 @@
-package process
+package models
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
+	"time"
+
+	"github.com/go-playground/validator"
 )
 
 // Department
 // department table (e.g. orthopedics department, x-ray department)
 type Department struct {
 	ID     uint   `json:"id" gorm:"primaryKey"`
-	Name   string `json:"name"`   // name of this department
-	Detail string `json:"detail"` // detailed introduction of this department
+	Name   string `json:"name" gorm:"unique"` // name of this department
+	Detail string `json:"detail"`             // detailed introduction of this department
 }
 
 // Registration
 // registration table
 // every registration will eventually be terminated, and therefore needs a cause
 type Registration struct {
-	ID           uint            `gorm:"primaryKey"`
-	DoctorID     uint            `swaggerignore:"true"`
-	Doctor       account.Doctor  `swaggerignore:"true"`
-	PatientID    uint            `swaggerignore:"true"`
-	Patient      account.Patient `swaggerignore:"true"`
-	DepartmentID uint            `swaggerignore:"true"`
-	Department   Department      `swaggerignore:"true"`
+	ID           uint       `gorm:"primaryKey"`
+	DoctorID     uint       `swaggerignore:"true"`
+	Doctor       Doctor     `swaggerignore:"true"`
+	PatientID    uint       `swaggerignore:"true"`
+	Patient      Patient    `swaggerignore:"true"`
+	DepartmentID uint       `swaggerignore:"true"`
+	Department   Department `swaggerignore:"true"`
 
 	Year    int         `json:"year"`
 	Month   int         `json:"month"`
@@ -63,9 +65,9 @@ type DepartmentSchedule struct {
 type RegistrationStatusEnum string
 
 const (
-	committed  RegistrationStatusEnum = "committed"
-	accepted   RegistrationStatusEnum = "accepted"
-	terminated RegistrationStatusEnum = "terminated"
+	Committed  RegistrationStatusEnum = "committed"
+	Accepted   RegistrationStatusEnum = "accepted"
+	Terminated RegistrationStatusEnum = "terminated"
 )
 
 // HalfDayEnum
@@ -73,8 +75,8 @@ const (
 type HalfDayEnum string
 
 const (
-	morning   HalfDayEnum = "morning"
-	afternoon HalfDayEnum = "afternoon"
+	Morning   HalfDayEnum = "morning"
+	Afternoon HalfDayEnum = "afternoon"
 )
 
 type ProcessError string
@@ -134,4 +136,34 @@ type RegistrationDetailJSON struct {
 	Status          RegistrationStatusEnum `json:"status"`
 	MileStone       []MileStone            `json:"milestone,omitempty"`
 	TerminatedCause string                 `json:"terminated_cause"`
+}
+
+var Validate *validator.Validate
+
+func InitProcessValidator() error {
+	Validate = validator.New()
+
+	err := Validate.RegisterValidation("halfday", ValidateHalfDay)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateHalfDay(fl validator.FieldLevel) bool {
+	s := HalfDayEnum(fl.Field().String())
+	return s == Morning || s == Afternoon
+}
+
+func ValidateSchedule(schedule *DepartmentSchedule) bool {
+	thisYear, thisMonth, thisDay := time.Now().Date()
+	if schedule.Year < thisYear {
+		return false
+	} else if schedule.Year == thisYear && schedule.Month < int(thisMonth) {
+		return false
+	} else if schedule.Year == thisYear && schedule.Month == int(thisMonth) && schedule.Day <= thisDay {
+		return false
+	}
+
+	return true
 }

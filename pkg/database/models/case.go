@@ -1,4 +1,4 @@
-package cases
+package models
 
 import (
 	"time"
@@ -10,6 +10,8 @@ type Case struct {
 	DoctorID       uint
 	PatientName    string
 	DoctorName     string
+	RegistrationID int
+	Registration   Registration
 	Age            uint
 	Gender         string
 	Department     string `validate:"required"`

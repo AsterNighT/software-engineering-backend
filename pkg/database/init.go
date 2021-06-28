@@ -1,12 +1,11 @@
 package database
 
 import (
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
-	"github.com/AsterNighT/software-engineering-backend/pkg/cases"
-	"github.com/AsterNighT/software-engineering-backend/pkg/process"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,11 +19,11 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Medicine{})
+	err = db.AutoMigrate(&models.Medicine{})
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Guideline{})
+	err = db.AutoMigrate(&models.Guideline{})
 	if err != nil {
 		panic(err)
 	}
@@ -35,25 +34,25 @@ func InitDB() *gorm.DB {
 
 	// auto migrate process's table
 	err = db.AutoMigrate(
-		&process.Department{},
-		&process.Registration{},
-		&process.MileStone{},
-		&process.DepartmentSchedule{},
+		&models.Department{},
+		&models.Registration{},
+		&models.MileStone{},
+		&models.DepartmentSchedule{},
 	)
 	if err != nil {
 		panic(err)
 	}
-	err = process.InitProcessValidator()
+	err = models.InitProcessValidator()
 	if err != nil {
 		panic(err)
 	}
 
 	// auto migrate cases
-	err = db.AutoMigrate(&cases.Prescription{})
+	err = db.AutoMigrate(&models.Prescription{})
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&cases.Case{})
+	err = db.AutoMigrate(&models.Case{})
 	if err != nil {
 		panic(err)
 	}
@@ -62,14 +61,17 @@ func InitDB() *gorm.DB {
 
 	// auto migrate account
 	err = db.AutoMigrate(
-		&account.Account{},
-		&account.Patient{},
-		&account.Doctor{},
+		&models.Account{},
+		&models.Auth{},
+		&models.Patient{},
+		&models.Doctor{},
 	)
 
 	if err != nil {
 		panic(err)
 	}
+
+	initDepartment()
 	return db
 }
 
@@ -80,4 +82,36 @@ func ContextDB(db *gorm.DB) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+// initDepartment initialize the department tables.
+func initDepartment() {
+	departments := []models.Department{{
+		Name:   "眼科",
+		Detail: "世界一流眼科",
+	}, {
+		Name:   "骨科",
+		Detail: "",
+	}, {
+		Name:   "呼吸内科",
+		Detail: "",
+	}, {
+		Name:   "妇产科",
+		Detail: "专治不孕不育",
+	}, {
+		Name:   "肿瘤内科",
+		Detail: "",
+	}, {
+		Name:   "心胸外科",
+		Detail: "",
+	}, {
+		Name:   "耳鼻喉科",
+		Detail: "",
+	}, {
+		Name:   "急诊科",
+		Detail: "",
+	}}
+
+	db := utils.GetDB()
+	db.Clauses(clause.OnConflict{DoNothing: true}).Create(&departments)
 }

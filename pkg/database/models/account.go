@@ -1,8 +1,14 @@
-package account
+package models
 
-import "time"
+import (
+	"os"
+	"time"
 
-const accountPasswdLen = 8
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
+)
+
+const AccountPasswdLen = 8
 
 type Account struct {
 	ID    uint `gorm:"primarykey;autoIncrement;"`
@@ -12,7 +18,10 @@ type Account struct {
 	FirstName string
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
+}
 
+type Auth struct {
+	Email           string `gorm:"primarykey;"` // Not a refer key !!!
 	AuthCode        string
 	AuthCodeExpires time.Time
 }
@@ -45,4 +54,26 @@ type Patient struct {
 	// Account Account      `gorm:"foreignkey:ID"`
 	// Cases   []cases.Case `gorm:"foreignkey:ID"`
 	// Chats   []chat.Chat  `gorm:"foreignkey:ID"`
+}
+
+/**
+ * @brief private method for hashing password
+ */
+func (u *Account) HashPassword() {
+	bytes, _ := bcrypt.GenerateFromPassword([]byte(u.Passwd), bcrypt.DefaultCost)
+	u.Passwd = string(bytes)
+}
+
+/**
+ * @brief private method for generateing token
+ */
+func (u *Account) GenerateToken() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  u.ID,
+		"exp": time.Now().Add(7 * 24 * time.Hour),
+	})
+
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
+	tokenString, err := token.SignedString(jwtKey)
+	return tokenString, err
 }

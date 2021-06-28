@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
@@ -29,7 +30,8 @@ type AccountHandler struct{}
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Type path string true "user type"
-// @Param Name path string true "user name"
+// @Param FirstName path string true "user first name"
+// @Param LastName path string true "user last name"
 // @Param Passwd path string true "user password"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
@@ -38,10 +40,10 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	type RequestBody struct {
 		Email string `json:"email" validate:"required"`
 
-		Type      AcountType `json:"type" validate:"required"`
-		FirstName string     `json:"firstname" validate:"required"`
-		LastName  string     `json:"lastname" validate:"required"`
-		Passwd    string     `json:"passwd" validate:"required"`
+		Type      models.AcountType `json:"type" validate:"required"`
+		FirstName string            `json:"firstname" validate:"required"`
+		LastName  string            `json:"lastname" validate:"required"`
+		Passwd    string            `json:"passwd" validate:"required"`
 	}
 
 	var body RequestBody
@@ -51,19 +53,19 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
-	if body.Type != PatientType && body.Type != DoctorType && body.Type != AdminType {
+	if body.Type != models.PatientType && body.Type != models.DoctorType && body.Type != models.AdminType {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Account Type", nil))
 	}
-	if len(body.Passwd) < accountPasswdLen {
+	if len(body.Passwd) < models.AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
-	if err := db.Where("email = ?", body.Email).First(&Account{}).Error; err == nil {
+	if err := db.Where("email = ?", body.Email).First(&models.Account{}).Error; err == nil {
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail or AccountID occupied", nil))
 	}
 
-	account := Account{
+	account := models.Account{
 		Email: body.Email,
 
 		Type:      body.Type,
@@ -106,9 +108,8 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=nil}
-// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"emailok": true}}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"emailok": false}}
 // @Router /account/checkemail [POST]
 func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	type RequestBody struct {
@@ -125,7 +126,7 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
+	var account models.Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
@@ -139,7 +140,7 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=nil}
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"account": account, "token": token,}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/login [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
@@ -156,12 +157,12 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
-	if len(body.Passwd) < accountPasswdLen {
+	if len(body.Passwd) < models.AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
+	var account models.Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
@@ -186,7 +187,8 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password (the new one)"
+// @Param Passwd path string true "user password (the old one)"
+// @Param NewPasswd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/modifypasswd [POST]
@@ -208,7 +210,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 
 	// Check old passwd
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
+	var account models.Account
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
@@ -216,14 +218,14 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
-	if len(body.NewPasswd) < accountPasswdLen {
+	if len(body.NewPasswd) < models.AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	account.Passwd = body.NewPasswd
 	account.HashPassword()
 
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+	if result := db.Model(&models.Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
@@ -252,16 +254,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
 
-	// Check old passwd
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
-	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
-		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
-	}
-
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
-	}
 
 	authCode := ""
 	for i := 0; i < 6; i++ {
@@ -270,7 +263,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	}
 	c.Logger().Debug(authCode)
 
-	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code", authCode); tmp.Error != nil {
+	if tmp := db.Model(&models.Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
@@ -280,11 +273,23 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	emailPasswd := os.Getenv("EMAIL_PASSWD")
 	expireMin, _ := strconv.Atoi(os.Getenv("EMAIL_VALID_MIN"))
 
-	if tmp := db.Model(&Account{}).Where("id = ?", account.ID).Update("auth_code_expires", time.Now().Add(time.Duration(expireMin)*time.Minute)); tmp.Error != nil {
+	auth := models.Auth{
+		Email:           body.Email,
+		AuthCode:        authCode,
+		AuthCodeExpires: time.Now().Add(time.Duration(expireMin) * time.Minute),
+	}
+
+	db.Delete(&auth)
+
+	if tmp := db.Model(&models.Auth{}).Where("email = ?", body.Email).Update("auth_code", authCode); tmp.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", tmp.Error))
 	}
 
-	auth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
+	if result := db.Create(&auth); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+	}
+
+	emailAuth := smtp.PlainAuth("", emailUser, emailPasswd, emailServerHost)
 	to := body.Email
 	msg := []byte("From: \"MediConnect\" <noreply@mediconnect.com>\n" +
 		"To: " + to + "\n" +
@@ -292,14 +297,14 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 		"Content-Type: text/plain; charset=\"UTF-8\"\n" +
 		"\n" +
 		"Your verification code is " + authCode + " (Only valid in " + strconv.Itoa(expireMin) + " minutes)\n")
-	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, auth, emailUser, []string{to}, msg); err != nil {
+	if err := smtp.SendMail(emailServerHost+":"+emailServerPort, emailAuth, emailUser, []string{to}, msg); err != nil {
 		return c.JSON(http.StatusOK, api.Return("Email server error", echo.Map{"err": err, "msg": msg}))
 	}
 
 	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", nil))
 }
 
-// @Summary check email's existense
+// @Summary check authcode's correctness
 // @Description
 // @Tags Account
 // @Produce json
@@ -325,11 +330,11 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 
 	// Check authcode
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
-	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
+	var auth models.Auth
+	if err := db.Where("email = ?", body.Email).First(&auth).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
-	if account.AuthCode == body.AuthCode && time.Now().Before(account.AuthCodeExpires) {
+	if auth.AuthCode == body.AuthCode && time.Now().Before(auth.AuthCodeExpires) {
 		return c.JSON(http.StatusOK, api.Return("AuthCode", echo.Map{"authcodeok": true}))
 	}
 	return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
@@ -364,23 +369,27 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 
 	// Check authcode
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
+	var account models.Account
+	var auth models.Auth
 	if err := db.Where("email = ?", body.Email).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
 	}
+	if err := db.Where("email = ?", body.Email).First(&auth).Error; err != nil { // not found
+		return c.JSON(http.StatusBadRequest, api.Return("E-Mail", echo.Map{"emailok": false}))
+	}
 
-	if account.AuthCode != body.AuthCode || time.Now().After(account.AuthCodeExpires) {
+	if auth.AuthCode != body.AuthCode || time.Now().After(auth.AuthCodeExpires) {
 		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
 
-	if len(body.NewPasswd) < accountPasswdLen {
+	if len(body.NewPasswd) < models.AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
 	account.Passwd = body.NewPasswd
 	account.HashPassword()
 
-	if result := db.Model(&Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
+	if result := db.Model(&models.Account{}).Where("id = ?", account.ID).Update("passwd", account.Passwd); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
@@ -398,7 +407,7 @@ func (h *AccountHandler) GetInfo(c echo.Context) error {
 	id := c.Get("id")
 
 	db, _ := c.Get("db").(*gorm.DB)
-	var account Account
+	var account models.Account
 	if err := db.Where("id = ?", id).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
 	}
@@ -437,35 +446,13 @@ func CheckAccountID(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-/**
- * @brief private method for hashing password
- */
-func (u *Account) HashPassword() {
-	bytes, _ := bcrypt.GenerateFromPassword([]byte(u.Passwd), bcrypt.DefaultCost)
-	u.Passwd = string(bytes)
-}
-
-/**
- * @brief private method for generateing token
- */
-func (u *Account) GenerateToken() (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  u.ID,
-		"exp": time.Now().Add(7 * 24 * time.Hour),
-	})
-
-	jwtKey := []byte(os.Getenv("JWT_KEY"))
-	tokenString, err := token.SignedString(jwtKey)
-	return tokenString, err
-}
-
 func ParseToken(tokenString string) (uint, error) {
 	if tokenString == "" {
 		return 0, fmt.Errorf("cannot find auth token")
 	}
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(os.Getenv("JWT_KEY")), nil
 	})

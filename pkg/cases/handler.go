@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
-	"github.com/AsterNighT/software-engineering-backend/pkg/account"
+	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ type MedicineHandler struct {
 // @Param doctorID query uint false "doctor ID" nil
 // @Param before query string false "a timestamp marking end time without timezone" nil
 // @Param after query string false "a timestamp marking start time without timezone" nil
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /cases [GET]
 func (h *CaseHandler) GetAllCases(c echo.Context) error {
 
@@ -52,8 +52,8 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 		db = db.Where("date >= ?", c.QueryParam("after"))
 	}
 
-	var cases []Case
-	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
+	var cases []models.Case
+	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Order("date DESC").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
 
 	c.Logger().Debug("GetAllCases")
 	return c.JSON(200, api.Return("ok", cases))
@@ -65,7 +65,7 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 // @Produce json
 // @Param patientID path uint true "patient ID"
 // @Param caseID path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{data=models.Case}
 // @Router /patient/{patientID}/cases/{caseID} [GET]
 func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 
@@ -76,7 +76,7 @@ func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-	var case1 Case
+	var case1 models.Case
 	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").First(&case1, c.Param("caseID"))
 
 	c.Logger().Debug("GetCasebyCaseID")
@@ -88,7 +88,7 @@ func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param patientID path uint true "patient ID"
-// @Success 200 {object} api.ReturnedData{data=Case}
+// @Success 200 {object} api.ReturnedData{data=models.Case}
 // @Router /patient/{patientID}/case [GET]
 func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 
@@ -101,7 +101,7 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 	db := utils.GetDB()
 	db = db.Where("patient_id = ?", c.Param("patientID"))
 
-	var case1 Case
+	var case1 models.Case
 	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Order("date DESC").Limit(1).First(&case1)
 
 	c.Logger().Debug("GetLastCase")
@@ -117,7 +117,7 @@ func (h *CaseHandler) GetLastCaseByPatientID(c echo.Context) error {
 // @Param doctorID query string false "doctor name" nil
 // @Param before query uint false "a timestamp marking end time" nil
 // @Param after query uint false "a timestamp marking start time" nil
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /patient/{patientID}/cases [GET]
 func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 
@@ -142,7 +142,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 		db = db.Where("date >= ?", c.QueryParam("after"))
 	}
 
-	var cases []Case
+	var cases []models.Case
 	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").Find(&cases)
 
 	c.Logger().Debug("GetCasesByPatientID")
@@ -153,7 +153,7 @@ func (h *CaseHandler) GetCasesByPatientID(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param caseDetail body Case true "patient ID, doctor ID, department name and other case details"
+// @Param caseDetail body models.Case true "patient ID, doctor ID, department name and other case details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case [POST]
 func (h *CaseHandler) NewCase(c echo.Context) error {
@@ -163,12 +163,12 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-	var cas Case
+	var cas models.Case
 	err := utils.ExtractDataWithValidating(c, &cas)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err.Error()))
 	}
-	var acc1, acc2 account.Account
+	var acc1, acc2 models.Account
 	db.First(&acc1, cas.DoctorID)
 	db.First(&acc2, cas.PatientID)
 	cas.DoctorName = acc1.LastName + " " + acc1.FirstName
@@ -198,7 +198,7 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Delete(&Case{}, c.Param("caseID"))
+	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Delete(&models.Case{}, c.Param("caseID"))
 	c.Logger().Debug("DeleteCaseByCaseID")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -208,12 +208,12 @@ func (h *CaseHandler) DeleteCaseByCaseID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseID path uint true "current case ID"
-// @Success 200 {object} api.ReturnedData{data=[]Case}
+// @Success 200 {object} api.ReturnedData{data=[]models.Case}
 // @Router /patient/{patientID}/case/{caseID} [GET]
 func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 	db := utils.GetDB()
-	var case1 Case
-	var cases []Case
+	var case1 models.Case
+	var cases []models.Case
 	db.First(&case1, c.Param("caseID"))
 	if !FromPatient(c, case1.PatientID) {
 		return c.JSON(403, api.Return("you cannot access this case", nil))
@@ -231,7 +231,7 @@ func (h *CaseHandler) GetPreviousCases(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param caseDetail body Case true "case ID and updated details"
+// @Param caseDetail body models.Case true "case ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID} [PUT]
 func (h *CaseHandler) UpdateCase(c echo.Context) error {
@@ -240,11 +240,19 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-	var cas Case
+	var cas models.Case
 	err := utils.ExtractDataWithValidating(c, &cas)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err.Error()))
 	}
+
+	var case1 models.Case
+	db.Preload("Registration").Where("id = ?", cas.ID).First(&case1)
+
+	if case1.Registration.Status != models.Accepted {
+		return c.JSON(400, api.Return("cannot update finished case", nil))
+	}
+
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Prescriptions.Guidelines.Medicine").Model(&cas).Updates(cas)
 	if result.Error != nil {
 		return c.JSON(400, api.Return("error", result.Error.Error()))
@@ -257,17 +265,17 @@ func (h *CaseHandler) UpdateCase(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetail body Prescription true "case ID and prescription details"
+// @Param prescriptionDetail body models.Prescription true "case ID and prescription details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription [POST]
 func (h *CaseHandler) NewPrescription(c echo.Context) error {
 	db := utils.GetDB()
-	var pre Prescription
+	var pre models.Prescription
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
 		return c.JSON(400, api.Return("error", err.Error()))
 	}
-	var oldCase Case
+	var oldCase models.Case
 	db.First(&oldCase, pre.CaseID)
 	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
@@ -294,7 +302,7 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 	}
 
 	db := utils.GetDB()
-	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Delete(&Prescription{}, c.Param("prescriptionID"))
+	db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Delete(&models.Prescription{}, c.Param("prescriptionID"))
 	c.Logger().Debug("DeletePrescription")
 	return c.JSON(200, api.Return("ok", nil))
 }
@@ -303,24 +311,38 @@ func (h *CaseHandler) DeletePrescription(c echo.Context) error {
 // @Description
 // @Tags Case
 // @Produce json
-// @Param prescriptionDetails body Prescription true "prescription ID and updated details"
+// @Param prescriptionDetails body models.Prescription true "prescription ID and updated details"
 // @Success 200 {object} api.ReturnedData{}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID} [PUT]
 func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
-
 	if !FromDoctor(c) {
 		return c.JSON(403, api.Return("only doctor can access this endpoint", nil))
 	}
 
 	db := utils.GetDB()
-	var pre Prescription
+	var pre models.Prescription
 	err := utils.ExtractDataWithValidating(c, &pre)
 	if err != nil {
-		return c.JSON(400, api.Return("error", err.Error()))
+		return c.JSON(400, api.Return("validation fails", err.Error()))
 	}
+
+	var origPrescription models.Prescription
+	db.Where("id = ?", pre.ID).First(&origPrescription)
+
+	if origPrescription.CaseID != pre.CaseID {
+		return c.JSON(400, api.Return("cannot update caseID of prescription", nil))
+	}
+
+	var case1 models.Case
+	db.Preload("Registration").Where("id = ?", pre.CaseID).First(&case1)
+
+	if case1.Registration.Status != models.Accepted {
+		return c.JSON(400, api.Return("cannot update prescription of finished case", nil))
+	}
+
 	result := db.Session(&gorm.Session{FullSaveAssociations: true}).Omit("Guidelines.Medicine").Model(&pre).Updates(pre)
 	if result.Error != nil {
-		return c.JSON(400, api.Return("error", result.Error.Error()))
+		return c.JSON(400, api.Return("error while quering db", result.Error.Error()))
 	}
 	c.Logger().Debug("UpdatePrescription")
 	return c.JSON(200, api.Return("ok", nil))
@@ -331,13 +353,13 @@ func (h *CaseHandler) UpdatePrescription(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param prescriptionID path uint true "prescription ID"
-// @Success 200 {object} api.ReturnedData{data=Prescription}
+// @Success 200 {object} api.ReturnedData{data=models.Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription/{prescriptionID}  [GET]
 func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 	db := utils.GetDB()
-	var pre Prescription
+	var pre models.Prescription
 	db.Preload("Guidelines").Preload("Guidelines.Medicine").First(&pre, c.Param("prescriptionID"))
-	var oldCase Case
+	var oldCase models.Case
 	db.First(&oldCase, pre.CaseID)
 	if !FromPatient(c, oldCase.PatientID) {
 		return c.JSON(403, api.Return("you cannot access this prescription", nil))
@@ -355,12 +377,12 @@ func (h *CaseHandler) GetPrescriptionByPrescriptionID(c echo.Context) error {
 // @Tags Case
 // @Produce json
 // @Param caseID path uint true "case ID"
-// @Success 200 {object} api.ReturnedData{data=[]Prescription}
+// @Success 200 {object} api.ReturnedData{data=[]models.Prescription}
 // @Router /patient/{patientID}/case/{caseID}/prescription  [GET]
 func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 	db := utils.GetDB()
-	var pres []Prescription
-	var oldCase Case
+	var pres []models.Prescription
+	var oldCase models.Case
 	db.First(&oldCase, c.Param("caseID"))
 	if !FromPatient(c, oldCase.PatientID) {
 		return c.JSON(403, api.Return("you cannot access this prescription", nil))
@@ -375,11 +397,11 @@ func (h *CaseHandler) GetPrescriptionByCaseID(c echo.Context) error {
 // @Tags Medicine
 // @Produce json
 // @Param q query string true "full-text search"
-// @Success 200 {object} api.ReturnedData{data=[]Medicine}
+// @Success 200 {object} api.ReturnedData{data=[]models.Medicine}
 // @Router /medicine [GET]
 func (h *MedicineHandler) GetMedicines(c echo.Context) error {
 	db := utils.GetDB()
-	var meds []Medicine
+	var meds []models.Medicine
 	db.Where("name LIKE ?", "%"+c.QueryParam("q")+"%").Find(&meds)
 	c.Logger().Debug("QueryMedicine")
 	return c.JSON(200, api.Return("ok", meds))
