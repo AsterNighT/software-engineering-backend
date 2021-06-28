@@ -91,7 +91,7 @@ func RegisterRouters(app *echo.Echo) error {
 		{
 			// Use nested scopes and shadowing for subgroups
 			// G4-Process's router
-			var h process.ProcessHandler
+			var h process.Handler
 			router.GET("/departments", h.GetAllDepartments)
 			router.GET("/department/:departmentID", h.GetDepartmentByID)
 			router.POST("/registrations", h.CreateRegistrationTX)

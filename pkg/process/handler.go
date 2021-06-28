@@ -15,12 +15,11 @@ import (
 	"strings"
 )
 
-type ProcessHandler struct{}
+type Handler struct{}
 
-
-func (h *ProcessHandler) Search(c echo.Context) error {
-	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key=" + models.KevinKey + "&title=") + c.Param("KeyWord"))
-	if err != nil{
+func (h *Handler) Search(c echo.Context) error {
+	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.KevinKey+"&title=") + c.Param("KeyWord"))
+	if err != nil {
 		c.Logger().Debug("search failed...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.SearchFailed))
 	}
@@ -30,7 +29,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 			c.Logger().Debug("search failed...")
 		}
 	}(response.Body) //在回复后必须关闭回复的主体
-	set :=  mapset.NewSet()
+	set := mapset.NewSet()
 	resMap := Transformation(response)
 	if v, ok := resMap["result"]; ok {
 		list := v.([]interface{})
@@ -58,7 +57,6 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", departments))
 }
 
-
 // GetAllDepartments
 // @Summary get all departments
 // @Tags Process
@@ -66,7 +64,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]models.Department}
 // @Router /departments [GET]
-func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
+func (h *Handler) GetAllDepartments(c echo.Context) error {
 	db := utils.GetDB()
 
 	// get all departments
@@ -84,7 +82,7 @@ func (h *ProcessHandler) GetAllDepartments(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=models.DepartmentDetailJSON}
 // @Router /department/{DepartmentID} [GET]
-func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
+func (h *Handler) GetDepartmentByID(c echo.Context) error {
 	db := utils.GetDB()
 	var department models.Department          // department basic information
 	var schedules []models.DepartmentSchedule // schedules
@@ -131,7 +129,7 @@ func (h *ProcessHandler) GetDepartmentByID(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=int}
 // @Router /registrations [POST]
-func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
+func (h *Handler) CreateRegistrationTX(c echo.Context) error {
 	type RegistrationSubmitJSON struct {
 		DepartmentID uint               `json:"department_id"`
 		Year         int                `json:"year"`
@@ -286,7 +284,6 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateRegistrationFailed))
 	}
 
-
 	return c.JSON(http.StatusOK, api.Return("ok", res))
 }
 
@@ -297,7 +294,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=[]models.RegistrationJSON}
 // @Router /registrations [GET]
-func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
+func (h *Handler) GetRegistrations(c echo.Context) error {
 	db := utils.GetDB()
 	var registrations []models.Registration
 
@@ -357,7 +354,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{data=models.Registration}
 // @Router /registration/{registrationID} [GET]
-func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
+func (h *Handler) GetRegistrationByID(c echo.Context) error {
 	db := utils.GetDB()
 	var registration models.Registration
 
@@ -439,7 +436,7 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} api.ReturnedData{}
 // @Router /registration/{registrationID} [PUT]
-func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
+func (h *Handler) UpdateRegistrationStatus(c echo.Context) error {
 
 	type RegistrationSubmitJSON struct {
 		RegistrationStatus string `json:"status"`
@@ -515,7 +512,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 // @Produce json
 // @Success 204 {string} api.ReturnedData{}
 // @Router /milestones [POST]
-func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
+func (h *Handler) CreateMileStoneByDoctor(c echo.Context) error {
 	type MileStoneSubmitJSON struct {
 		RegistrationID uint   `json:"registration_id"`
 		Activity       string `json:"activity"`
@@ -568,7 +565,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{mileStoneID} [PUT]
-func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
+func (h *Handler) UpdateMileStoneByDoctor(c echo.Context) error {
 	type MileStoneSubmitJSON struct {
 		Activity string `json:"activity"`
 		Checked  bool   `json:"checked"`
@@ -622,7 +619,7 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 // @Produce json
 // @Success 200 {string} api.ReturnedData{}
 // @Router /milestone/{mileStoneID} [DELETE]
-func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
+func (h *Handler) DeleteMileStoneByDoctor(c echo.Context) error {
 	db := utils.GetDB()
 
 	// get doctor
@@ -653,7 +650,7 @@ func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
-func Transformation(response *http.Response) map[string]interface{}{
+func Transformation(response *http.Response) map[string]interface{} {
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(response.Body)
 	if err == nil {
