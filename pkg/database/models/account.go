@@ -8,8 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const AccountPasswdLen = 8
-
 type Account struct {
 	ID    uint `gorm:"primarykey;autoIncrement;"`
 	Email string
