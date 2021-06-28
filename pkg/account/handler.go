@@ -117,7 +117,6 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
 // @Param Department path string true "doctor department"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
@@ -141,12 +140,11 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("Doctor set", nil))
 }
 
-// @Summary set doctor info
+// @Summary set patient info
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param Department path string true "doctor department"
+// @Param Allergy path string true "patient allergy history"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/create [POST]
@@ -470,7 +468,7 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Success 200 {string} api.ReturnedData{data=echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName}}
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "department": doctor.Department, "allergy": patient.Allergy}}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/getinfo [GET]
 func (h *AccountHandler) GetInfo(c echo.Context) error {
