@@ -45,8 +45,8 @@ type Patient struct {
 	AccountID uint
 	Email     string
 
-	Contraindication string
-	Allergy          string
+	// Contraindication string
+	Allergy string
 }
 
 /**
