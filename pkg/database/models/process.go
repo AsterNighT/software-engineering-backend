@@ -9,9 +9,10 @@ import (
 // Department
 // department table (e.g. orthopedics department, x-ray department)
 type Department struct {
-	ID     uint   `json:"id" gorm:"primaryKey"`
-	Name   string `json:"name" gorm:"unique"` // name of this department
-	Detail string `json:"detail"`             // detailed introduction of this department
+	ID        uint   `json:"id" gorm:"primaryKey"`
+	Name      string `json:"name" gorm:"unique"` // name of this department
+	Detail    string `json:"detail"`             // detailed introduction of this department
+	Questions string `json:"questions"`
 }
 
 // Registration

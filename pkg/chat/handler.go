@@ -266,13 +266,20 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 		Connections[patient.ID] = receiverMap //add receiver to map result
 	}
 
+	//use db to find doctor and patient's names
+	db := utils.GetDB()
+	var doc models.Account
+	db.Where("id = ?", doctor.ID).Find(&doc)
+	var pat models.Account
+	db.Where("id = ?", patient.ID).Find(&pat)
+
 	//send NewChat pkg to both doctor and patient
 	msg := Message{
 		Type:        int(NewChat),
 		PatientID:   patient.ID,
 		DoctorID:    doctor.ID,
-		DoctorName:  "doctor A",  //doctor.Name,
-		PatientName: "patient B", //patient.Name,
+		DoctorName:  doc.FirstName + doc.LastName, //docAccount.FirstName + docAccount.LastName,
+		PatientName: pat.FirstName + doc.LastName, //patAccount.FirstName + patAccount.LastName,
 	}
 
 	msgBytes, err := json.Marshal(msg)
@@ -286,23 +293,6 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 	return c.JSON(200, api.Return("StartNewChat ok", nil))
 }
 
-// @Summary Get questions by department id
-// @Description
-// @Tags Chat
-// @Produce json
-// @Param Department path uint true "department ID"
-// @Success 200 {object} api.ReturnedData{data=[]string}
-// @Router /department/{departmentID}  [GET]
-func (h *ChatHandler) GetQuestionsByDepartmentID(c echo.Context) error {
-	db := utils.GetDB()
-	db.Where("DepartmentID = ?", c.Param("DepartmentID"))
-
-	var cate models.Category
-	db.Find(&cate)
-
-	c.Logger().Debug("ChatServer$: GetQuestionsByDepartmentID")
-	return c.JSON(200, api.Return("ok", cate.Questions))
-}
 
 //Read subroutine for client
 func (client *Client) Read(c echo.Context) {
@@ -482,13 +472,14 @@ func (client *Client) RequirePrescription(message *Message, c echo.Context) {
 //Process requirequestions message
 func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	db := utils.GetDB()
-
-	var cate models.Category
-	db.Where("department_id = ?", message.DoctorID).Find(&cate)
-
+	var doc models.Doctor
+	db.Where("account_id = ?", client.ID).Find(&doc)
+	var depart models.Department
+	db.Where("id = ?", doc.DepartmentID).Find(&depart)
+	fmt.Printf("ChatServer:$ Questions: %s\n", depart.Questions)
 	msg := Message{
 		Type:      int(SendQuestions),
-		Questions: cate.Questions,
+		Questions: depart.Questions,
 	}
 
 	msgBytes, err := json.Marshal(msg)
