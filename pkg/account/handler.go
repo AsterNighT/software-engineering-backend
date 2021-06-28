@@ -56,7 +56,9 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	if body.Type != models.PatientType && body.Type != models.DoctorType && body.Type != models.AdminType {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Account Type", nil))
 	}
-	if len(body.Passwd) < models.AccountPasswdLen {
+
+	AccountPasswdLen, _ := strconv.Atoi(os.Getenv("PASSWD_MIN_LEN"))
+	if len(body.Passwd) < AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
@@ -157,7 +159,9 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 	if ok, _ := regexp.MatchString(`^\w+@\w+[.\w+]+$`, body.Email); !ok {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid E-mail Address", nil))
 	}
-	if len(body.Passwd) < models.AccountPasswdLen {
+
+	AccountPasswdLen, _ := strconv.Atoi(os.Getenv("PASSWD_MIN_LEN"))
+	if len(body.Passwd) < AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
@@ -218,7 +222,8 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Password", nil))
 	}
 
-	if len(body.NewPasswd) < models.AccountPasswdLen {
+	AccountPasswdLen, _ := strconv.Atoi(os.Getenv("PASSWD_MIN_LEN"))
+	if len(body.NewPasswd) < AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
@@ -382,7 +387,8 @@ func (h *AccountHandler) ResetPasswd(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("AuthCode", echo.Map{"authcodeok": false}))
 	}
 
-	if len(body.NewPasswd) < models.AccountPasswdLen {
+	AccountPasswdLen, _ := strconv.Atoi(os.Getenv("PASSWD_MIN_LEN"))
+	if len(body.NewPasswd) < AccountPasswdLen {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid Password Length", nil))
 	}
 
