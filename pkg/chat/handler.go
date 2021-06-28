@@ -293,7 +293,6 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 	return c.JSON(200, api.Return("StartNewChat ok", nil))
 }
 
-
 //Read subroutine for client
 func (client *Client) Read(c echo.Context) {
 	defer func() { //delete the client from pool
