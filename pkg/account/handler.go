@@ -77,20 +77,28 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 	}
 	account.HashPassword()
 
-	// if account.Type == "doctor" {
-	// 	doctor := Doctor{AccountID: account.ID}
-	// 	if result := db.Create(&doctor); result.Error != nil {
-	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
-	// 	}
-	// } else if account.Type == "patient" {
-	// 	patient := Patient{AccountID: account.ID}
-	// 	if result := db.Create(&patient); result.Error != nil {
-	// 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
-	// 	}
-	// }
-
+	// Add account
 	if result := db.Create(&account); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+	}
+
+	// Update accoutns since it's auto-gen
+	if err := db.Where("id = ?", account.ID).First(&account).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for doctor", nil))
+	}
+
+	if account.Type == "doctor" {
+		doctor := models.Doctor{AccountID: account.ID, Email: account.Email}
+		if result := db.Create(&doctor); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+		}
+	} else if account.Type == "patient" {
+		patient := models.Patient{AccountID: account.ID, Email: account.Email}
+		if result := db.Create(&patient); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+		}
+	} else {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid account type:", account.Type))
 	}
 
 	token, err := account.GenerateToken()
@@ -103,6 +111,62 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		"account": account,
 		"token":   token,
 	}))
+}
+
+// @Summary set doctor info
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param Department path string true "doctor department"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/create [POST]
+func (h *AccountHandler) SetDoctor(c echo.Context) error {
+	accountID := c.Get("id")
+	type RequestBody struct {
+		Department string `json:"department" validate:"required"`
+	}
+
+	var body RequestBody
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
+	}
+
+	db, _ := c.Get("db").(*gorm.DB)
+
+	if result := db.Model(&models.Doctor{}).Where("account_id = ?", accountID).Update("department", body.Department); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+	}
+	return c.JSON(http.StatusOK, api.Return("Doctor set", nil))
+}
+
+// @Summary set doctor info
+// @Description
+// @Tags Account
+// @Produce json
+// @Param Email path string true "user e-mail"
+// @Param Department path string true "doctor department"
+// @Success 200 {string} api.ReturnedData{data=nil}
+// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Router /account/create [POST]
+func (h *AccountHandler) SetPatient(c echo.Context) error {
+	accountID := c.Get("id")
+	type RequestBody struct {
+		Allergy string `json:"allergy" validate:"required"`
+	}
+
+	var body RequestBody
+	if err := utils.ExtractDataWithValidating(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
+	}
+
+	db, _ := c.Get("db").(*gorm.DB)
+
+	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Update("allergy", body.Allergy); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
+	}
+	return c.JSON(http.StatusOK, api.Return("Patient set", nil))
 }
 
 // @Summary check email's existense
@@ -417,7 +481,22 @@ func (h *AccountHandler) GetInfo(c echo.Context) error {
 	if err := db.Where("id = ?", id).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
 	}
-	return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName}))
+
+	if account.Type == "doctor" {
+		var doctor models.Doctor
+		if err := db.Where("account_id = ?", id).First(&doctor).Error; err != nil { // not found
+			return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for doctor", nil))
+		}
+		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "department": doctor.Department}))
+	} else if account.Type == "patient" {
+		var patient models.Patient
+		if err := db.Where("account_id = ?", id).First(&patient).Error; err != nil { // not found
+			return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for patient", nil))
+		}
+		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "allergy": patient.Allergy}))
+	} else {
+		return c.JSON(http.StatusBadRequest, api.Return("Invalid account type: ", account.Type))
+	}
 }
 
 /**
