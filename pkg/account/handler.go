@@ -30,7 +30,8 @@ type AccountHandler struct{}
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Type path string true "user type"
-// @Param Name path string true "user name"
+// @Param FirstName path string true "user first name"
+// @Param LastName path string true "user last name"
 // @Param Passwd path string true "user password"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
@@ -107,9 +108,8 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=nil}
-// @Failure 400 {string} api.ReturnedData{data=nil}
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"emailok": true}}
+// @Failure 400 {string} api.ReturnedData{data=echo.Map{"emailok": false}}
 // @Router /account/checkemail [POST]
 func (h *AccountHandler) CheckEmail(c echo.Context) error {
 	type RequestBody struct {
@@ -140,7 +140,7 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 // @Produce json
 // @Param Email path string true "user e-mail"
 // @Param Passwd path string true "user password"
-// @Success 200 {string} api.ReturnedData{data=nil}
+// @Success 200 {string} api.ReturnedData{data=echo.Map{"account": account, "token": token,}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/login [POST]
 func (h *AccountHandler) LoginAccount(c echo.Context) error {
@@ -187,7 +187,8 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password (the new one)"
+// @Param Passwd path string true "user password (the old one)"
+// @Param NewPasswd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/modifypasswd [POST]
@@ -303,7 +304,7 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", nil))
 }
 
-// @Summary check email's existense
+// @Summary check authcode's correctness
 // @Description
 // @Tags Account
 // @Produce json
