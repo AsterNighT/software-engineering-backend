@@ -77,12 +77,13 @@ func AddClient(client *Client, c echo.Context) {
 	Clients[client.ID] = client
 	fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
 
-	/*
-		for test
+	//for test
 
-		if len(Clients) == 2 {
-			StartNewChat(111, 222, c)
-		}
+	if len(Clients) == 2 {
+		StartNewChat(111, 222, c)
+	}
+	/*
+
 		if len(Clients) == 3 {
 			StartNewChat(111, 333, c)
 		}
@@ -232,14 +233,14 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
 
-	if _, ok := Clients[doctorID]; !ok {
-		ClientNotConnected(doctorID, Doctor, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
-	if _, ok := Clients[patientID]; !ok {
-		ClientNotConnected(patientID, Patient, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
+	// if _, ok := Clients[doctorID]; !ok {
+	// 	ClientNotConnected(doctorID, Doctor, c)
+	// 	return c.JSON(400, api.Return("client not connected", nil))
+	// }
+	// if _, ok := Clients[patientID]; !ok {
+	// 	ClientNotConnected(patientID, Patient, c)
+	// 	return c.JSON(400, api.Return("client not connected", nil))
+	// }
 
 	var doctor = Clients[doctorID]
 	var patient = Clients[patientID]
@@ -419,7 +420,6 @@ func (client *Client) CloseChat(message *Message, c echo.Context) {
 	receiver.MsgBuffer <- msgBytes
 }
 
-//TODO no medicalrecord
 //Process requiremedicalrecord message
 func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 	receiver := client.FindPatient(message, c)
@@ -427,11 +427,17 @@ func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 		client.ReceiverNotConnected(message, c)
 		return
 	}
+
+	//find case id from database
+	db := utils.GetDB()
+	var case1 models.Case
+	db.Where("patient_id = ?", message.PatientID).Order("date DESC").Limit(1).First(&case1)
+
 	msg := Message{
 		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
 		DoctorID:  message.DoctorID,
-		URL:       "MEDICAL RECORD url", // get from database
+		URL:       "https://neon-cubes.xyz:5000/record_p/" + strconv.Itoa(message.PatientID) + "/" + strconv.Itoa((int)(case1.ID)), // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
