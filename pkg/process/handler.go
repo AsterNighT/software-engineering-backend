@@ -11,7 +11,7 @@ import (
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -29,7 +29,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 		if err != nil {
 			c.Logger().Debug("search failed...")
 		}
-	}(response.Body) //在回复后必须关闭回复的主体
+	}(response.Body) // 在回复后必须关闭回复的主体
 	set := mapset.NewSet()
 	resMap := Transformation(response)
 	if v, ok := resMap["result"]; ok {
@@ -51,7 +51,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 	for elem := range it.C {
 		names = append(names, elem.(string))
 	}
-	//fmt.Println(names)
+	// fmt.Println(names)
 	db := utils.GetDB()
 	var departments []models.Department
 	db.Where("name in (?)", names).Find(&departments)
@@ -174,7 +174,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 		var possibleDuplicates []models.Registration
 
-		//check duplicate registration
+		// check duplicate registration
 		if db.Where(&models.Registration{
 			DepartmentID: department.ID,
 			PatientID:    patient.ID,
