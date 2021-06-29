@@ -67,6 +67,7 @@ var (
 	//Clients  = make(map[*Client]bool)
 	Connections = make(map[int](map[int]bool))
 	//Connections = make(map[*Client][]*Client)
+	recordServerAddr = "https://neon-cubes.xyz:5000/record_p/"
 )
 
 //Add a new client into pool
@@ -77,16 +78,14 @@ func AddClient(client *Client, c echo.Context) {
 	Clients[client.ID] = client
 	fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
 
-	/*
-		for test
+	//for test
 
-		if len(Clients) == 2 {
-			StartNewChat(111, 222, c)
-		}
-		if len(Clients) == 3 {
-			StartNewChat(111, 333, c)
-		}
-	*/
+	// if len(Clients) == 2 {
+	// 	StartNewChat(111, 222, c)
+	// }
+	// if len(Clients) == 3 {
+	// 	StartNewChat(111, 333, c)
+	// }
 }
 
 //Delete a client from pool
@@ -232,14 +231,14 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
 
-	if _, ok := Clients[doctorID]; !ok {
-		ClientNotConnected(doctorID, Doctor, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
-	if _, ok := Clients[patientID]; !ok {
-		ClientNotConnected(patientID, Patient, c)
-		return c.JSON(400, api.Return("client not connected", nil))
-	}
+	// if _, ok := Clients[doctorID]; !ok {
+	// 	ClientNotConnected(doctorID, Doctor, c)
+	// 	return c.JSON(400, api.Return("client not connected", nil))
+	// }
+	// if _, ok := Clients[patientID]; !ok {
+	// 	ClientNotConnected(patientID, Patient, c)
+	// 	return c.JSON(400, api.Return("client not connected", nil))
+	// }
 
 	var doctor = Clients[doctorID]
 	var patient = Clients[patientID]
@@ -266,13 +265,20 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 		Connections[patient.ID] = receiverMap //add receiver to map result
 	}
 
+	//use db to find doctor and patient's names
+	db := utils.GetDB()
+	var doc models.Account
+	db.Where("id = ?", doctor.ID).Find(&doc)
+	var pat models.Account
+	db.Where("id = ?", patient.ID).Find(&pat)
+
 	//send NewChat pkg to both doctor and patient
 	msg := Message{
 		Type:        int(NewChat),
 		PatientID:   patient.ID,
 		DoctorID:    doctor.ID,
-		DoctorName:  "doctor A",  //doctor.Name,
-		PatientName: "patient B", //patient.Name,
+		DoctorName:  doc.FirstName + doc.LastName, //docAccount.FirstName + docAccount.LastName,
+		PatientName: pat.FirstName + doc.LastName, //patAccount.FirstName + patAccount.LastName,
 	}
 
 	msgBytes, err := json.Marshal(msg)
@@ -284,24 +290,6 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 	patient.MsgBuffer <- msgBytes
 
 	return c.JSON(200, api.Return("StartNewChat ok", nil))
-}
-
-// @Summary Get questions by department id
-// @Description
-// @Tags Chat
-// @Produce json
-// @Param Department path uint true "department ID"
-// @Success 200 {object} api.ReturnedData{data=[]string}
-// @Router /department/{departmentID}  [GET]
-func (h *ChatHandler) GetQuestionsByDepartmentID(c echo.Context) error {
-	db := utils.GetDB()
-	db.Where("DepartmentID = ?", c.Param("DepartmentID"))
-
-	var cate models.Category
-	db.Find(&cate)
-
-	c.Logger().Debug("ChatServer$: GetQuestionsByDepartmentID")
-	return c.JSON(200, api.Return("ok", cate.Questions))
 }
 
 //Read subroutine for client
@@ -430,7 +418,6 @@ func (client *Client) CloseChat(message *Message, c echo.Context) {
 	receiver.MsgBuffer <- msgBytes
 }
 
-//TODO no medicalrecord
 //Process requiremedicalrecord message
 func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 	receiver := client.FindPatient(message, c)
@@ -438,11 +425,17 @@ func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 		client.ReceiverNotConnected(message, c)
 		return
 	}
+
+	//find case id from database
+	db := utils.GetDB()
+	var case1 models.Case
+	db.Where("patient_id = ?", message.PatientID).Order("date DESC").Limit(1).First(&case1)
+
 	msg := Message{
 		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
 		DoctorID:  message.DoctorID,
-		URL:       "MEDICAL RECORD url", // get from database
+		URL:       recordServerAddr + strconv.Itoa(message.PatientID) + "/" + strconv.Itoa((int)(case1.ID)), // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
@@ -482,13 +475,14 @@ func (client *Client) RequirePrescription(message *Message, c echo.Context) {
 //Process requirequestions message
 func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	db := utils.GetDB()
-
-	var cate models.Category
-	db.Where("department_id = ?", message.DoctorID).Find(&cate)
-
+	var doc models.Doctor
+	db.Where("account_id = ?", client.ID).Find(&doc)
+	var depart models.Department
+	db.Where("id = ?", doc.DepartmentID).Find(&depart)
+	fmt.Printf("ChatServer:$ Questions: %s\n", depart.Questions)
 	msg := Message{
 		Type:      int(SendQuestions),
-		Questions: cate.Questions,
+		Questions: depart.Questions,
 	}
 
 	msgBytes, err := json.Marshal(msg)
