@@ -79,15 +79,12 @@ func AddClient(client *Client, c echo.Context) {
 
 	//for test
 
-	if len(Clients) == 2 {
-		StartNewChat(111, 222, c)
-	}
-	/*
-
-		if len(Clients) == 3 {
-			StartNewChat(111, 333, c)
-		}
-	*/
+	// if len(Clients) == 2 {
+	// 	StartNewChat(111, 222, c)
+	// }
+	// if len(Clients) == 3 {
+	// 	StartNewChat(111, 333, c)
+	// }
 }
 
 //Delete a client from pool
