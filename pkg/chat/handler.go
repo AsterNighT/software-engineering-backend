@@ -67,6 +67,7 @@ var (
 	//Clients  = make(map[*Client]bool)
 	Connections = make(map[int](map[int]bool))
 	//Connections = make(map[*Client][]*Client)
+	recordServerAddr = "https://neon-cubes.xyz:5000/record_p/"
 )
 
 //Add a new client into pool
@@ -434,7 +435,7 @@ func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
 		DoctorID:  message.DoctorID,
-		URL:       "https://neon-cubes.xyz:5000/record_p/" + strconv.Itoa(message.PatientID) + "/" + strconv.Itoa((int)(case1.ID)), // get from database
+		URL:       recordServerAddr + strconv.Itoa(message.PatientID) + "/" + strconv.Itoa((int)(case1.ID)), // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
