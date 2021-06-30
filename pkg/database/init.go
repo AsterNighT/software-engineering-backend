@@ -114,7 +114,7 @@ func initDepartment() {
 
 	db := utils.GetDB()
 	db.Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "name"}},
+		Columns:   []clause.Column{{Name: "name"}},
 		DoUpdates: clause.AssignmentColumns([]string{"detail"}),
 	}).Create(&departments)
 }
