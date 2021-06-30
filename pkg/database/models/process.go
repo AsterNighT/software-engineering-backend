@@ -103,8 +103,8 @@ const (
 type SearchKey string
 
 const (
-	KevinKey SearchKey = "AO6VqIdnT4z+h5mO9Ig3QmvGMwTgsJeZ/pxz7Pw"
-	//AlphaKey	SearchKey = "ALnHr9ZvSN7+hpON9YowQ27DOATgsJeZ/pxz7Pw"
+	//KevinKey SearchKey = "AO6VqIdnT4z+h5mO9Ig3QmvGMwTgsJeZ/pxz7Pw"
+	AlphaKey	SearchKey = "ALnHr9ZvSN7+hpON9YowQ27DOATgsJeZ/pxz7Pw"
 )
 
 // DepartmentDetailJSON defines the return json to frontend

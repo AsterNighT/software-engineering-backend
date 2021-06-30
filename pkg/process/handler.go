@@ -19,7 +19,7 @@ import (
 type ProcessHandler struct{}
 
 func (h *ProcessHandler) Search(c echo.Context) error {
-	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.KevinKey+"&title=") + c.Param("keyWord"))
+	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.AlphaKey+"&title=") + c.Param("keyWord"))
 	if err != nil {
 		c.Logger().Debug("search failed...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.SearchFailed))
