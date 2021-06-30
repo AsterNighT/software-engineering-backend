@@ -19,7 +19,7 @@ import (
 type ProcessHandler struct{}
 
 func (h *ProcessHandler) Search(c echo.Context) error {
-	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.KevinKey+"&title=") + c.Param("KeyWord"))
+	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.KevinKey+"&title=") + c.Param("keyWord"))
 	if err != nil {
 		c.Logger().Debug("search failed...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.SearchFailed))
@@ -31,7 +31,7 @@ func (h *ProcessHandler) Search(c echo.Context) error {
 		}
 	}(response.Body) // 在回复后必须关闭回复的主体
 	set := mapset.NewSet()
-	resMap := Transformation(response)
+	resMap := parsing(response)
 	if v, ok := resMap["result"]; ok {
 		list := v.([]interface{})
 		for _, v := range list {
@@ -651,7 +651,7 @@ func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
 }
 
-func Transformation(response *http.Response) map[string]interface{} {
+func parsing(response *http.Response) map[string]interface{} {
 	var result map[string]interface{}
 	body, err := ioutil.ReadAll(response.Body)
 	if err == nil {
