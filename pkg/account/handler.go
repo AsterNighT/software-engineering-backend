@@ -120,7 +120,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Param Department path string true "doctor department"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/create [POST]
+// @Router /account/setdoctor [POST]
 func (h *AccountHandler) SetDoctor(c echo.Context) error {
 	accountID := c.Get("id")
 	type RequestBody struct {
@@ -147,7 +147,7 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 // @Param Allergy path string true "patient allergy history"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
-// @Router /account/create [POST]
+// @Router /account/setpatient [POST]
 func (h *AccountHandler) SetPatient(c echo.Context) error {
 	accountID := c.Get("id")
 	type RequestBody struct {
@@ -370,6 +370,9 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, api.Return("Successfully send reset email", nil))
 }
+
+// return info of doctor to front end
+// func (h *AccountHandler) RetInfo(c echo.Context)
 
 // @Summary check authcode's correctness
 // @Description
