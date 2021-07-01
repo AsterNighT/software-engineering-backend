@@ -69,15 +69,13 @@ func (h *CaseHandler) GetAllCases(c echo.Context) error {
 // @Router /patient/{patientID}/cases/{caseID} [GET]
 func (h *CaseHandler) GetCaseByCaseID(c echo.Context) error {
 
-	var patID int
-	patID, _ = strconv.Atoi(c.Param("patientID"))
-	if !FromPatient(c, uint(patID)) {
-		return c.JSON(403, api.Return("you cannot access this case", nil))
-	}
-
 	db := utils.GetDB()
 	var case1 models.Case
 	db.Preload("Prescriptions").Preload("Prescriptions.Guidelines").Preload("Prescriptions.Guidelines.Medicine").First(&case1, c.Param("caseID"))
+
+	if !FromPatient(c, case1.PatientID) {
+		return c.JSON(403, api.Return("you cannot access this case", nil))
+	}
 
 	c.Logger().Debug("GetCasebyCaseID")
 	return c.JSON(200, api.Return("ok", case1))

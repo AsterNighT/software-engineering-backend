@@ -456,6 +456,9 @@ func ParseToken(tokenString string) (uint, error) {
 		}
 		return []byte(os.Getenv("JWT_KEY")), nil
 	})
+	if err != nil {
+		return 0, err
+	}
 	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid {
 		fmt.Println(claims)
 		return uint((*claims)["id"].(float64)), nil

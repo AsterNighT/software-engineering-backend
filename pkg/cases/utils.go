@@ -18,6 +18,7 @@ func FromAdmin(c echo.Context) bool {
 
 func FromDoctor(c echo.Context) bool {
 	if FromAdmin(c) {
+		c.Logger().Debug("Accept Admin")
 		return true
 	}
 	db, _ := c.Get("db").(*gorm.DB)
@@ -31,9 +32,11 @@ func FromDoctor(c echo.Context) bool {
 
 func FromPatient(c echo.Context, id uint) bool {
 	if FromDoctor(c) {
+		c.Logger().Debug("Accept Doctor")
 		return true
 	}
 	if c.Get("id").(uint) == id {
+		c.Logger().Debug("Accept Patient", id)
 		return true
 	}
 	c.Logger().Errorf("unauthorized access, expecting user with id:%s", id)
