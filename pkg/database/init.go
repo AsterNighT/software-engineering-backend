@@ -100,7 +100,7 @@ func initDepartment() {
 		Detail: "专治不孕不育",
 	}, {
 		Name:   "肿瘤内科",
-		Detail: "",
+		Detail: "本科主要针对消化系统癌症及肺癌等血液恶性肿瘤以外的固态瘤病人进行诊疗（包括诊断、癌症药物治疗、与放射科及外科共同进行多学科综合治疗",
 	}, {
 		Name:   "心胸外科",
 		Detail: "",
@@ -113,5 +113,8 @@ func initDepartment() {
 	}}
 
 	db := utils.GetDB()
-	db.Clauses(clause.OnConflict{DoNothing: true}).Create(&departments)
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoUpdates: clause.AssignmentColumns([]string{"detail"}),
+	}).Create(&departments)
 }
