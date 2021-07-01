@@ -478,7 +478,7 @@ func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	var doc models.Doctor
 	db.Where("account_id = ?", client.ID).Find(&doc)
 	var depart models.Department
-	db.Where("id = ?", doc.DepartmentID).Find(&depart)
+	db.Where("name = ?", doc.Department).Find(&depart)
 	fmt.Printf("ChatServer:$ Questions: %s\n", depart.Questions)
 	msg := Message{
 		Type:      int(SendQuestions),
