@@ -1,17 +1,62 @@
 package process
 
 import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
 	"github.com/AsterNighT/software-engineering-backend/pkg/utils"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type ProcessHandler struct{}
+
+func (h *ProcessHandler) Search(c echo.Context) error {
+	response, err := http.Get(string("http://zhouxunwang.cn/data/?id=111&key="+models.AlphaKey+"&title=") + c.Param("keyWord"))
+	if err != nil {
+		c.Logger().Debug("search failed...")
+		return c.JSON(http.StatusBadRequest, api.Return("error", models.SearchFailed))
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			c.Logger().Debug("search failed...")
+		}
+	}(response.Body) // 在回复后必须关闭回复的主体
+	set := mapset.NewSet()
+	resMap := parsing(response)
+	if v, ok := resMap["result"]; ok {
+		list := v.([]interface{})
+		for _, v := range list {
+			nodeMap := v.(map[string]interface{})
+			if verStr, ok := nodeMap["jzks"]; ok {
+				strArray := strings.Fields(verStr.(string))
+				for i := range strArray {
+					if !set.Contains(strArray[i]) {
+						set.Add(strArray[i])
+					}
+				}
+			}
+		}
+	}
+	names := make([]string, 1)
+	it := set.Iterator()
+	for elem := range it.C {
+		names = append(names, elem.(string))
+	}
+	// fmt.Println(names)
+	db := utils.GetDB()
+	var departments []models.Department
+	db.Where("name in (?)", names).Find(&departments)
+	return c.JSON(http.StatusOK, api.Return("ok", departments))
+}
 
 // GetAllDepartments
 // @Summary get all departments
@@ -129,7 +174,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 		var possibleDuplicates []models.Registration
 
-		//check duplicate registration
+		// check duplicate registration
 		if db.Where(&models.Registration{
 			DepartmentID: department.ID,
 			PatientID:    patient.ID,
@@ -239,6 +284,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		c.Logger().Debug("JSON format failed when trying to create a registration ...")
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateRegistrationFailed))
 	}
+
 	return c.JSON(http.StatusOK, api.Return("ok", res))
 }
 
@@ -603,4 +649,16 @@ func (h *ProcessHandler) DeleteMileStoneByDoctor(c echo.Context) error {
 
 	db.Delete(&mileStone)
 	return c.JSON(http.StatusOK, api.Return("ok", nil))
+}
+
+func parsing(response *http.Response) map[string]interface{} {
+	var result map[string]interface{}
+	body, err := ioutil.ReadAll(response.Body)
+	if err == nil {
+		err := json.Unmarshal(body, &result)
+		if err != nil {
+			return nil
+		}
+	}
+	return result
 }

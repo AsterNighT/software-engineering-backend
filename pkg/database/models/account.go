@@ -37,7 +37,7 @@ type Doctor struct {
 	AccountID uint
 	Email     string
 
-	Department string
+	Department uint
 }
 
 type Patient struct {

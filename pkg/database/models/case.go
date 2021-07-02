@@ -1,8 +1,6 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type Case struct {
 	ID             uint `gorm:"primaryKey"` // Every object should have ID
