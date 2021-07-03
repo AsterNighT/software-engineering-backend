@@ -28,11 +28,11 @@ type AccountHandler struct{}
 // @Description will check primarykey other, then add to accountList if possible
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param Type path string true "user type"
-// @Param FirstName path string true "user first name"
-// @Param LastName path string true "user last name"
-// @Param Passwd path string true "user password"
+// @Param email path string true "user e-mail"
+// @Param type path string true "user type"
+// @Param firstname path string true "user first name"
+// @Param lastname path string true "user last name"
+// @Param passwd path string true "user password"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/create [POST]
@@ -117,7 +117,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param DepartmentID path uint true "doctor department id"
+// @Param departmentid path uint true "doctor department id"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/setdoctor [POST]
@@ -177,7 +177,7 @@ func (h *AccountHandler) SetPatient(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
+// @Param email path string true "user e-mail"
 // @Success 200 {string} api.ReturnedData{data=echo.Map{"emailok": true}}
 // @Failure 400 {string} api.ReturnedData{data=echo.Map{"emailok": false}}
 // @Router /account/checkemail [POST]
@@ -208,8 +208,8 @@ func (h *AccountHandler) CheckEmail(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password"
+// @Param email path string true "user e-mail"
+// @Param passwd path string true "user password"
 // @Success 200 {string} api.ReturnedData{data=echo.Map{"account": account, "token": token,}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/login [POST]
@@ -258,9 +258,9 @@ func (h *AccountHandler) LoginAccount(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param Passwd path string true "user password (the old one)"
-// @Param NewPasswd path string true "user password (the new one)"
+// @Param email path string true "user e-mail"
+// @Param passwd path string true "user password (the old one)"
+// @Param newpasswd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/modifypasswd [POST]
@@ -309,7 +309,7 @@ func (h *AccountHandler) ModifyPasswd(c echo.Context) error {
 // @Description can only be called during logged-in status since there is no password check
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
+// @Param email path string true "user e-mail"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=echo.Map{"authCode": authCode}}
 // @Router /account/sendemail [POST]
@@ -384,8 +384,8 @@ func (h *AccountHandler) SendEmail(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param AuthCode path string true "given auth code"
+// @Param email path string true "user e-mail"
+// @Param authcode path string true "given auth code"
 // @Success 200 {string} api.ReturnedData{data=echo.Map{"authcodeok": false}}
 // @Failure 400 {string} api.ReturnedData{data=echo.Map{"authcodeok": true}}
 // @Router /account/checkauthcode [POST]
@@ -421,9 +421,9 @@ func (h *AccountHandler) CheckAuthCode(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Email path string true "user e-mail"
-// @Param AuthCode path string true "given auth code"
-// @Param Passwd path string true "user password (the new one)"
+// @Param email path string true "user e-mail"
+// @Param authCode path string true "given auth code"
+// @Param passwd path string true "user password (the new one)"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/resetpasswd [POST]
