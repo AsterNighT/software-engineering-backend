@@ -43,14 +43,14 @@ const (
 )
 
 type Client struct {
-	ID        int
+	ID        uint
 	Role      RoleType
 	Conn      *websocket.Conn
 	MsgBuffer chan []byte //Message to send to this client
 }
 
 type InfoClient struct {
-	ID   int
+	ID   uint
 	Role RoleType
 }
 
@@ -63,9 +63,9 @@ var (
 			return true
 		},
 	}
-	Clients = make(map[int]*Client)
+	Clients = make(map[uint]*Client)
 	//Clients  = make(map[*Client]bool)
-	Connections = make(map[int](map[int]bool))
+	Connections = make(map[uint](map[uint]bool))
 	//Connections = make(map[*Client][]*Client)
 	recordServerAddr = "https://neon-cubes.xyz:5000/record_p/"
 )
@@ -136,7 +136,7 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
-		ID:        patientID,
+		ID:        uint(patientID),
 		Role:      Patient,
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
@@ -171,7 +171,7 @@ func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
-		ID:        doctorID,
+		ID:        uint(doctorID),
 		Role:      Doctor,
 		Conn:      conn,
 		MsgBuffer: make(chan []byte),
@@ -227,7 +227,7 @@ func (client *Client) FindPatient(message *Message, c echo.Context) *Client {
 
 }
 
-func StartNewChat(doctorID int, patientID int, c echo.Context) error {
+func StartNewChat(doctorID uint, patientID uint, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
 
@@ -245,7 +245,7 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//look up doctor in Connections
 	if _, ok := Connections[doctor.ID]; !ok { //map result doesn't exist
-		receiverMap := make(map[int]bool)
+		receiverMap := make(map[uint]bool)
 		receiverMap[patient.ID] = true
 		Connections[doctor.ID] = receiverMap
 	} else { //map result exists
@@ -256,7 +256,7 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//look up patient in Connections
 	if _, ok := Connections[patient.ID]; !ok { //map result doesn't exist
-		receiverMap := make(map[int]bool)
+		receiverMap := make(map[uint]bool)
 		receiverMap[doctor.ID] = true
 		Connections[patient.ID] = receiverMap
 	} else { //map result exists
@@ -338,10 +338,10 @@ type Message struct {
 	Role        int    `json:"Role,omitempty"`
 	PatientName string `json:"PatientName,omitempty"`
 	DoctorName  string `json:"DoctorName,omitempty"`
-	SenderID    int    `json:"SenderID,omitempty"`
-	ReceiverID  int    `json:"ReceiverID,omitempty"`
-	PatientID   int    `json:"PatientID,omitempty"`
-	DoctorID    int    `json:"DoctorID,omitempty"`
+	SenderID    uint   `json:"SenderID,omitempty"`
+	ReceiverID  uint   `json:"ReceiverID,omitempty"`
+	PatientID   uint   `json:"PatientID,omitempty"`
+	DoctorID    uint   `json:"DoctorID,omitempty"`
 	Content     string `json:"Content,omitempty"`
 	Time        string `json:"Time,omitempty"`
 	CaseID      string `json:"CaseID,omitempty"`
@@ -435,7 +435,7 @@ func (client *Client) RequireMedicalRecord(message *Message, c echo.Context) {
 		Type:      int(SendMedicalRecord),
 		PatientID: message.PatientID,
 		DoctorID:  message.DoctorID,
-		URL:       recordServerAddr + strconv.Itoa(message.PatientID) + "/" + strconv.Itoa((int)(case1.ID)), // get from database
+		URL:       recordServerAddr + strconv.Itoa(int(message.PatientID)) + "/" + strconv.Itoa(int(case1.ID)), // get from database
 	}
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
@@ -503,7 +503,7 @@ func (client *Client) ReceiverNotConnected(message *Message, c echo.Context) {
 	c.Logger().Debug("ChatServer$: ReceiverNotConnected")
 }
 
-func ClientNotConnected(clientID int, role RoleType, c echo.Context) {
+func ClientNotConnected(clientID uint, role RoleType, c echo.Context) {
 	c.Logger().Debug("client not connected")
 }
 
