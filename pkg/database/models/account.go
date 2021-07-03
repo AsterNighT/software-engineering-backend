@@ -46,7 +46,8 @@ type Patient struct {
 	Email     string
 
 	// Contraindication string
-	Allergy string
+	Allergy  string
+	BirthDay time.Time
 }
 
 /**

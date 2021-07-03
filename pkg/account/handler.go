@@ -117,14 +117,14 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Department path string true "doctor department"
+// @Param DepartmentID path uint true "doctor department id"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/setdoctor [POST]
 func (h *AccountHandler) SetDoctor(c echo.Context) error {
 	accountID := c.Get("id")
 	type RequestBody struct {
-		Department string `json:"department" validate:"required"`
+		DepartmentID uint `json:"departmentid" validate:"required"`
 	}
 
 	var body RequestBody
@@ -134,7 +134,7 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 
 	db, _ := c.Get("db").(*gorm.DB)
 
-	if result := db.Model(&models.Doctor{}).Where("account_id = ?", accountID).Update("department", body.Department); result.Error != nil {
+	if result := db.Model(&models.Doctor{}).Where("account_id = ?", accountID).Update("department", body.DepartmentID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 	return c.JSON(http.StatusOK, api.Return("Doctor set", nil))
@@ -145,13 +145,15 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param Allergy path string true "patient allergy history"
+// @Param birthday path string true "patient birthday string in yyyy-mm-dd"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/setpatient [POST]
 func (h *AccountHandler) SetPatient(c echo.Context) error {
 	accountID := c.Get("id")
 	type RequestBody struct {
-		Allergy string `json:"allergy" validate:"required"`
+		Allergy     string `json:"allergy" validate:"required"`
+		BirthString string `json:"birthday" validate:"required"`
 	}
 
 	var body RequestBody
@@ -161,7 +163,9 @@ func (h *AccountHandler) SetPatient(c echo.Context) error {
 
 	db, _ := c.Get("db").(*gorm.DB)
 
-	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Update("allergy", body.Allergy); result.Error != nil {
+	birthDay, _ := time.Parse("2006-01-02", body.BirthString)
+
+	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Updates(map[string]interface{}{"allergy": body.Allergy, "birth_day": birthDay}); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 	return c.JSON(http.StatusOK, api.Return("Patient set", nil))
