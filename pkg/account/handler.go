@@ -2,6 +2,7 @@ package account
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -543,7 +544,11 @@ func getAccountID(c echo.Context) (uint, error) {
 	if auth == "" {
 		auth = c.QueryParam("token")
 	} else {
-		auth = strings.Split(auth, "Bearer ")[1]
+		words := strings.Split(auth, "Bearer ")
+		if len(words) != 2 {
+			return 0, errors.New("Invalid Authorization Header")
+		}
+		auth = words[1]
 	}
 	c.Logger().Debug("get token: ", auth)
 	id, err := ParseToken(auth)
