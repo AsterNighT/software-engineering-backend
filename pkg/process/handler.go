@@ -507,8 +507,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 			if status == models.Terminated {
 				registration.Status = status
 				db.Save(&registration)
-
-				return c.JSON(http.StatusOK, api.Return("ok", "成功修改挂号"))
+				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 			}
 		}
 	}
