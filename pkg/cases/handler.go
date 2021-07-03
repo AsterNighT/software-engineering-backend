@@ -166,13 +166,6 @@ func (h *CaseHandler) NewCase(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, api.Return("error", err.Error()))
 	}
-	var acc1, acc2 models.Account
-	db.First(&acc1, cas.DoctorID)
-	db.First(&acc2, cas.PatientID)
-	cas.DoctorName = acc1.LastName + " " + acc1.FirstName
-	cas.PatientName = acc2.LastName + " " + acc2.FirstName
-	cas.Age = 18
-	cas.Gender = "男"
 	cas.Date = time.Now()
 	result := db.Create(&cas)
 	if result.Error != nil {
