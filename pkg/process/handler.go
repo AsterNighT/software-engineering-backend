@@ -2,12 +2,13 @@ package process
 
 import (
 	"encoding/json"
-	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 	"io"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"strings"
+
+	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 
 	"github.com/AsterNighT/software-engineering-backend/api"
 	"github.com/AsterNighT/software-engineering-backend/pkg/database/models"
