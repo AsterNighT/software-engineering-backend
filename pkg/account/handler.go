@@ -144,8 +144,9 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 // @Description
 // @Tags Account
 // @Produce json
-// @Param Allergy path string true "patient allergy history"
+// @Param allergy path string true "patient allergy history"
 // @Param birthday path string true "patient birthday string in yyyy-mm-dd"
+// @Param gender path bool true "patient gender {0: female, 1: male}"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/setpatient [POST]
@@ -154,6 +155,7 @@ func (h *AccountHandler) SetPatient(c echo.Context) error {
 	type RequestBody struct {
 		Allergy     string `json:"allergy" validate:"required"`
 		BirthString string `json:"birthday" validate:"required"`
+		Gender      bool   `json:"gender" validate:"required"`
 	}
 
 	var body RequestBody
@@ -165,7 +167,7 @@ func (h *AccountHandler) SetPatient(c echo.Context) error {
 
 	birthDay, _ := time.Parse("2006-01-02", body.BirthString)
 
-	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Updates(map[string]interface{}{"allergy": body.Allergy, "birth_day": birthDay}); result.Error != nil {
+	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Updates(map[string]interface{}{"allergy": body.Allergy, "birth_day": birthDay, "gender": body.Gender}); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 	return c.JSON(http.StatusOK, api.Return("Patient set", nil))
