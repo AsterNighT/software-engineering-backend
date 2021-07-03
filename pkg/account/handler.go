@@ -92,9 +92,9 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 
-	// Update accoutns since it's auto-gen
-	if err := db.Where("id = ?", account.ID).First(&account).Error; err != nil {
-		return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for doctor", nil))
+	// Update account id since it's auto-gen by db
+	if err := db.Where("email = ?", account.Email).First(&account).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, api.Return("DB error", err.Error()))
 	}
 
 	if account.Type == "doctor" {
