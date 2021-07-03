@@ -16,6 +16,9 @@ type Account struct {
 	FirstName string
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
+
+	Gender   bool
+	BirthDay time.Time
 }
 
 type Auth struct {
@@ -46,9 +49,7 @@ type Patient struct {
 	Email     string
 
 	// Contraindication string
-	Gender   bool
-	Allergy  string
-	BirthDay time.Time
+	Allergy string
 }
 
 /**

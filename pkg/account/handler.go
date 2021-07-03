@@ -33,6 +33,8 @@ type AccountHandler struct{}
 // @Param firstname path string true "user first name"
 // @Param lastname path string true "user last name"
 // @Param passwd path string true "user password"
+// @Param birthday path string true "user birthday string in yyyy-mm-dd"
+// @Param gender path bool true "user gender {0: female, 1: male}"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/create [POST]
@@ -44,6 +46,9 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		FirstName string            `json:"firstname" validate:"required"`
 		LastName  string            `json:"lastname" validate:"required"`
 		Passwd    string            `json:"passwd" validate:"required"`
+
+		BirthString string `json:"birthday" validate:"required"`
+		Gender      bool   `json:"gender" validate:"required"`
 	}
 
 	var body RequestBody
@@ -67,6 +72,8 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("E-Mail or AccountID occupied", nil))
 	}
 
+	birthDay, _ := time.Parse("2006-01-02", body.BirthString)
+
 	account := models.Account{
 		Email: body.Email,
 
@@ -74,6 +81,9 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		FirstName: body.FirstName,
 		LastName:  body.LastName,
 		Passwd:    body.Passwd,
+
+		Gender:   body.Gender,
+		BirthDay: birthDay,
 	}
 	account.HashPassword()
 
@@ -145,17 +155,13 @@ func (h *AccountHandler) SetDoctor(c echo.Context) error {
 // @Tags Account
 // @Produce json
 // @Param allergy path string true "patient allergy history"
-// @Param birthday path string true "patient birthday string in yyyy-mm-dd"
-// @Param gender path bool true "patient gender {0: female, 1: male}"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/setpatient [POST]
 func (h *AccountHandler) SetPatient(c echo.Context) error {
 	accountID := c.Get("id")
 	type RequestBody struct {
-		Allergy     string `json:"allergy" validate:"required"`
-		BirthString string `json:"birthday" validate:"required"`
-		Gender      bool   `json:"gender" validate:"required"`
+		Allergy string `json:"allergy" validate:"required"`
 	}
 
 	var body RequestBody
@@ -165,9 +171,7 @@ func (h *AccountHandler) SetPatient(c echo.Context) error {
 
 	db, _ := c.Get("db").(*gorm.DB)
 
-	birthDay, _ := time.Parse("2006-01-02", body.BirthString)
-
-	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Updates(map[string]interface{}{"allergy": body.Allergy, "birth_day": birthDay, "gender": body.Gender}); result.Error != nil {
+	if result := db.Model(&models.Patient{}).Where("account_id = ?", accountID).Updates(map[string]interface{}{"allergy": body.Allergy}); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, api.Return("DB error", result.Error.Error()))
 	}
 	return c.JSON(http.StatusOK, api.Return("Patient set", nil))
