@@ -8,8 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const AccountPasswdLen = 8
-
 type Account struct {
 	ID    uint `gorm:"primarykey;autoIncrement;"`
 	Email string
@@ -18,6 +16,9 @@ type Account struct {
 	FirstName string
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
+
+	Gender   bool
+	Birthday time.Time
 }
 
 type Auth struct {
@@ -35,25 +36,20 @@ const (
 )
 
 type Doctor struct {
-	ID           uint `gorm:"primarykey;autoIncrement;"`
-	DepartmentID uint
-
+	ID        uint `gorm:"primarykey;autoIncrement;"`
 	AccountID uint
-	CaseID    uint
-	ChatID    uint
-	// Cases     []cases.Case `gorm:"foreignkey:ID"`
-	// Chats     []chat.Chat  `gorm:"foreignkey:ID"`
+	Email     string
+
+	Department uint
 }
 
 type Patient struct {
-	ID uint `gorm:"primarykey;autoIncrement;"`
-
+	ID        uint `gorm:"primarykey;autoIncrement;"`
 	AccountID uint
-	CaseID    uint
-	ChatID    uint
-	// Account Account      `gorm:"foreignkey:ID"`
-	// Cases   []cases.Case `gorm:"foreignkey:ID"`
-	// Chats   []chat.Chat  `gorm:"foreignkey:ID"`
+	Email     string
+
+	// Contraindication string
+	Allergy string
 }
 
 /**

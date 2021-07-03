@@ -44,6 +44,8 @@ func RegisterRouters(app *echo.Echo) error {
 			var h account.AccountHandler
 			router := router.Group("/account")
 			router.POST("/create", h.CreateAccount)
+			router.POST("/setdoctor", h.SetDoctor, account.CheckAccountID)
+			router.POST("/setpatient", h.SetPatient, account.CheckAccountID)
 			router.POST("/checkemail", h.CheckEmail)
 			router.POST("/login", h.LoginAccount)
 			router.POST("/modifypasswd", h.ModifyPasswd)
@@ -51,6 +53,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/checkauthcode", h.CheckAuthCode)
 			router.POST("/resetpasswd", h.ResetPasswd)
 			router.GET("/getinfo", h.GetInfo, account.CheckAccountID)
+			router.GET("/getinfobypatid/:patientID", h.GetInfoByPatID)
 		}
 		router = app.Group("/api")
 		router.Use(account.CheckAccountID)
