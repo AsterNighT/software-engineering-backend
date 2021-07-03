@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/json"
+	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 	"io"
 	"io/ioutil"
 	"math"
@@ -478,6 +479,15 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 		if acc.Type == models.DoctorType {
 			if status == models.Accepted {
 				registration.Status = status
+
+				// to start a new chat
+				var patient models.Patient
+				db.First(&patient, registration.PatientID)
+				err = chat.StartNewChat(int(acc.ID), int(patient.AccountID), c)
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, api.Return("ok", "无法启动会话，请重试"))
+				}
+
 				db.Save(&registration)
 				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 			}
@@ -493,11 +503,12 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 		}
 	}
 	if currentStatus == models.Accepted {
-		if acc.Type == "doctor" {
+		if acc.Type == models.DoctorType {
 			if status == models.Terminated {
 				registration.Status = status
 				db.Save(&registration)
-				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+
+				return c.JSON(http.StatusOK, api.Return("ok", "成功修改挂号"))
 			}
 		}
 	}

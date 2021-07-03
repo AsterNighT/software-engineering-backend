@@ -2,6 +2,7 @@ package chat
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -231,14 +232,14 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	//Find doctor and patient in Clients[]
 
-	// if _, ok := Clients[doctorID]; !ok {
-	// 	ClientNotConnected(doctorID, Doctor, c)
-	// 	return c.JSON(400, api.Return("client not connected", nil))
-	// }
-	// if _, ok := Clients[patientID]; !ok {
-	// 	ClientNotConnected(patientID, Patient, c)
-	// 	return c.JSON(400, api.Return("client not connected", nil))
-	// }
+	if _, ok := Clients[doctorID]; !ok {
+		ClientNotConnected(doctorID, Doctor, c)
+		return errors.New("client not connected")
+	}
+	if _, ok := Clients[patientID]; !ok {
+		ClientNotConnected(patientID, Patient, c)
+		return errors.New("client not connected")
+	}
 
 	var doctor = Clients[doctorID]
 	var patient = Clients[patientID]
@@ -283,13 +284,13 @@ func StartNewChat(doctorID int, patientID int, c echo.Context) error {
 
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		return c.JSON(200, api.Return("marshal error", nil))
+		return err
 	}
 
 	doctor.MsgBuffer <- msgBytes
 	patient.MsgBuffer <- msgBytes
 
-	return c.JSON(200, api.Return("StartNewChat ok", nil))
+	return nil
 }
 
 //Read subroutine for client
