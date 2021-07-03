@@ -53,6 +53,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/checkauthcode", h.CheckAuthCode)
 			router.POST("/resetpasswd", h.ResetPasswd)
 			router.GET("/getinfo", h.GetInfo, account.CheckAccountID)
+			router.GET("/getinfobypatid/:patientID", h.GetInfoByPatID)
 		}
 		router = app.Group("/api")
 		router.Use(account.CheckAccountID)
