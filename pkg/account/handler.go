@@ -546,7 +546,7 @@ func getAccountID(c echo.Context) (uint, error) {
 	} else {
 		words := strings.Split(auth, "Bearer ")
 		if len(words) != 2 {
-			return 0, errors.New("Invalid Authorization Header")
+			return 0, errors.New("invalid authorization header")
 		}
 		auth = words[1]
 	}
