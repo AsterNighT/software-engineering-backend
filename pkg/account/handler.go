@@ -494,18 +494,20 @@ func (h *AccountHandler) GetInfo(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("Not logged in", nil))
 	}
 
+	fmtBirth := fmt.Sprintf("%04d-%02d-%02d", account.Birthday.Year(), account.Birthday.Month(), account.Birthday.Day())
+
 	if account.Type == "doctor" {
 		var doctor models.Doctor
 		if err := db.Where("account_id = ?", id).First(&doctor).Error; err != nil { // not found
 			return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for doctor", nil))
 		}
-		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": account.Birthday, "department": doctor.Department}))
+		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": fmtBirth, "department": doctor.Department}))
 	} else if account.Type == "patient" {
 		var patient models.Patient
 		if err := db.Where("account_id = ?", id).First(&patient).Error; err != nil { // not found
 			return c.JSON(http.StatusBadRequest, api.Return("Wrong account id for patient", nil))
 		}
-		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": account.Birthday, "allergy": patient.Allergy}))
+		return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": fmtBirth, "allergy": patient.Allergy}))
 	} else {
 		return c.JSON(http.StatusBadRequest, api.Return("Invalid account type: ", account.Type))
 	}
@@ -533,7 +535,10 @@ func (h *AccountHandler) GetInfoByPatID(c echo.Context) error {
 	if err := db.Where("id = ?", patient.AccountID).First(&account).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Account ID", nil))
 	}
-	return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": account.Birthday, "allergy": patient.Allergy}))
+
+	fmtBirth := fmt.Sprintf("%04d-%02d-%02d", account.Birthday.Year(), account.Birthday.Month(), account.Birthday.Day())
+
+	return c.JSON(http.StatusOK, api.Return("Successfully Get", echo.Map{"id": account.ID, "email": account.Email, "type": account.Type, "firstname": account.FirstName, "lastname": account.LastName, "gender": account.Gender, "birthday": fmtBirth, "allergy": patient.Allergy}))
 }
 
 /**
