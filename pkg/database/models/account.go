@@ -17,7 +17,7 @@ type Account struct {
 	LastName  string
 	Passwd    string // Considered as plaintext, but can be encrypted by frontend
 
-	Gender   string
+	Gender   string // male, female
 	Birthday time.Time
 }
 
