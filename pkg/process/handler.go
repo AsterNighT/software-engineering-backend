@@ -334,7 +334,12 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 
 	for i := range registrations {
 		var department models.Department
+		var patient models.Patient
+		var patientAccount models.Account
 		db.First(&department, registrations[i].DepartmentID)
+		db.First(&patient, registrations[i].PatientID)
+		db.First(&patientAccount, patient.AccountID)
+
 		registrationJSONs[i] = models.RegistrationJSON{
 			ID:         registrations[i].ID,
 			Department: department.Name,
@@ -343,9 +348,11 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 			Month:      registrations[i].Month,
 			Day:        registrations[i].Day,
 			HalfDay:    registrations[i].HalfDay,
+			Patient:    patientAccount.LastName + patientAccount.FirstName,
+			PatientID:  patientAccount.ID,
 		}
 	}
-	c.Logger().Debug("GetRegistrationsByPatient")
+	c.Logger().Debug("GetRegistrations")
 	return c.JSON(http.StatusOK, api.Return("ok", registrationJSONs))
 }
 
@@ -484,7 +491,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 				// to start a new chat
 				var patient models.Patient
 				db.First(&patient, registration.PatientID)
-				err = chat.StartNewChat(int(acc.ID), int(patient.AccountID), c)
+				err = chat.StartNewChat(acc.ID, patient.AccountID, c)
 				if err != nil {
 					return c.JSON(http.StatusInternalServerError, api.Return("ok", "无法启动会话，请重试"))
 				}
