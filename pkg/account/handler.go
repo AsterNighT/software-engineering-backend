@@ -35,7 +35,7 @@ type AccountHandler struct{}
 // @Param lastname body string true "user last name"
 // @Param passwd body string true "user password"
 // @Param birthday body string true "user birthday string in yyyy-mm-dd"
-// @Param gender body bool true "user gender {0: female, 1: male}"
+// @Param gender body string true "user gender"
 // @Success 200 {string} api.ReturnedData{data=nil}
 // @Failure 400 {string} api.ReturnedData{data=nil}
 // @Router /account/create [POST]
@@ -49,7 +49,7 @@ func (h *AccountHandler) CreateAccount(c echo.Context) error {
 		Passwd    string            `json:"passwd" validate:"required"`
 
 		BirthString string `json:"birthday" validate:"required"`
-		Gender      bool   `json:"gender" validate:"required"`
+		Gender      string `json:"gender" validate:"required"`
 	}
 
 	var body RequestBody
