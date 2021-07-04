@@ -124,6 +124,10 @@ type RegistrationJSON struct {
 	Month      int                    `json:"month"`
 	Day        int                    `json:"day"`
 	HalfDay    HalfDayEnum            `json:"halfday"`
+
+	// chat group need these two fields:
+	Patient   string `json:"patient"`
+	PatientID uint   `json:"patient_id"`
 }
 
 type RegistrationDetailJSON struct {
