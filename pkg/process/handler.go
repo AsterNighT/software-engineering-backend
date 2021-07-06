@@ -505,20 +505,24 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 					db.Save(&registration)
 					return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
 				}
-				return c.JSON(http.StatusBadRequest, api.Return("failed", "Missing terminated causes"))
+				return c.JSON(http.StatusBadRequest, api.Return("error", "Missing terminated causes"))
 			}
 		}
 	}
 	if currentStatus == models.Accepted {
 		if acc.Type == models.DoctorType {
 			if status == models.Terminated {
-				registration.Status = status
-				db.Save(&registration)
-				return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+				if terminatedCause != "" {
+					registration.Status = status
+					registration.TerminatedCause = terminatedCause
+					db.Save(&registration)
+					return c.JSON(http.StatusOK, api.Return("ok", "修改挂号成功"))
+				}
+				return c.JSON(http.StatusBadRequest, api.Return("error", "Missing terminated causes"))
 			}
 		}
 	}
-	return c.JSON(http.StatusBadRequest, api.Return("failed", models.RegistrationUpdateFailed))
+	return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationUpdateFailed))
 }
 
 // CreateMileStoneByDoctor
