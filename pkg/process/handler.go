@@ -470,7 +470,6 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", err.Error()))
 	}
 	currentStatus := registration.Status
-	registration.Status = status
 	var acc models.Account
 	err = db.Where("id = ?", c.Get("id").(uint)).First(&acc).Error
 	if err != nil {
@@ -493,7 +492,7 @@ func (h *ProcessHandler) UpdateRegistrationStatus(c echo.Context) error {
 				db.First(&patient, registration.PatientID)
 				err = chat.StartNewChat(acc.ID, patient.AccountID, c)
 				if err != nil {
-					return c.JSON(http.StatusInternalServerError, api.Return("ok", "无法启动会话，请重试"))
+					return c.JSON(http.StatusInternalServerError, api.Return("error", "无法启动会话，请重试"))
 				}
 
 				db.Save(&registration)
