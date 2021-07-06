@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 
@@ -325,7 +326,15 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 		}
 
-		db.Where("doctor_id = ? AND status <> ?", doctor.ID, models.Terminated).Find(&registrations)
+		year, month, day := time.Now().Date()
+		hours, _, _ := time.Now().Clock()
+		halfday := models.Morning
+
+		if hours >= 12 {
+			halfday = models.Afternoon
+		}
+		db.Where("doctor_id = ? AND status <> ? AND year = ? AND month = ? AND day = ? AND half_day = ?",
+			doctor.ID, models.Terminated, year, int(month), day, halfday).Find(&registrations)
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
