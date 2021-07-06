@@ -325,7 +325,7 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 		}
 
-		db.Where("doctor_id = ?", doctor.ID).Find(&registrations)
+		db.Where("doctor_id = ? AND status <> ?", doctor.ID, models.Terminated).Find(&registrations)
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
