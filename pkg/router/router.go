@@ -100,7 +100,7 @@ func RegisterRouters(app *echo.Echo) error {
 			router.POST("/registrations", h.CreateRegistrationTX)
 			router.GET("/registrations", h.GetRegistrations)
 			router.GET("/registration/:registrationID", h.GetRegistrationByID)
-			router.PUT("/registration/:RegistrationID", h.UpdateRegistrationStatus)
+			router.PUT("/registration/:registrationID", h.UpdateRegistrationStatus)
 			router.POST("/milestones", h.CreateMileStoneByDoctor)
 			router.PUT("/milestone/:mileStoneID", h.UpdateMileStoneByDoctor)
 			router.DELETE("/milestone/:mileStoneID", h.DeleteMileStoneByDoctor)
