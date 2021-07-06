@@ -42,6 +42,7 @@ const (
 	SendPrescription  ServerMsgType = 9
 	SendQuestions     ServerMsgType = 10
 	ChatTerminated    ServerMsgType = 11
+	Infrom            ServerMsgType = 12
 )
 
 type Client struct {
@@ -291,6 +292,29 @@ func StartNewChat(doctorID uint, patientID uint, c echo.Context) error {
 	doctor.MsgBuffer <- msgBytes
 	patient.MsgBuffer <- msgBytes
 
+	return nil
+}
+
+func InformClient(doctorID uint, c echo.Context) error {
+
+	//Find doctor and patient in Clients[]
+	if _, ok := Clients[doctorID]; !ok {
+		ClientNotConnected(doctorID, Doctor, c)
+		return errors.New("client not connected")
+	}
+	var doctor = Clients[doctorID]
+
+	//send Inform pkg to doctor
+	msg := Message{
+		Type: int(Infrom),
+	}
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	doctor.MsgBuffer <- msgBytes
 	return nil
 }
 
