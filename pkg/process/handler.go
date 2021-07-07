@@ -274,7 +274,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		var patientAccount models.Account
 		var doctor models.Doctor
 		var doctorAccount models.Account
-		db.First(&patientAccount, registration.PatientID)
+		db.First(&patientAccount, patient.AccountID)
 		db.First(&doctor, registration.DoctorID)
 		db.First(&doctorAccount, doctor.AccountID)
 
@@ -384,6 +384,9 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
+	var doctorName string
+	var patientName string
+
 	// judge account type
 	if acc.Type == models.PatientType {
 		// get patient
@@ -397,6 +400,16 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
+
+		var patientAccount models.Account
+		db.First(&patientAccount, patient.AccountID)
+		patientName = patientAccount.LastName + patientAccount.FirstName
+
+		var doctor models.Doctor
+		var doctorAccount models.Account
+		db.First(&doctor, registration.DoctorID)
+		db.First(&doctorAccount, doctor.AccountID)
+		doctorName = doctorAccount.LastName + doctorAccount.FirstName
 	} else if acc.Type == models.DoctorType {
 		// get doctor
 		var doctor models.Doctor
@@ -409,25 +422,30 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
+
+		var doctorAccount models.Account
+		db.First(&doctorAccount, doctor.AccountID)
+		doctorName = doctorAccount.LastName + doctorAccount.FirstName
+
+		var patient models.Patient
+		var patientAccount models.Account
+
+		db.First(&patient, registration.PatientID)
+		db.First(&patientAccount, patient.AccountID)
+		patientName = patientAccount.LastName + patientAccount.FirstName
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
 	// get names
 	var department models.Department
-	var patientAccount models.Account
-	var doctor models.Doctor
-	var doctorAccount models.Account
 	db.First(&department, registration.DepartmentID)
-	db.First(&patientAccount, registration.PatientID)
-	db.First(&doctor, registration.DoctorID)
-	db.First(&doctorAccount, doctor.AccountID)
 
 	registrationJSON := models.RegistrationDetailJSON{
 		ID:              registration.ID,
 		Department:      department.Name,
-		Patient:         patientAccount.LastName + patientAccount.FirstName,
-		Doctor:          doctorAccount.LastName + doctorAccount.FirstName,
+		Patient:         patientName,
+		Doctor:          doctorName,
 		Year:            registration.Year,
 		Month:           registration.Month,
 		Day:             registration.Day,
