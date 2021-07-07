@@ -601,7 +601,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateMileStoneFailed))
 	}
 
-	return c.JSON(http.StatusOK, api.Return("ok", nil))
+	return c.JSON(http.StatusOK, api.Return("ok", mileStone.ID))
 }
 
 // UpdateMileStoneByDoctor
