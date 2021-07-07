@@ -598,8 +598,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Router /milestone/{mileStoneID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	type MileStoneSubmitJSON struct {
-		Activity string `json:"activity"`
-		Checked  bool   `json:"checked"`
+		Checked bool `json:"checked"`
 	}
 
 	// extract submit data
@@ -634,7 +633,6 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneUnauthorized))
 	}
 
-	mileStone.Activity = submit.Activity
 	mileStone.Checked = submit.Checked
 
 	db.Save(&mileStone)
