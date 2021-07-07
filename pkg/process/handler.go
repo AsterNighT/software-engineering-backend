@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AsterNighT/software-engineering-backend/pkg/chat"
 
@@ -273,7 +274,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		var patientAccount models.Account
 		var doctor models.Doctor
 		var doctorAccount models.Account
-		db.First(&patientAccount, registration.PatientID)
+		db.First(&patientAccount, patient.AccountID)
 		db.First(&doctor, registration.DoctorID)
 		db.First(&doctorAccount, doctor.AccountID)
 
@@ -325,7 +326,15 @@ func (h *ProcessHandler) GetRegistrations(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.DoctorNotFound))
 		}
 
-		db.Where("doctor_id = ? AND status <> ?", doctor.ID, models.Terminated).Find(&registrations)
+		year, month, day := time.Now().Date()
+		hours, _, _ := time.Now().Clock()
+		halfday := models.Morning
+
+		if hours >= 12 {
+			halfday = models.Afternoon
+		}
+		db.Where("doctor_id = ? AND status <> ? AND year = ? AND month = ? AND day = ? AND half_day = ?",
+			doctor.ID, models.Terminated, year, int(month), day, halfday).Find(&registrations)
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
@@ -375,6 +384,9 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
+	var doctorName string
+	var patientName string
+
 	// judge account type
 	if acc.Type == models.PatientType {
 		// get patient
@@ -388,6 +400,16 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
+
+		var patientAccount models.Account
+		db.First(&patientAccount, patient.AccountID)
+		patientName = patientAccount.LastName + patientAccount.FirstName
+
+		var doctor models.Doctor
+		var doctorAccount models.Account
+		db.First(&doctor, registration.DoctorID)
+		db.First(&doctorAccount, doctor.AccountID)
+		doctorName = doctorAccount.LastName + doctorAccount.FirstName
 	} else if acc.Type == models.DoctorType {
 		// get doctor
 		var doctor models.Doctor
@@ -400,25 +422,30 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, api.Return("error", models.RegistrationNotFound))
 		}
+
+		var doctorAccount models.Account
+		db.First(&doctorAccount, doctor.AccountID)
+		doctorName = doctorAccount.LastName + doctorAccount.FirstName
+
+		var patient models.Patient
+		var patientAccount models.Account
+
+		db.First(&patient, registration.PatientID)
+		db.First(&patientAccount, patient.AccountID)
+		patientName = patientAccount.LastName + patientAccount.FirstName
 	} else {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
 	// get names
 	var department models.Department
-	var patientAccount models.Account
-	var doctor models.Doctor
-	var doctorAccount models.Account
 	db.First(&department, registration.DepartmentID)
-	db.First(&patientAccount, registration.PatientID)
-	db.First(&doctor, registration.DoctorID)
-	db.First(&doctorAccount, doctor.AccountID)
 
 	registrationJSON := models.RegistrationDetailJSON{
 		ID:              registration.ID,
 		Department:      department.Name,
-		Patient:         patientAccount.LastName + patientAccount.FirstName,
-		Doctor:          doctorAccount.LastName + doctorAccount.FirstName,
+		Patient:         patientName,
+		Doctor:          doctorName,
 		Year:            registration.Year,
 		Month:           registration.Month,
 		Day:             registration.Day,
@@ -574,7 +601,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.CreateMileStoneFailed))
 	}
 
-	return c.JSON(http.StatusOK, api.Return("ok", nil))
+	return c.JSON(http.StatusOK, api.Return("ok", mileStone.ID))
 }
 
 // UpdateMileStoneByDoctor
@@ -589,8 +616,7 @@ func (h *ProcessHandler) CreateMileStoneByDoctor(c echo.Context) error {
 // @Router /milestone/{mileStoneID} [PUT]
 func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 	type MileStoneSubmitJSON struct {
-		Activity string `json:"activity"`
-		Checked  bool   `json:"checked"`
+		Checked bool `json:"checked"`
 	}
 
 	// extract submit data
@@ -625,7 +651,6 @@ func (h *ProcessHandler) UpdateMileStoneByDoctor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, api.Return("error", models.MileStoneUnauthorized))
 	}
 
-	mileStone.Activity = submit.Activity
 	mileStone.Checked = submit.Checked
 
 	db.Save(&mileStone)
