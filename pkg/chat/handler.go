@@ -3,7 +3,8 @@ package chat
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+
+	//"fmt"
 	"net/http"
 	"strconv"
 
@@ -41,6 +42,7 @@ const (
 	SendPrescription  ServerMsgType = 9
 	SendQuestions     ServerMsgType = 10
 	ChatTerminated    ServerMsgType = 11
+	Infrom            ServerMsgType = 12
 )
 
 type Client struct {
@@ -73,11 +75,11 @@ var (
 
 //Add a new client into pool
 func AddClient(client *Client, c echo.Context) {
-	fmt.Printf("ChatServer$ AddClient(): clientID: %d\n", client.ID)
+	//fmt.Printf("ChatServer$ AddClient(): clientID: %d\n", client.ID)
 
 	c.Logger().Debug("ChatServer$: New client connected")
 	Clients[client.ID] = client
-	fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
+	//fmt.Printf("ChatServer$ AddClient(): Clients number: %d\n", len(Clients))
 
 	//for test
 
@@ -104,9 +106,9 @@ func DeleteClient(client *Client, c echo.Context) {
 		}
 	}
 	delete(Connections, client.ID)
-	fmt.Printf("ChatServer$ DeleteClient(): clientID: %d\n", client.ID)
-	fmt.Printf("ChatServer$ DeleteClient(): Clients number: %d\n", len(Clients))
-	fmt.Printf("ChatServer$ DeleteClient(): Connections number: %d\n", len(Connections))
+	// fmt.Printf("ChatServer$ DeleteClient(): clientID: %d\n", client.ID)
+	// fmt.Printf("ChatServer$ DeleteClient(): Clients number: %d\n", len(Clients))
+	// fmt.Printf("ChatServer$ DeleteClient(): Connections number: %d\n", len(Connections))
 }
 
 type ChatHandler struct {
@@ -121,19 +123,19 @@ type ChatHandler struct {
 // @Router /patient/{patientID}/chat [POST]
 func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 
-	fmt.Println("ChatServer$: NewPatientConn()")
+	//fmt.Println("ChatServer$: NewPatientConn()")
 
 	//return c.JSON(400, api.Return("Patient Upgrade Fail", nil))
 	c.Logger().Debug("ChatServer$: NewPatientConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		c.Logger().Debug(err)
+		c.Logger().Debug(err.Error())
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	patientID, err := strconv.Atoi(c.Param("patientID"))
 	if err != nil {
-		c.Logger().Debug(err)
+		c.Logger().Debug(err.Error())
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -159,16 +161,16 @@ func (h *ChatHandler) NewPatientConn(c echo.Context) error {
 // @Router /doctor/{doctorID}/chat [POST]
 func (h *ChatHandler) NewDoctorConn(c echo.Context) error {
 
-	fmt.Println("ChatServer$: NewDoctorConn()")
+	//fmt.Println("ChatServer$: NewDoctorConn()")
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		c.Logger().Debug(err)
+		c.Logger().Debug(err.Error())
 		return c.JSON(400, api.Return("Upgrade Fail", nil))
 	}
 
 	doctorID, err := strconv.Atoi(c.Param("doctorID"))
 	if err != nil {
-		c.Logger().Debug(err)
+		c.Logger().Debug(err.Error())
 		return c.JSON(400, api.Return("Invalid ID", nil))
 	}
 	newClient := &Client{
@@ -293,6 +295,29 @@ func StartNewChat(doctorID uint, patientID uint, c echo.Context) error {
 	return nil
 }
 
+func InformClient(doctorID uint, c echo.Context) error {
+
+	//Find doctor and patient in Clients[]
+	if _, ok := Clients[doctorID]; !ok {
+		ClientNotConnected(doctorID, Doctor, c)
+		return errors.New("client not connected")
+	}
+	var doctor = Clients[doctorID]
+
+	//send Inform pkg to doctor
+	msg := Message{
+		Type: int(Infrom),
+	}
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	doctor.MsgBuffer <- msgBytes
+	return nil
+}
+
 //Read subroutine for client
 func (client *Client) Read(c echo.Context) {
 	defer func() { //delete the client from pool
@@ -308,8 +333,12 @@ func (client *Client) Read(c echo.Context) {
 			c.Logger().Debug("ChatServer$: Read():" + err.Error())
 			break
 		}
-		fmt.Println("ChatServer$: " + string(message))
-		client.ProcessMessage(message, c)
+
+		retrieve := string(message)
+		//fmt.Println("ChatServer$: " + retrieve)
+		if retrieve != "ping!" {
+			client.ProcessMessage(message, c)
+		}
 	}
 }
 
@@ -381,7 +410,7 @@ func (client *Client) MsgFromClient(message *Message, c echo.Context) {
 		client.ReceiverNotConnected(message, c)
 		return
 	}
-	fmt.Printf("ChatServer:$ ReceiverID: %d\n", receiver.ID)
+	//fmt.Printf("ChatServer:$ ReceiverID: %d\n", receiver.ID)
 
 	msg := Message{
 		Type:       int(MsgFromServer),
@@ -480,7 +509,7 @@ func (client *Client) RequireQuestions(message *Message, c echo.Context) {
 	db.Where("account_id = ?", client.ID).Find(&doc)
 	var depart models.Department
 	db.Where("id = ?", doc.Department).Find(&depart)
-	fmt.Printf("ChatServer:$ Questions: %s\n", depart.Questions)
+	//fmt.Printf("ChatServer:$ Questions: %s\n", depart.Questions)
 	msg := Message{
 		Type:      int(SendQuestions),
 		Questions: depart.Questions,
