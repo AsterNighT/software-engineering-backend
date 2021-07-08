@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"math"
@@ -205,7 +206,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 
 		// invalid schedule return and unlock
 		if err != nil || !models.ValidateSchedule(&schedule) {
-			return err
+			return errors.New("invalid schedule")
 		} else if schedule.Current >= schedule.Capacity {
 			c.Logger().Error(models.NotEnoughCapacity)
 			return err
