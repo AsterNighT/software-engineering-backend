@@ -528,7 +528,7 @@ func (h *AccountHandler) GetInfoByPatID(c echo.Context) error {
 	patID, _ := strconv.Atoi(c.Param("patientID"))
 	db, _ := c.Get("db").(*gorm.DB)
 
-	if err := db.Where("id = ?", patID).First(&patient).Error; err != nil { // not found
+	if err := db.Where("account_id = ?", patID).First(&patient).Error; err != nil { // not found
 		return c.JSON(http.StatusBadRequest, api.Return("Wrong Patient ID", nil))
 	}
 
