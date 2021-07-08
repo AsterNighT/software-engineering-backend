@@ -385,6 +385,7 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, api.Return("error", nil))
 	}
 
+	var doctorID uint
 	var doctorName string
 	var patientName string
 
@@ -410,6 +411,8 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		var doctorAccount models.Account
 		db.First(&doctor, registration.DoctorID)
 		db.First(&doctorAccount, doctor.AccountID)
+
+		doctorID = doctor.AccountID
 		doctorName = doctorAccount.LastName + doctorAccount.FirstName
 	} else if acc.Type == models.DoctorType {
 		// get doctor
@@ -447,6 +450,7 @@ func (h *ProcessHandler) GetRegistrationByID(c echo.Context) error {
 		Department:      department.Name,
 		Patient:         patientName,
 		Doctor:          doctorName,
+		DoctorID:        doctorID,
 		Year:            registration.Year,
 		Month:           registration.Month,
 		Day:             registration.Day,

@@ -134,6 +134,7 @@ type RegistrationDetailJSON struct {
 	ID              uint                   `json:"id"`
 	Department      string                 `json:"department"`
 	Doctor          string                 `json:"doctor"`
+	DoctorID        uint                   `json:"doctor_id"`
 	Patient         string                 `json:"patient"`
 	Year            int                    `json:"year"`
 	Month           int                    `json:"month"`
