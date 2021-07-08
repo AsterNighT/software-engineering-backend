@@ -257,6 +257,7 @@ func (h *ProcessHandler) CreateRegistrationTX(c echo.Context) error {
 		correspondingCase.DoctorID = doctors[minIndex].ID
 		correspondingCase.PatientID = patient.ID
 		correspondingCase.Department = department.Name
+		correspondingCase.Date = time.Date(registration.Year, time.Month(registration.Month), registration.Day, 10, 0, 0, 0, time.UTC)
 
 		dbErr := db.Where("department = ?", department.Name).Order("date DESC").Limit(1).First(&preCase)
 		if dbErr == nil {
